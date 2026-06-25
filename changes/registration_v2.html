@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form v2 &amp; User Management Module — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            transition: opacity 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-dark  { background: #3a3a5c; }
+        .btn-print { background: #1565c0; }
+
+        /* ── TOC Nav ── */
+        .toc {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+            padding: 20px 24px;
+            margin-bottom: 28px;
+        }
+        .toc h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 12px; }
+        .toc ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+        .toc ul li a {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 20px;
+            background: #f4f6f9;
+            color: #333;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #e8e8e8;
+            transition: background .15s;
+        }
+        .toc ul li a:hover { background: #e3eaff; }
+
+        /* ── Layout ── */
+        .container {
+            max-width: 980px;
+            margin: 32px auto;
+            padding: 0 20px 80px;
+        }
+
+        .report-header {
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+            color: #fff;
+        }
+        .report-header.part-a { background: linear-gradient(135deg, #1565c0 0%, #0a2a6e 100%); }
+        .report-header.part-b { background: linear-gradient(135deg, #4a148c 0%, #1a0040 100%); }
+
+        .report-header .phase-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: .75;
+            margin-bottom: 8px;
+        }
+        .report-header h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+        .report-header p  { opacity: .85; font-size: 14px; max-width: 640px; }
+
+        .meta-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .meta-pill {
+            background: rgba(255,255,255,.15);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #aaa;
+            margin: 36px 0 14px;
+        }
+        .section-anchor { display: block; margin-top: -80px; padding-top: 80px; }
+
+        /* ── Cards ── */
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .card-header .num {
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+        .card-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+        .card-body { padding: 18px 20px; }
+        .card-body p { margin-bottom: 10px; color: #444; }
+        .card-body p:last-child { margin-bottom: 0; }
+
+        /* ── Severity colours ── */
+        .sev-styling  { background: #e3f2fd; color: #1565c0; }
+        .sev-ux       { background: #f3e5f5; color: #6a1b9a; }
+        .sev-resp     { background: #e8f5e9; color: #2e7d32; }
+        .sev-feature  { background: #fff3e0; color: #e65100; }
+        .sev-module   { background: #fce4ec; color: #880e4f; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .badge-styling  { background: #e3f2fd; color: #1565c0; }
+        .badge-ux       { background: #f3e5f5; color: #6a1b9a; }
+        .badge-resp     { background: #e8f5e9; color: #2e7d32; }
+        .badge-feature  { background: #fff3e0; color: #e65100; }
+        .badge-module   { background: #fce4ec; color: #880e4f; }
+        .badge-done     { background: #eafaf1; color: #1e8449; }
+        .badge-new      { background: #fff8e1; color: #f57f17; }
+
+        /* ── Code blocks ── */
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: 6px;
+            padding: 16px 18px;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-top: 12px;
+            line-height: 1.75;
+        }
+        .line-del     { color: #f38ba8; }
+        .line-add     { color: #a6e3a1; }
+        .line-comment { color: #6c7086; font-style: italic; }
+        .line-hl      { color: #fab387; }
+
+        .diff-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 4px; }
+        .diff-label.before { color: #c0392b; }
+        .diff-label.after  { color: #1e8449; }
+
+        .tag {
+            display: inline-block;
+            background: #eef;
+            color: #333;
+            border-radius: 4px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        /* ── Tables ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            background: #f4f6f9;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            border-bottom: 2px solid #e8e8e8;
+        }
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+
+        /* ── Module file tree ── */
+        .file-tree {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: 6px;
+            padding: 16px 18px;
+            font-size: 12px;
+            font-family: monospace;
+            line-height: 2;
+            margin-top: 12px;
+        }
+        .file-tree .dir  { color: #89b4fa; font-weight: 700; }
+        .file-tree .new  { color: #a6e3a1; }
+        .file-tree .ext  { color: #fab387; }
+        .file-tree .note { color: #6c7086; }
+
+        /* ── Info boxes ── */
+        .info-box {
+            background: #e8f5e9;
+            border-left: 4px solid #1e8449;
+            border-radius: 0 6px 6px 0;
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 14px;
+            color: #1b5e20;
+        }
+        .warn-box {
+            background: #fff3cd;
+            border-left: 4px solid #856404;
+            border-radius: 0 6px 6px 0;
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 14px;
+            color: #533f03;
+        }
+        .note-box {
+            background: #e3f2fd;
+            border-left: 4px solid #1565c0;
+            border-radius: 0 6px 6px 0;
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 14px;
+            color: #0d47a1;
+        }
+
+        /* ── Checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            padding: 7px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+
+        /* ── Feature grid ── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .feature-card {
+            background: #f8f9ff;
+            border-radius: 8px;
+            padding: 14px 16px;
+            border: 1px solid #e8e8e8;
+        }
+        .feature-card h4 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+        .feature-card p  { font-size: 12px; color: #666; margin: 0; }
+        .feature-card .fc-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; background: #e8f0ff; color: #1a56db; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-bottom: 6px; }
+        .feature-card.existing { border-left: 3px solid #1e8449; }
+        .feature-card.new-feat  { border-left: 3px solid #e65100; }
+
+        @media print {
+            .toolbar .btn { display: none; }
+            .toc { display: none; }
+        }
+        @media (max-width: 640px) {
+            .feature-grid { grid-template-columns: 1fr; }
+            .report-header { padding: 24px 20px; }
+            .container { padding: 0 12px 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; Registration v2 &amp; User Management Module</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128424; Print</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- TOC -->
+    <div class="toc">
+        <h4>Jump to section</h4>
+        <ul>
+            <li><a href="#part-a">Part A — Form Improvements</a></li>
+            <li><a href="#styling">Styling</a></li>
+            <li><a href="#responsive">Responsiveness</a></li>
+            <li><a href="#ux">UX Features</a></li>
+            <li><a href="#part-b">Part B — User Management Module</a></li>
+            <li><a href="#existing">What Already Exists</a></li>
+            <li><a href="#new-features">New Features</a></li>
+            <li><a href="#file-plan">File Plan</a></li>
+            <li><a href="#db">DB Changes</a></li>
+            <li><a href="#integration">Integration Map</a></li>
+            <li><a href="#checklist">Full Checklist</a></li>
+        </ul>
+    </div>
+
+    <!-- ═══════════════════════════════ PART A ═══════════════════════════════ -->
+    <span class="section-anchor" id="part-a"></span>
+    <div class="report-header part-a">
+        <div class="phase-label">Part A — usersadd.php</div>
+        <h2>Registration Form — Styling, Responsiveness &amp; UX Improvements</h2>
+        <p>13 improvements beyond accessibility — covering layout responsiveness, input UX, visual polish, and missing form features that would make the form production-ready.</p>
+        <div class="meta-row">
+            <span class="meta-pill">&#127912; 5 styling fixes</span>
+            <span class="meta-pill">&#128241; 3 responsive fixes</span>
+            <span class="meta-pill">&#9728; 5 UX additions</span>
+        </div>
+    </div>
+
+    <!-- ─── STYLING ─── -->
+    <span class="section-anchor" id="styling"></span>
+    <div class="section-title">Styling Improvements</div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-styling">S1</div>
+            <h3>Remove inline <code>&lt;style&gt;</code> — move to scoped CSS file or shared stylesheet</h3>
+            <span class="badge badge-styling">Styling</span>
+        </div>
+        <div class="card-body">
+            <p>The form embeds a <span class="tag">&lt;style&gt;</span> block of ~56 lines directly in the page. This means styles cannot be cached, shared, or reused. The same pattern exists in <span class="tag">profile.php</span> with nearly identical CSS.</p>
+            <div class="info-box">
+                <strong>Fix:</strong> Extract these styles to <span class="tag">assets/css/user-form.css</span> and include it from <span class="tag">header.php</span> only on user-related pages, or add a <span class="tag">$extraCss</span> variable pattern so the header includes page-specific sheets.
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-styling">S2</div>
+            <h3>Left avatar column is decorative-only — wastes layout space</h3>
+            <span class="badge badge-styling">Styling</span>
+        </div>
+        <div class="card-body">
+            <p>The <span class="tag">col-md-3</span> left column contains only a static silhouette image with no functionality. On a <em>create user</em> form this column adds no value — the image cannot be changed and there is no name beneath it because the fields are on the right.</p>
+            <div class="diff-label before">Current</div>
+            <pre><span class="line-del">&lt;div class="col-md-3 border-right"&gt;          &lt;!-- 25% of layout --&gt;</span>
+<span class="line-del">    &lt;img class="rounded-circle mt-5" width="150px" src="...silhouette..."&gt;</span>
+<span class="line-del">    &lt;span class="font-weight-bold"&gt;&lt;/span&gt;   &lt;!-- empty --&gt;</span>
+<span class="line-del">&lt;/div&gt;</span></pre>
+            <div class="diff-label after">Improved — replace with upload placeholder</div>
+            <pre><span class="line-add">&lt;div class="col-md-3 border-right text-center py-5"&gt;</span>
+<span class="line-add">    &lt;div class="avatar-upload-box" id="avatar-preview"&gt;</span>
+<span class="line-add">        &lt;img id="avatar-img" class="rounded-circle" width="130" src="...silhouette..."</span>
+<span class="line-add">             alt="Profile photo preview"&gt;</span>
+<span class="line-add">        &lt;label for="avatar-file" class="btn btn-sm btn-outline-secondary mt-3"&gt;</span>
+<span class="line-add">            &#128247; Upload Photo</span>
+<span class="line-add">        &lt;/label&gt;</span>
+<span class="line-add">        &lt;input type="file" id="avatar-file" name="avatar" accept="image/*" class="d-none"&gt;</span>
+<span class="line-add">    &lt;/div&gt;</span>
+<span class="line-add">&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-styling">S3</div>
+            <h3>Password label uses inline red style — replace with Bootstrap <code>text-danger</code></h3>
+            <span class="badge badge-styling">Styling</span>
+        </div>
+        <div class="card-body">
+            <p>Line 147: <span class="tag">&lt;h5 style="color: red;"&gt;ENTER PASSWORD&lt;/h5&gt;</span> uses both an inline style and wraps a label inside an <span class="tag">h5</span>. Labels should not contain headings — heading tags are for document structure, not visual size.</p>
+            <div class="diff-label before">Before</div>
+            <pre><span class="line-del">&lt;label class="labels"&gt;&lt;h5 style="color: red;"&gt;ENTER PASSWORD&lt;/h5&gt;&lt;/label&gt;</span></pre>
+            <div class="diff-label after">After</div>
+            <pre><span class="line-add">&lt;label class="labels fw-bold text-danger" for="password"&gt;Password &lt;span aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-styling">S4</div>
+            <h3>Add visible required-field indicator (* asterisk) on all mandatory fields</h3>
+            <span class="badge badge-styling">Styling</span>
+        </div>
+        <div class="card-body">
+            <p>There is no visual signal that any field is mandatory. Users discover errors only after clicking submit. WCAG 3.3.2 (Labels or Instructions) requires that required fields are identified before submission.</p>
+            <div class="diff-label after">Pattern to apply to every required label</div>
+            <pre><span class="line-add">&lt;label class="labels" for="fname"&gt;</span>
+<span class="line-add">    Name &lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;</span>
+<span class="line-add">&lt;/label&gt;</span></pre>
+            <div class="note-box">Add a legend above the form: <em>"Fields marked * are required."</em> so the asterisk meaning is explicit.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-styling">S5</div>
+            <h3>Add consistent spacing between form groups using <code>mb-3</code></h3>
+            <span class="badge badge-styling">Styling</span>
+        </div>
+        <div class="card-body">
+            <p>Field groups use a mix of <span class="tag">mt-2</span>, <span class="tag">mt-3</span>, and no margin. Bootstrap's <span class="tag">mb-3</span> on each field wrapper gives uniform vertical rhythm without custom margins.</p>
+            <div class="diff-label before">Current — inconsistent</div>
+            <pre><span class="line-del">&lt;div class="row mt-2"&gt; ... &lt;/div&gt;</span>
+<span class="line-del">&lt;div class="row mt-3"&gt; ... &lt;/div&gt;</span>
+<span class="line-del">&lt;div class="col-md-12"&gt; ... &lt;/div&gt;  &lt;!-- no margin --&gt;</span></pre>
+            <div class="diff-label after">After — uniform</div>
+            <pre><span class="line-add">&lt;div class="mb-3"&gt;</span>
+<span class="line-add">    &lt;label class="labels" for="fname"&gt;Name &lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span>
+<span class="line-add">    &lt;input type="text" id="fname" class="form-control" name="fname" ...&gt;</span>
+<span class="line-add">&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- ─── RESPONSIVENESS ─── -->
+    <span class="section-anchor" id="responsive"></span>
+    <div class="section-title">Responsiveness Improvements</div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-resp">R1</div>
+            <h3>Three-column layout does not stack on small screens</h3>
+            <span class="badge badge-resp">Responsive</span>
+        </div>
+        <div class="card-body">
+            <p>The form uses <span class="tag">col-md-3</span>, <span class="tag">col-md-5</span>, <span class="tag">col-md-4</span>. On screens below 768 px the columns stack but the avatar column (col-md-3) still appears first at full width, pushing the actual form fields below the fold.</p>
+            <div class="diff-label after">Fix — reorder with <code>order</code> utilities on mobile</div>
+            <pre><span class="line-add">&lt;div class="col-md-3 border-right order-md-1 order-2"&gt;  &lt;!-- avatar last on mobile --&gt;</span>
+<span class="line-add">&lt;div class="col-md-5 border-right order-md-2 order-1"&gt;  &lt;!-- fields first on mobile --&gt;</span>
+<span class="line-add">&lt;div class="col-md-4          order-md-3 order-3"&gt;  &lt;!-- roles third --&gt;</span></pre>
+            <div class="info-box">Also hide the avatar column entirely on mobile: add <span class="tag">d-none d-md-block</span> to the avatar column div — it provides no value on small screens.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-resp">R2</div>
+            <h3>Name fields use <code>col-md-6</code> but have no <code>col-12</code> fallback</h3>
+            <span class="badge badge-resp">Responsive</span>
+        </div>
+        <div class="card-body">
+            <p>The First Name / Last Name pair use <span class="tag">col-md-6</span> inside an already-narrow <span class="tag">col-md-5</span> parent. At the <span class="tag">md</span> breakpoint these become very narrow (~200 px each). On smaller screens they stack, but Bootstrap requires an explicit <span class="tag">col-12</span> (or <span class="tag">col-sm-12</span>) fallback.</p>
+            <div class="diff-label after">After</div>
+            <pre><span class="line-add">&lt;div class="col-12 col-md-6 mb-3"&gt;  &lt;!-- First name --&gt;&lt;/div&gt;</span>
+<span class="line-add">&lt;div class="col-12 col-md-6 mb-3"&gt;  &lt;!-- Second name --&gt;&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-resp">R3</div>
+            <h3>Submit button alignment breaks on mobile</h3>
+            <span class="badge badge-resp">Responsive</span>
+        </div>
+        <div class="card-body">
+            <p>The "ADD USERS" button uses <span class="tag">text-center</span> but is inside a narrow column that may not centre correctly on all viewports. Make it full-width on mobile.</p>
+            <div class="diff-label after">After</div>
+            <pre><span class="line-add">&lt;div class="mt-4 d-grid d-md-block text-md-center"&gt;</span>
+<span class="line-add">    &lt;button class="btn btn-primary adduser-button" type="button"&gt;</span>
+<span class="line-add">        ADD USER</span>
+<span class="line-add">    &lt;/button&gt;</span>
+<span class="line-add">&lt;/div&gt;</span></pre>
+            <div class="note-box"><span class="tag">d-grid</span> makes the button stretch full-width on mobile; <span class="tag">d-md-block</span> reverts it to auto-width on desktop.</div>
+        </div>
+    </div>
+
+    <!-- ─── UX ─── -->
+    <span class="section-anchor" id="ux"></span>
+    <div class="section-title">UX Feature Additions</div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-ux">U1</div>
+            <h3>Show / hide password toggle</h3>
+            <span class="badge badge-ux">UX</span>
+        </div>
+        <div class="card-body">
+            <p>Already implemented on the login form (Step 4.3) — missing here. The admin is manually typing the initial password so they need to see what they typed.</p>
+            <div class="diff-label after">After — wrap input in input-group</div>
+            <pre><span class="line-add">&lt;div class="input-group"&gt;</span>
+<span class="line-add">    &lt;input type="password" id="password" name="password" class="form-control"</span>
+<span class="line-add">           autocomplete="new-password" aria-required="true"&gt;</span>
+<span class="line-add">    &lt;button type="button" class="btn btn-outline-secondary toggle-pw"</span>
+<span class="line-add">            aria-label="Show password"&gt;</span>
+<span class="line-add">        &#128065;</span>
+<span class="line-add">    &lt;/button&gt;</span>
+<span class="line-add">&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-ux">U2</div>
+            <h3>Password strength meter</h3>
+            <span class="badge badge-ux">UX</span>
+        </div>
+        <div class="card-body">
+            <p>The admin sets the user's initial password with no guidance on strength. A simple progress bar that responds to <span class="tag">keyup</span> on the password field signals compliance with password policies.</p>
+            <div class="diff-label after">Add below the password field</div>
+            <pre><span class="line-add">&lt;div class="mt-1"&gt;</span>
+<span class="line-add">    &lt;div id="pw-strength-bar" class="progress" style="height:5px;"&gt;</span>
+<span class="line-add">        &lt;div id="pw-strength-fill" class="progress-bar" role="progressbar"</span>
+<span class="line-add">             style="width:0%"&gt;&lt;/div&gt;</span>
+<span class="line-add">    &lt;/div&gt;</span>
+<span class="line-add">    &lt;small id="pw-strength-label" class="text-muted"&gt;&lt;/small&gt;</span>
+<span class="line-add">&lt;/div&gt;</span></pre>
+            <pre><span class="line-comment">// In usersadd.js</span>
+<span class="line-add">$('#password').on('keyup', function () {</span>
+<span class="line-add">    const val = $(this).val();</span>
+<span class="line-add">    let score = 0;</span>
+<span class="line-add">    if (val.length >= 8) score++;</span>
+<span class="line-add">    if (/[A-Z]/.test(val)) score++;</span>
+<span class="line-add">    if (/[0-9]/.test(val)) score++;</span>
+<span class="line-add">    if (/[^A-Za-z0-9]/.test(val)) score++;</span>
+<span class="line-add">    const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];</span>
+<span class="line-add">    const colors  = ['', 'bg-danger', 'bg-warning', 'bg-info', 'bg-success'];</span>
+<span class="line-add">    $('#pw-strength-fill').css('width', (score * 25) + '%')</span>
+<span class="line-add">        .removeClass().addClass('progress-bar ' + colors[score]);</span>
+<span class="line-add">    $('#pw-strength-label').text(labels[score]);</span>
+<span class="line-add">});</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-ux">U3</div>
+            <h3>Real-time username availability check</h3>
+            <span class="badge badge-ux">UX</span>
+        </div>
+        <div class="card-body">
+            <p>Currently, a duplicate username error only surfaces after form submission. A <span class="tag">blur</span> AJAX ping to a lightweight check endpoint gives instant feedback and prevents a round-trip failure.</p>
+            <div class="diff-label after">JS — fire on blur of the username field</div>
+            <pre><span class="line-add">$('#uname').on('blur', function () {</span>
+<span class="line-add">    const val = $(this).val().trim();</span>
+<span class="line-add">    if (!val) return;</span>
+<span class="line-add">    $.getJSON(window.GRC.base + 'Project/usernamecheck.php', { uname: val }, function (res) {</span>
+<span class="line-add">        if (res.taken) {</span>
+<span class="line-add">            $('#uname').addClass('is-invalid');</span>
+<span class="line-add">            $('#uname-feedback').text('Username already taken.');</span>
+<span class="line-add">        } else {</span>
+<span class="line-add">            $('#uname').removeClass('is-invalid').addClass('is-valid');</span>
+<span class="line-add">        }</span>
+<span class="line-add">    });</span>
+<span class="line-add">});</span></pre>
+            <div class="note-box">Requires a new <span class="tag">usernamecheck.php</span> endpoint: <span class="tag">SELECT COUNT(*) FROM users WHERE username = ?</span> — returns <span class="tag">{"taken": true/false}</span>.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-ux">U4</div>
+            <h3>Client-side validation before AJAX submit</h3>
+            <span class="badge badge-ux">UX</span>
+        </div>
+        <div class="card-body">
+            <p>The current <span class="tag">usersaction.php</span> handler replies with the generic string <span class="tag">"FORM ERROR"</span> for every missing field, without indicating which field failed. A brief client-side pre-flight check is faster and more user-friendly.</p>
+            <div class="diff-label after">Pre-flight in usersadd.js — before the $.ajax call</div>
+            <pre><span class="line-add">function validateForm() {</span>
+<span class="line-add">    let valid = true;</span>
+<span class="line-add">    const required = ['fname', 'sname', 'uname', 'email', 'phone', 'password'];</span>
+<span class="line-add">    required.forEach(function (id) {</span>
+<span class="line-add">        const $el = $('#' + id);</span>
+<span class="line-add">        if (!$el.val().trim()) {</span>
+<span class="line-add">            $el.addClass('is-invalid');  valid = false;</span>
+<span class="line-add">        } else {</span>
+<span class="line-add">            $el.removeClass('is-invalid');</span>
+<span class="line-add">        }</span>
+<span class="line-add">    });</span>
+<span class="line-add">    return valid;</span>
+<span class="line-add">}</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num sev-ux">U5</div>
+            <h3>Loading / disabled state on submit button</h3>
+            <span class="badge badge-ux">UX</span>
+        </div>
+        <div class="card-body">
+            <p>Already done on the login button (Step 4.1). The same pattern prevents double-submission and gives visual feedback during the AJAX request.</p>
+            <div class="diff-label after">In the AJAX call wrapper</div>
+            <pre><span class="line-add">$btn.prop('disabled', true).html('&#9203; Adding user…');</span>
+<span class="line-comment">// complete callback:</span>
+<span class="line-add">$btn.prop('disabled', false).text('ADD USER');</span></pre>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════ PART B ═══════════════════════════════ -->
+    <span class="section-anchor" id="part-b"></span>
+    <div class="report-header part-b" style="margin-top:40px;">
+        <div class="phase-label">Part B — New Module</div>
+        <h2>User Management Module</h2>
+        <p>A complete plan to consolidate and extend the scattered user-related pages into a coherent, integrated module — with role management, access control, activity audit, and department-based filtering.</p>
+        <div class="meta-row">
+            <span class="meta-pill">&#128196; 6 existing files consolidated</span>
+            <span class="meta-pill">&#128196; 9 new files planned</span>
+            <span class="meta-pill">&#128202; 1 stats dashboard</span>
+            <span class="meta-pill">&#9965; Fully ARIA-compliant</span>
+        </div>
+    </div>
+
+    <!-- EXISTING FILES -->
+    <span class="section-anchor" id="existing"></span>
+    <div class="section-title">What Already Exists</div>
+    <div class="card">
+        <div class="card-body" style="padding:0;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Purpose</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="tag">Project/userslist.php</span></td>
+                        <td>Lists all users — table with Active/Suspended badges, Profile link</td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/usersadd.php</span></td>
+                        <td>Add new user form — broken (no handler, missing data)</td>
+                        <td><span class="badge badge-new">Needs Fix</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/usersaction.php</span></td>
+                        <td>Handler for creating a new user — uses AuthGuard + usersClass</td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/profile.php</span></td>
+                        <td>View/edit an individual user profile — accepts <span class="tag">?id=</span></td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/profileaction.php</span></td>
+                        <td>Handles profile edits</td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/permissions.php</span></td>
+                        <td>Lists permission rows</td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/permissionedit.php</span></td>
+                        <td>Edit permissions for a user — 20-column permission table</td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/permissionaction.php</span></td>
+                        <td>Handler for updating permissions</td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">Project/users/usersClass.php</span></td>
+                        <td>ORM — addusers, fetchusers, profile, permission, updatepermission</td>
+                        <td><span class="badge badge-done">Exists</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- GAP ANALYSIS -->
+    <div class="section-title">Gaps in the Current Setup</div>
+    <div class="card">
+        <div class="card-body">
+            <ul class="checklist">
+                <li><span class="icon">&#10060;</span> <strong>Suspend / Activate toggle</strong> — the Active/Suspended badges in userslist.php are non-clickable; the <span class="tag">access</span> column in the DB is never updated</li>
+                <li><span class="icon">&#10060;</span> <strong>Delete user</strong> — no delete method in usersClass, no handler, no UI button</li>
+                <li><span class="icon">&#10060;</span> <strong>No getDepartments() method</strong> — usersadd.php references <span class="tag">$showdept</span> which is never populated; need <span class="tag">$deptClass-&gt;showDept()</span></li>
+                <li><span class="icon">&#10060;</span> <strong>No admin password reset</strong> — admins cannot force-reset another user's password</li>
+                <li><span class="icon">&#10060;</span> <strong>No user statistics dashboard</strong> — total users, by role, by department</li>
+                <li><span class="icon">&#10060;</span> <strong>No search or filter on user list</strong> — only the datatable's built-in client-side search</li>
+                <li><span class="icon">&#10060;</span> <strong>No activity audit per user</strong> — cannot see what actions a specific user has taken</li>
+                <li><span class="icon">&#10060;</span> <strong>No profile photo upload</strong> — silhouette placeholder only, no upload path</li>
+                <li><span class="icon">&#10060;</span> <strong>No email duplicate check</strong> — two users could be registered with the same email</li>
+                <li><span class="icon">&#10060;</span> <strong>No module nav entry</strong> — User Management is not in nav.php; accessible only by direct URL</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- NEW FEATURES -->
+    <span class="section-anchor" id="new-features"></span>
+    <div class="section-title">New Features — Full Module Plan</div>
+
+    <div class="feature-grid">
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128202; User Stats Dashboard</h4>
+            <p>Card row at top of userslist.php: Total Users, Active, Suspended, Admins, Users by Department. Single SQL aggregate query.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#9654; Suspend / Activate Toggle</h4>
+            <p>Make the Active/Suspended badge a clickable AJAX button that flips the <span class="tag">access</span> column (0/1) via a new <span class="tag">useraccessaction.php</span> handler.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128465; Delete User</h4>
+            <p>Soft-delete pattern: add a <span class="tag">deleted_at</span> column — don't physically remove rows. Add <span class="tag">deleteUser()</span> to usersClass and a confirmation SweetAlert before action.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128274; Admin Password Reset</h4>
+            <p>A "Reset Password" button on the profile page that sets a temporary password and forces <span class="tag">first_login=1</span>, requiring the user to change it on next sign-in.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128269; Department Filter on User List</h4>
+            <p>A <span class="tag">&lt;select&gt;</span> above the table that filters visible rows by department using JS — no page reload needed since the datatable holds all rows client-side.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128247; Profile Photo Upload</h4>
+            <p>File input on both usersadd.php and profile.php. Validate MIME type server-side (<span class="tag">image/jpeg</span>, <span class="tag">image/png</span>), store in <span class="tag">assets/images/avatars/{uid}.jpg</span>, save path in <span class="tag">users.avatar</span> column.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128203; User Activity Log</h4>
+            <p>A tab on the profile page that queries <span class="tag">activity_log</span> filtered by <span class="tag">uid</span> — shows the last 50 actions taken by that user with timestamps.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128190; Export User List (CSV)</h4>
+            <p>A single "Export CSV" button on userslist.php. PHP generates the CSV on the fly from <span class="tag">fetchusers()</span> with <span class="tag">Content-Disposition: attachment</span> headers — no library needed.</p>
+        </div>
+        <div class="feature-card existing">
+            <div class="fc-badge" style="background:#e8f5e9;color:#2e7d32;">Enhance</div>
+            <h4>&#128100; Permission Management</h4>
+            <p>Already in permissionedit.php. Improvement: add duplicate-id fix (all checkboxes share <span class="tag">id="checkbox1"</span>), give each a unique id matching its <span class="tag">name</span> attribute.</p>
+        </div>
+        <div class="feature-card new-feat">
+            <div class="fc-badge">New</div>
+            <h4>&#128681; Role-Based Access on Module Nav</h4>
+            <p>Show the "User Management" nav item only to Administrators (role=1). Wrap nav link in a PHP check: <span class="tag">if ($_SESSION['roles'] == 1)</span>.</p>
+        </div>
+    </div>
+
+    <!-- FILE PLAN -->
+    <span class="section-anchor" id="file-plan"></span>
+    <div class="section-title">File Plan — New Files to Create</div>
+    <div class="card">
+        <div class="card-body" style="padding: 4px 0;">
+            <div class="file-tree">
+<span class="dir">Project/</span>
+│
+├── <span class="ext">usersadd.php</span>         <span class="note">← fix existing (Parts A + registration report)</span>
+├── <span class="new">usersaddaction.php</span>   <span class="note">← NEW: AJAX handler with Response + AuthGuard + CSRF</span>
+├── <span class="new">usernamecheck.php</span>    <span class="note">← NEW: username availability endpoint</span>
+├── <span class="new">useraccessaction.php</span> <span class="note">← NEW: toggle access (suspend/activate)</span>
+├── <span class="new">userdeleteaction.php</span> <span class="note">← NEW: soft-delete user</span>
+├── <span class="new">userresetpw.php</span>      <span class="note">← NEW: admin force-password-reset</span>
+├── <span class="new">userexport.php</span>       <span class="note">← NEW: CSV export of user list</span>
+│
+├── <span class="ext">profile.php</span>          <span class="note">← enhance: photo upload + activity log tab</span>
+├── <span class="ext">profileaction.php</span>    <span class="note">← enhance: handle photo upload</span>
+├── <span class="ext">userslist.php</span>        <span class="note">← enhance: stats cards + dept filter + export btn</span>
+│
+<span class="dir">Project/users/</span>
+│   └── <span class="ext">usersClass.php</span>   <span class="note">← add: deleteUser(), toggleAccess(), getStats(), getDepartmentList()</span>
+│
+<span class="dir">assets/js/</span>
+│   └── <span class="new">usermanagement.js</span>  <span class="note">← NEW: all AJAX handlers for the module</span>
+│
+<span class="dir">assets/images/avatars/</span>
+│   └── <span class="note">← NEW folder: user profile photos stored here</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW METHODS IN usersClass -->
+    <div class="section-title">New Methods to Add to <code>usersClass.php</code></div>
+    <div class="card">
+        <div class="card-body">
+            <pre><span class="line-comment">// Toggle access (0 = suspended, 1 = active)</span>
+<span class="line-add">public function toggleAccess(string $uid): string {</span>
+<span class="line-add">    $stmt = $this->prepare("UPDATE users SET access = 1 - access WHERE id = ?");</span>
+<span class="line-add">    $stmt->bind_param('s', $uid);</span>
+<span class="line-add">    $stmt->execute();</span>
+<span class="line-add">    return $stmt->affected_rows > 0 ? "Access updated" : "No change";</span>
+<span class="line-add">}</span>
+
+<span class="line-comment">// Soft delete — set deleted_at timestamp</span>
+<span class="line-add">public function deleteUser(string $uid): bool {</span>
+<span class="line-add">    $stmt = $this->prepare("UPDATE users SET deleted_at = NOW() WHERE id = ?");</span>
+<span class="line-add">    $stmt->bind_param('s', $uid);</span>
+<span class="line-add">    $stmt->execute();</span>
+<span class="line-add">    return $stmt->affected_rows > 0;</span>
+<span class="line-add">}</span>
+
+<span class="line-comment">// Dashboard stats aggregate</span>
+<span class="line-add">public function getStats(): array {</span>
+<span class="line-add">    $row = $this->fetchOne('users', null, null,</span>
+<span class="line-add">        "SELECT COUNT(*) total,</span>
+<span class="line-add">                SUM(access=1) active,</span>
+<span class="line-add">                SUM(access=0) suspended,</span>
+<span class="line-add">                SUM(roles=1) admins</span>
+<span class="line-add">         FROM users WHERE deleted_at IS NULL");</span>
+<span class="line-add">    return $row ?? [];</span>
+<span class="line-add">}</span>
+
+<span class="line-comment">// Username availability check</span>
+<span class="line-add">public function usernameExists(string $uname): bool {</span>
+<span class="line-add">    $row = $this->fetchOne('users', 'username', $uname);</span>
+<span class="line-add">    return $row !== null;</span>
+<span class="line-add">}</span>
+
+<span class="line-comment">// Proxy to departmentClass for use in user forms</span>
+<span class="line-add">public function getDepartmentList(): array {</span>
+<span class="line-add">    require_once __DIR__ . '/../department/departmentClass.php';</span>
+<span class="line-add">    return (new departmentClass())->showDept();</span>
+<span class="line-add">}</span></pre>
+        </div>
+    </div>
+
+    <!-- DB CHANGES -->
+    <span class="section-anchor" id="db"></span>
+    <div class="section-title">Database Changes Required</div>
+    <div class="card">
+        <div class="card-body" style="padding:0;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Table</th>
+                        <th>Change</th>
+                        <th>SQL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="tag">users</span></td>
+                        <td>Soft-delete support</td>
+                        <td><span class="tag">ALTER TABLE users ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL;</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">users</span></td>
+                        <td>Profile photo path</td>
+                        <td><span class="tag">ALTER TABLE users ADD COLUMN avatar VARCHAR(255) NULL DEFAULT NULL;</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">users</span></td>
+                        <td>Add unique constraint on email</td>
+                        <td><span class="tag">ALTER TABLE users ADD UNIQUE KEY uq_email (email);</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">users</span></td>
+                        <td>Add unique constraint on username</td>
+                        <td><span class="tag">ALTER TABLE users ADD UNIQUE KEY uq_username (username);</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag">fetchusers()</span></td>
+                        <td>Exclude soft-deleted users in list</td>
+                        <td>Update <span class="tag">fetchAll</span> call to use a WHERE clause: <span class="tag">WHERE deleted_at IS NULL</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- INTEGRATION MAP -->
+    <span class="section-anchor" id="integration"></span>
+    <div class="section-title">Integration Map — How It Connects to the System</div>
+    <div class="card">
+        <div class="card-body">
+            <pre><span class="line-hl">systemover.php (main dashboard)</span>
+    │
+    ├── (Admin only) User Management  ──→  <span class="line-add">userslist.php</span>
+    │                                          │
+    │                              ┌───────────┼────────────┐
+    │                              ▼           ▼            ▼
+    │                        <span class="line-add">usersadd.php</span>  profile.php  Export CSV
+    │                              │           │
+    │                              ▼           ▼
+    │                    <span class="line-add">usersaddaction.php</span>  <span class="line-add">profileaction.php</span>
+    │                                          │
+    │                                     permissionedit.php
+    │                                          │
+    │                                   permissionaction.php
+    │
+    ├── Activity Log  ──→  activity_log table  ←── all modules write here
+    │                      (filtered by uid on profile.php activity tab)
+    │
+    └── nav.php  ←── add "Users" link (visible to roles=1 only)
+
+<span class="line-comment">Shared infrastructure (already built):</span>
+    AuthGuard.php   ← all action handlers call AuthGuard::require()
+    Response.php    ← all handlers return JSON via Response::success/error
+    BaseRepository  ← usersClass already extends this
+    ActivityLogger  ← add log calls to toggleAccess, deleteUser, resetPassword</pre>
+        </div>
+    </div>
+
+    <!-- FULL CHECKLIST -->
+    <span class="section-anchor" id="checklist"></span>
+    <div class="section-title">Full Implementation Checklist</div>
+
+    <div class="card">
+        <div class="card-body">
+            <p style="font-size:12px;color:#888;margin-bottom:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Part A — Form Fixes</p>
+            <ul class="checklist">
+                <li><span class="icon">&#9744;</span> [S1] Extract inline &lt;style&gt; to <span class="tag">assets/css/user-form.css</span></li>
+                <li><span class="icon">&#9744;</span> [S2] Replace avatar column with photo upload placeholder</li>
+                <li><span class="icon">&#9744;</span> [S3] Fix password label — remove <span class="tag">h5</span> inside label, remove inline <span class="tag">style="color:red"</span></li>
+                <li><span class="icon">&#9744;</span> [S4] Add <span class="tag">* required</span> indicators to all mandatory field labels</li>
+                <li><span class="icon">&#9744;</span> [S5] Replace mixed margin utilities with consistent <span class="tag">mb-3</span> on all field wrappers</li>
+                <li><span class="icon">&#9744;</span> [R1] Add <span class="tag">order-md-*</span> classes — avatar hidden on mobile, fields first</li>
+                <li><span class="icon">&#9744;</span> [R2] Add <span class="tag">col-12</span> alongside all <span class="tag">col-md-*</span> classes</li>
+                <li><span class="icon">&#9744;</span> [R3] Wrap submit button in <span class="tag">d-grid d-md-block</span> for full-width on mobile</li>
+                <li><span class="icon">&#9744;</span> [U1] Add show/hide password toggle to the password field</li>
+                <li><span class="icon">&#9744;</span> [U2] Add password strength meter below password field</li>
+                <li><span class="icon">&#9744;</span> [U3] Add real-time username availability check on blur</li>
+                <li><span class="icon">&#9744;</span> [U4] Add client-side pre-flight validation before submit</li>
+                <li><span class="icon">&#9744;</span> [U5] Add loading/disabled state to submit button during AJAX</li>
+            </ul>
+
+            <p style="font-size:12px;color:#888;margin:20px 0 12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Part B — User Management Module</p>
+            <ul class="checklist">
+                <li><span class="icon">&#9744;</span> Run 4 ALTER TABLE statements in <span class="tag">db/grc.sql</span> and phpMyAdmin</li>
+                <li><span class="icon">&#9744;</span> Add 5 new methods to <span class="tag">usersClass.php</span>: toggleAccess, deleteUser, getStats, usernameExists, getDepartmentList</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">assets/images/avatars/</span> folder (writable by PHP)</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">Project/usersaddaction.php</span> — AJAX handler with Response + CSRF + AuthGuard</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">Project/usernamecheck.php</span> — username availability endpoint</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">Project/useraccessaction.php</span> — toggle user active/suspended</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">Project/userdeleteaction.php</span> — soft-delete user</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">Project/userresetpw.php</span> — admin force-reset password</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">Project/userexport.php</span> — CSV export</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">assets/js/usermanagement.js</span> — all AJAX handlers for the module</li>
+                <li><span class="icon">&#9744;</span> Enhance <span class="tag">userslist.php</span> — add stats cards, dept filter, export button, clickable access badges</li>
+                <li><span class="icon">&#9744;</span> Enhance <span class="tag">profile.php</span> — add activity log tab, photo upload</li>
+                <li><span class="icon">&#9744;</span> Fix permission checkboxes in <span class="tag">permissionedit.php</span> — all share <span class="tag">id="checkbox1"</span></li>
+                <li><span class="icon">&#9744;</span> Add "User Management" nav item in <span class="tag">layout/nav.php</span> — visible to <span class="tag">roles=1</span> only</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

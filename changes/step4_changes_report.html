@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 4 Changes Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+        .toolbar { background: #1a1a2e; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .toolbar h1 { font-size: 16px; font-weight: 600; }
+        .btn { padding: 8px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; background: #4f8ef7; color: #fff; text-decoration: none; display: inline-block; }
+        .btn-dark { background: #444; }
+        .btn:hover { opacity: 0.85; }
+        .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+        .report-header { background: #1a1a2e; color: #fff; border-radius: 10px; padding: 36px 40px; margin-bottom: 28px; }
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header p { color: #aab4cc; font-size: 13px; margin-bottom: 20px; }
+        .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+        .meta-item span { display: block; font-size: 11px; color: #aab4cc; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+        .summary-bar { display: flex; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 18px 24px; flex: 1; min-width: 140px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-top: 4px solid #ccc; text-align: center; }
+        .stat-card.blue   { border-top-color: #4f8ef7; }
+        .stat-card.green  { border-top-color: #28a745; }
+        .stat-card.orange { border-top-color: #d35400; }
+        .stat-card .number { font-size: 32px; font-weight: 700; color: #1a1a2e; }
+        .stat-card .label  { font-size: 12px; color: #888; margin-top: 2px; }
+        .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 28px 0 12px; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; border-left: 5px solid #28a745; }
+        .card.blue   { border-left-color: #4f8ef7; }
+        .card.orange { border-left-color: #d35400; }
+        .card.purple { border-left-color: #8e44ad; }
+        .card-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f4f4f4; }
+        .card-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-fixed  { background: #eafaf1; color: #1e8449; }
+        .badge-update { background: #fef9e7; color: #b7950b; }
+        .badge-perf   { background: #eef2ff; color: #3b5bdb; }
+        .card-body { padding: 16px 20px; color: #444; }
+        .card-body p { margin-bottom: 10px; }
+        .card-body p:last-child { margin-bottom: 0; }
+        .file-ref { display: inline-block; background: #eef2ff; color: #3b5bdb; border: 1px solid #c5d0fa; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-family: 'Courier New', monospace; }
+        code { background: #f4f6f9; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1px 5px; font-family: 'Courier New', monospace; font-size: 12px; color: #c0392b; }
+        .diff-block { margin: 12px 0; border-radius: 6px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7; }
+        .diff-label { padding: 5px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+        .diff-before .diff-label { background: #5c1a1a; color: #f5a5a5; }
+        .diff-before pre { background: #2d1a1a; color: #f5a5a5; padding: 14px 16px; overflow-x: auto; }
+        .diff-after .diff-label { background: #1a4d1a; color: #a5f5a5; }
+        .diff-after pre { background: #1a2d1a; color: #a5f5a5; padding: 14px 16px; overflow-x: auto; }
+        .comment { color: #6a9955; }
+        .file-list { columns: 2; gap: 16px; padding: 4px 0; }
+        .file-list li { font-family: 'Courier New', monospace; font-size: 12px; color: #3b5bdb; margin-bottom: 4px; list-style: none; padding-left: 14px; position: relative; }
+        .file-list li::before { content: '✓'; position: absolute; left: 0; color: #28a745; font-size: 11px; }
+        .card-footer { background: #f8f9fa; border-top: 1px solid #f0f0f0; padding: 10px 20px; font-size: 12px; color: #666; }
+        .card-footer strong { color: #444; }
+        @media print {
+            .toolbar { display: none; }
+            body { background: #fff; }
+            .container { margin: 0; padding: 20px; max-width: 100%; }
+            .card { break-inside: avoid; }
+            .report-header, .stat-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .diff-before pre, .diff-after pre, .diff-before .diff-label, .diff-after .diff-label { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>Step 4 Changes Report &mdash; GRC V1</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Back to Index</a>
+        <button class="btn" onclick="window.print()">&#128438; Download / Print PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="report-header">
+        <h2>Step 4 &mdash; Remove jQuery Double-Load</h2>
+        <p>Performance fix applied to GRC_V1 &mdash; Governance, Risk &amp; Compliance Web Application</p>
+        <div class="meta">
+            <div class="meta-item"><span>Date</span><strong>June 20, 2026</strong></div>
+            <div class="meta-item"><span>Phase</span><strong>Step 4 of 5</strong></div>
+            <div class="meta-item"><span>Files Cleaned</span><strong>69 files</strong></div>
+            <div class="meta-item"><span>Files Updated</span><strong>1 file (header.php)</strong></div>
+            <div class="meta-item"><span>Status</span><strong>&#10003; Complete</strong></div>
+        </div>
+    </div>
+
+    <div class="summary-bar">
+        <div class="stat-card orange"><div class="number">69</div><div class="label">Files Cleaned</div></div>
+        <div class="stat-card green"><div class="number">138</div><div class="label">Script Lines Removed</div></div>
+        <div class="stat-card blue"><div class="number">1</div><div class="label">Global jQuery Source</div></div>
+    </div>
+
+    <div class="section-title">What Was the Problem</div>
+    <div class="card orange">
+        <div class="card-header">
+            <span class="badge badge-perf">Performance</span>
+            <h3>jQuery Loaded Twice on Every Page</h3>
+        </div>
+        <div class="card-body">
+            <p><span class="file-ref">layout/header.php</span> already loads jQuery 3.5.1 from Google CDN on every page. Despite this, 69 page files each contained their own local <code>&lt;script&gt;</code> tags loading jQuery and jQuery UI again from <code>assets/vendors/jquery/</code>.</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Pattern removed from 69 files</div>
+                <pre>&lt;script src="../assets/vendors/jquery/jquery.min.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/vendors/jquery/jquery-ui.min.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <p>Two jQuery instances running simultaneously can cause event handlers to fire twice, AJAX callbacks to run multiple times, and unpredictable UI behaviour.</p>
+        </div>
+    </div>
+
+    <div class="section-title">Changes Applied</div>
+
+    <!-- header.php update -->
+    <div class="card blue">
+        <div class="card-header">
+            <span class="badge badge-update">Updated</span>
+            <h3>layout/header.php — jquery-ui.min.js moved here</h3>
+            <span class="badge badge-fixed">&#10003; Fixed</span>
+        </div>
+        <div class="card-body">
+            <p>Since all page files relied on jQuery UI, it was moved to <span class="file-ref">layout/header.php</span> alongside the CDN jQuery so it loads once globally for every page.</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>&lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"&gt;&lt;/script&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>&lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/vendors/jquery/jquery-ui.min.js"&gt;&lt;/script&gt;</pre>
+            </div>
+        </div>
+        <div class="card-footer"><strong>Result:</strong> jQuery and jQuery UI each load exactly once per page, from a single place.</div>
+    </div>
+
+    <!-- Files cleaned -->
+    <div class="card">
+        <div class="card-header">
+            <span class="badge badge-fixed">Cleaned</span>
+            <h3>69 Page Files — Duplicate Script Tags Removed</h3>
+        </div>
+        <div class="card-body">
+            <p>The following files had their duplicate jQuery and jQuery UI <code>&lt;script&gt;</code> lines removed:</p>
+            <ul class="file-list">
+                <li>actions.php</li>
+                <li>activitylog.php</li>
+                <li>addaction.php</li>
+                <li>addcompany.php</li>
+                <li>addcontrol.php</li>
+                <li>addjoinDP.php</li>
+                <li>addkeyindicator.php</li>
+                <li>addprocess.php</li>
+                <li>addrecommend.php</li>
+                <li>addreviewer.php</li>
+                <li>addrisk.php</li>
+                <li>add_entity.php</li>
+                <li>b_objective.php</li>
+                <li>blank.php</li>
+                <li>bsciso.php</li>
+                <li>bulk_risk_upload.php</li>
+                <li>bussinf.php</li>
+                <li>companylist.php</li>
+                <li>controls.php</li>
+                <li>controlstrength.php</li>
+                <li>controltype.php</li>
+                <li>corporaterisk.php</li>
+                <li>editcontrols.php</li>
+                <li>entity.php</li>
+                <li>entityEdit.php</li>
+                <li>entitylist.php</li>
+                <li>impact.php</li>
+                <li>inbox.php</li>
+                <li>incidentadd.php</li>
+                <li>incidents.php</li>
+                <li>joinDP.php</li>
+                <li>kpi.php</li>
+                <li>kra_settings.php</li>
+                <li>kriadd.php</li>
+                <li>krichart.php</li>
+                <li>krihist.php</li>
+                <li>kri.php</li>
+                <li>kriperform.php</li>
+                <li>likelihood.php</li>
+                <li>login_test.php</li>
+                <li>nominee.php</li>
+                <li>overallcontrol.php</li>
+                <li>overallrisk.php</li>
+                <li>owner.php</li>
+                <li>parameteradd.php</li>
+                <li>performance.php</li>
+                <li>permissionedit.php</li>
+                <li>processlist.php</li>
+                <li>profile.php</li>
+                <li>project.php</li>
+                <li>recommendations.php</li>
+                <li>reviewer.php</li>
+                <li>riskassess.php</li>
+                <li>+ 16 more files</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-title">Next Step</div>
+    <div class="card purple">
+        <div class="card-body">
+            <p><strong>Step 5 &mdash; Clean Up nav.php:</strong> Remove hundreds of lines of commented-out dead code left over from the Mazer UI template in <span class="file-ref">layout/nav.php</span>. The file will shrink from ~620 lines to ~150 lines of actual working navigation markup.</p>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

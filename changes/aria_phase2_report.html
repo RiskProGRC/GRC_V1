@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Phase 2 Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-dark  { background: #3a3a5c; }
+        .btn-print { background: #4f8ef7; }
+
+        .container {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        /* ── Report Header ── */
+        .report-header {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+
+        .aria-label {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            color: #90cdf4;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header p  { color: #a0b4cc; font-size: 13px; margin-bottom: 20px; }
+
+        .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+        .meta-item span   { display: block; font-size: 11px; color: #a0b4cc; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+
+        /* ── Stat Cards ── */
+        .summary-bar {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 24px;
+            flex: 1;
+            min-width: 130px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border-top: 4px solid #ccc;
+            text-align: center;
+        }
+        .stat-card.blue   { border-top-color: #4f8ef7; }
+        .stat-card.green  { border-top-color: #28a745; }
+        .stat-card.orange { border-top-color: #e67e22; }
+        .stat-card.red    { border-top-color: #c0392b; }
+        .stat-card.teal   { border-top-color: #16a085; }
+
+        .stat-card .number { font-size: 32px; font-weight: 700; color: #1a1a2e; }
+        .stat-card .label  { font-size: 12px; color: #888; margin-top: 2px; }
+
+        /* ── Section Titles ── */
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 32px 0 12px;
+        }
+
+        /* ── Change Cards ── */
+        .change-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 18px;
+            overflow: hidden;
+            border-left: 5px solid #4f8ef7;
+        }
+        .change-card.security { border-left-color: #c0392b; }
+        .change-card.refactor { border-left-color: #4f8ef7; }
+        .change-card.bugfix   { border-left-color: #e67e22; }
+        .change-card.info     { border-left-color: #16a085; }
+
+        .change-header {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f4f4f4;
+            flex-wrap: wrap;
+        }
+        .change-header h3 { font-size: 14px; font-weight: 600; flex: 1; min-width: 200px; }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .badge-refactor  { background: #eef2ff; color: #3b5bdb; }
+        .badge-security  { background: #fef3e2; color: #d35400; }
+        .badge-bugfix    { background: #fff3e0; color: #e67e22; }
+        .badge-info      { background: #e8f8f5; color: #16a085; }
+        .badge-skip      { background: #f4f6f9; color: #888; border: 1px solid #ddd; }
+        .badge-done      { background: #eafaf1; color: #1e8449; }
+
+        /* ── Body ── */
+        .change-body { padding: 16px 20px; color: #444; }
+        .change-body p { margin-bottom: 10px; }
+        .change-body p:last-child { margin-bottom: 0; }
+
+        /* ── Inline code refs ── */
+        .file-ref {
+            display: inline-block;
+            background: #eef2ff;
+            color: #3b5bdb;
+            border: 1px solid #c5d0fa;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        code {
+            background: #f0f4ff;
+            color: #3b5bdb;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ── Code blocks ── */
+        .code-block {
+            margin: 12px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.65;
+        }
+        .code-label {
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .code-label.before { background: #2a1a1a; color: #f5a0a0; }
+        .code-label.after  { background: #1a2a1a; color: #90f0a0; }
+        .code-label.file   { background: #1a1e2e; color: #90cdf4; }
+
+        .code-block pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 14px 16px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        /* ── Replaces block ── */
+        .replaces-block {
+            background: #f0f4ff;
+            border: 1px solid #c5d0fa;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+        .replaces-block strong { color: #3b5bdb; }
+        .replaces-block ul { padding-left: 18px; margin-top: 6px; }
+        .replaces-block ul li { margin-bottom: 3px; color: #555; }
+
+        /* ── Class table ── */
+        .class-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin: 12px 0;
+        }
+        .class-table th {
+            background: #f0f4ff;
+            color: #3b5bdb;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 2px solid #c5d0fa;
+        }
+        .class-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .class-table tr:last-child td { border-bottom: none; }
+        .class-table tr:hover td { background: #fafbff; }
+
+        .dot-yes  { color: #28a745; font-weight: 700; }
+        .dot-no   { color: #bbb; }
+        .dot-skip { color: #e67e22; }
+
+        /* ── Method table ── */
+        .method-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin: 12px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .method-table th {
+            background: #1e1e2e;
+            color: #90cdf4;
+            padding: 7px 12px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .method-table td {
+            padding: 6px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+            color: #333;
+        }
+        .method-table tr:hover td { background: #f0f4ff; }
+        .method-table .old  { color: #c0392b; }
+        .method-table .new  { color: #27ae60; font-weight: 600; }
+
+        /* ── Impact row ── */
+        .impact-row {
+            background: #f8f9fa;
+            border-top: 1px solid #f0f0f0;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        .impact-row strong { color: #444; }
+
+        /* ── Notice card ── */
+        .notice-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        /* ── Two-col grid ── */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+        @media (max-width: 620px) { .two-col { grid-template-columns: 1fr; } }
+
+        .mini-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 14px 16px;
+            border-left: 3px solid #4f8ef7;
+            font-size: 13px;
+        }
+        .mini-card.orange { border-left-color: #e67e22; }
+        .mini-card.green  { border-left-color: #28a745; }
+        .mini-card.red    { border-left-color: #c0392b; }
+        .mini-card h4 { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mini-card ul { padding-left: 16px; }
+        .mini-card ul li { margin-bottom: 3px; color: #444; }
+
+        @media print {
+            .toolbar { display: none; }
+            body { background: #fff; }
+            .container { margin: 0; padding: 20px; max-width: 100%; }
+            .change-card { break-inside: avoid; }
+            .report-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .stat-card     { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>ARIA Phase 2 Report &mdash; GRC V1</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Back to Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128438; Download / Print PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── Header ── -->
+    <div class="report-header">
+        <div class="aria-label">ARIA &mdash; Automated Refactoring &amp; Integration Architecture</div>
+        <h2>Phase 2 &mdash; Entity Class Migration</h2>
+        <p>22 entity classes migrated to <code style="color:#90cdf4;">BaseRepository</code> &mdash; SQL injection eliminated, audit logging centralised, boilerplate removed</p>
+        <div class="meta">
+            <div class="meta-item"><span>Date</span><strong>June 20, 2026</strong></div>
+            <div class="meta-item"><span>Part</span><strong>Part 2 &mdash; Phase 2 of 5</strong></div>
+            <div class="meta-item"><span>Files Migrated</span><strong>22 entity classes</strong></div>
+            <div class="meta-item"><span>Files Excluded</span><strong>1 (loginClass)</strong></div>
+            <div class="meta-item"><span>Bugs Fixed</span><strong>3 opportunistic</strong></div>
+            <div class="meta-item"><span>Status</span><strong>&#10003; Complete</strong></div>
+        </div>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div class="summary-bar">
+        <div class="stat-card blue">
+            <div class="number">22</div>
+            <div class="label">Classes Migrated</div>
+        </div>
+        <div class="stat-card green">
+            <div class="number">1</div>
+            <div class="label">Core File Updated</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="number">3</div>
+            <div class="label">Bugs Fixed</div>
+        </div>
+        <div class="stat-card red">
+            <div class="number">0</div>
+            <div class="label">Breaking Changes</div>
+        </div>
+        <div class="stat-card teal">
+            <div class="number">40+</div>
+            <div class="label">Log Blocks Removed</div>
+        </div>
+    </div>
+
+    <!-- ── Overview ── -->
+    <div class="section-title">What Phase 2 Does</div>
+
+    <div class="notice-card" style="border-left: 5px solid #4f8ef7;">
+        <div class="change-body">
+            <p>Phase 2 wires every entity class into the <strong>BaseRepository</strong> layer built in Phase 1. Each of the 22 classes is updated to <code>extend BaseRepository</code> instead of <code>connectionClass</code>, its boilerplate read methods replaced with single-line calls, all raw SQL replaced with prepared statements, and every inline <code>system_logs</code> INSERT replaced with <code>ActivityLogger::log()</code>. No page files, AJAX wrappers, or the public API of any class changes — callers continue to work without modification.</p>
+        </div>
+    </div>
+
+    <!-- ── Core Update ── -->
+    <div class="section-title">Core File Updated</div>
+
+    <div class="change-card refactor">
+        <div class="change-header">
+            <span class="badge badge-refactor">Updated</span>
+            <h3>BaseRepository.php &mdash; Auto-loads ActivityLogger</h3>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/core/BaseRepository.php</span></p>
+            <p>One <code>require_once</code> line added so that any entity class that includes <code>BaseRepository</code> automatically gets <code>ActivityLogger</code> without needing a second include.</p>
+            <div class="code-block">
+                <div class="code-label before">Before</div>
+                <pre>require_once __DIR__ . '/../connection/connectionClass.php';</pre>
+            </div>
+            <div class="code-block">
+                <div class="code-label after">After</div>
+                <pre>require_once __DIR__ . '/../connection/connectionClass.php';
+require_once __DIR__ . '/ActivityLogger.php';</pre>
+            </div>
+        </div>
+        <div class="impact-row"><strong>Impact:</strong> Entity classes only need one require_once pointing to BaseRepository — they get the full chain automatically.</div>
+    </div>
+
+    <!-- ── What changed in every class ── -->
+    <div class="section-title">Changes Applied to Every Class</div>
+
+    <div class="two-col">
+        <div class="mini-card">
+            <h4>Inheritance</h4>
+            <ul>
+                <li><span style="color:#c0392b;">extends connectionClass</span> → <span style="color:#27ae60;">extends BaseRepository</span></li>
+                <li>require_once → <code>/../core/BaseRepository.php</code></li>
+            </ul>
+        </div>
+        <div class="mini-card green">
+            <h4>SQL Safety</h4>
+            <ul>
+                <li>All <code>real_escape_string()</code> calls removed</li>
+                <li>All string-interpolated queries → <code>prepare()</code> + <code>bind_param()</code></li>
+                <li><code>or die($this->error)</code> removed</li>
+            </ul>
+        </div>
+        <div class="mini-card orange">
+            <h4>Audit Logging</h4>
+            <ul>
+                <li>3-line <code>INSERT INTO system_logs</code> blocks removed</li>
+                <li>Replaced with <code>ActivityLogger::log($this, $uid, ...)</code></li>
+            </ul>
+        </div>
+        <div class="mini-card red">
+            <h4>Read Boilerplate</h4>
+            <ul>
+                <li>10-line fetch loops → <code>fetchAll()</code> / <code>fetchWhere()</code></li>
+                <li>Single-row lookups → <code>fetchOne()</code></li>
+                <li>Count queries → <code>countAll()</code> / <code>countWhere()</code></li>
+                <li>Delete → <code>deleteById()</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ── Method mapping ── -->
+    <div class="section-title">Method Pattern Mapping</div>
+
+    <div class="change-card refactor">
+        <div class="change-header">
+            <span class="badge badge-refactor">Pattern</span>
+            <h3>Old Method Pattern → New Single-Line Call</h3>
+        </div>
+        <div class="change-body">
+            <table class="method-table">
+                <thead>
+                    <tr>
+                        <th>Old Method Pattern</th>
+                        <th>Replaced By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="old">showX() — SELECT * FROM table + while loop</td>
+                        <td class="new">$this->fetchAll('table')</td>
+                    </tr>
+                    <tr>
+                        <td class="old">showXdept($id) — SELECT * WHERE col=$id + while</td>
+                        <td class="new">$this->fetchWhere('table', 'col', $id)</td>
+                    </tr>
+                    <tr>
+                        <td class="old">fetchedit($id) / editDetails($id) — SELECT * WHERE id LIMIT 1</td>
+                        <td class="new">$this->fetchOne('table', 'col', $id)</td>
+                    </tr>
+                    <tr>
+                        <td class="old">dashboard() — SELECT COUNT(*) / num_rows</td>
+                        <td class="new">$this->countAll('table')</td>
+                    </tr>
+                    <tr>
+                        <td class="old">pendingX() / approvedX() — SELECT COUNT(*) WHERE approval=N</td>
+                        <td class="new">$this->countWhere('table', 'approval', 'N')</td>
+                    </tr>
+                    <tr>
+                        <td class="old">delete($id) — DELETE FROM table WHERE id=$id</td>
+                        <td class="new">$this->deleteById('table', 'col', $id)</td>
+                    </tr>
+                    <tr>
+                        <td class="old">3-line INSERT INTO system_logs block</td>
+                        <td class="new">ActivityLogger::log($this, $uid, 'Entity', 'action', $ip)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Before/After example ── -->
+    <div class="section-title">Before / After — Full Example (actionClass)</div>
+
+    <div class="change-card security">
+        <div class="change-header">
+            <span class="badge badge-security">SQL Injection Fix</span>
+            <span class="badge badge-refactor">Refactor</span>
+            <h3>addaction() — Write Method</h3>
+        </div>
+        <div class="change-body">
+            <div class="code-block">
+                <div class="code-label before">Before — SQL injection via string interpolation</div>
+                <pre>public function addaction($uid,$ipaddress,$dept_id,$process,$risk,$action,$status,$priority,$timeline){
+    $action = $this->real_escape_string($action);
+
+    $insert = "INSERT INTO action(process_id,dept_id,risk_id,action,status,priority,timeline,uid)
+               VALUES('$process','$dept_id','$risk','$action','$status','$priority','$timeline','$uid')";
+    $query  = $this->query($insert) or die($this->error);
+    if(!$query){
+        return "DATA NOT ENTERED";
+    } else {
+        $insert = "INSERT INTO `system_logs`(`user_id`, `entity`, `action`, `ip_address`)
+                   VALUES ('$uid','Action','Added Action','$ipaddress')";
+        $query  = $this->query($insert) or die($this->error);
+        return "Action Added Successfully";
+    }
+}</pre>
+            </div>
+            <div class="code-block">
+                <div class="code-label after">After — prepared statement + centralised logging</div>
+                <pre>public function addaction($uid,$ipaddress,$dept_id,$process,$risk,$action,$status,$priority,$timeline){
+    $stmt = $this->prepare(
+        "INSERT INTO action(process_id,dept_id,risk_id,action,status,priority,timeline,uid)
+         VALUES(?,?,?,?,?,?,?,?)"
+    );
+    $stmt->bind_param('ssssssss', $process,$dept_id,$risk,$action,$status,$priority,$timeline,$uid);
+    $stmt->execute();
+    if ($stmt->affected_rows &lt; 1) {
+        return "DATA NOT ENTERED";
+    }
+    ActivityLogger::log($this, $uid, 'Action', 'Added Action', $ipaddress);
+    return "Action Added Successfully";
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="change-card refactor">
+        <div class="change-header">
+            <span class="badge badge-refactor">Refactor</span>
+            <h3>showaction() / dashboard() / pendingaction() — Read Methods</h3>
+        </div>
+        <div class="change-body">
+            <div class="code-block">
+                <div class="code-label before">Before — 10-line boilerplate repeated in every class</div>
+                <pre>public function showaction(){
+    $select = "SELECT * FROM action";
+    $result = $this->query($select) or die($this->error);
+    $count  = $result->num_rows;
+    if($count &lt; 0){ return "NO RECORDS FOUND"; }
+    else {
+        while($row = $result->fetch_assoc()){ $rows[] = $row; }
+        if(!empty($rows)){ return $rows; } else { return array(); }
+    }
+}
+public function dashboard(){
+    $select = "SELECT * FROM action";
+    $query  = $this->query($select) or die($this->error);
+    $count  = $query->num_rows;
+    return $count;
+}
+public function pendingaction(){
+    $select = "SELECT * FROM action where approval='1'";
+    $query  = $this->query($select) or die($this->error);
+    $count  = $query->num_rows;
+    return $count;
+}</pre>
+            </div>
+            <div class="code-block">
+                <div class="code-label after">After — delegated to BaseRepository helpers</div>
+                <pre>public function showaction(): array {
+    return $this->fetchAll('action');
+}
+public function dashboard(): int {
+    return $this->countAll('action');
+}
+public function pendingaction(): int {
+    return $this->countWhere('action', 'approval', '1');
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Full class list ── -->
+    <div class="section-title">All 22 Migrated Classes</div>
+
+    <div class="change-card refactor">
+        <div class="change-header">
+            <span class="badge badge-refactor">22 Files</span>
+            <h3>Complete Migration Inventory</h3>
+        </div>
+        <div class="change-body">
+            <table class="class-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Class File</th>
+                        <th>Primary Table(s)</th>
+                        <th>ActivityLogger</th>
+                        <th>Bugs Fixed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td><span class="file-ref">action/actionClass.php</span></td><td>action</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>2</td><td><span class="file-ref">company/companyClass.php</span></td><td>company, cgroup</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>3</td><td><span class="file-ref">incident/incidentClass.php</span></td><td>incident</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>4</td><td><span class="file-ref">join/JoindpClass.php</span></td><td>dept_process</td><td class="dot-no">—</td><td>&mdash;</td></tr>
+                    <tr><td>5</td><td><span class="file-ref">keyindicator/keyindicatorClass.php</span></td><td>ki</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>6</td><td><span class="file-ref">process/processClass.php</span></td><td>process</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>7</td><td><span class="file-ref">recommend/recommendClass.php</span></td><td>recommend</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>8</td><td><span class="file-ref">settings/controlstrengthClass.php</span></td><td>control_strength</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>9</td><td><span class="file-ref">settings/controltypeClass.php</span></td><td>control_type</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>10</td><td><span class="file-ref">settings/divisionClass.php</span></td><td>division</td><td class="dot-no">—</td><td>&mdash;</td></tr>
+                    <tr><td>11</td><td><span class="file-ref">settings/impactClass.php</span></td><td>impact</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>12</td><td><span class="file-ref">settings/likelihoodClass.php</span></td><td>likelihood</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>13</td><td><span class="file-ref">settings/nomineeClass.php</span></td><td>nominee</td><td class="dot-no">—</td><td>&mdash;</td></tr>
+                    <tr><td>14</td><td><span class="file-ref">settings/ownerClass.php</span></td><td>owner</td><td class="dot-no">—</td><td>&mdash;</td></tr>
+                    <tr><td>15</td><td><span class="file-ref">settings/projectClass.php</span></td><td>project</td><td class="dot-no">—</td><td>&mdash;</td></tr>
+                    <tr><td>16</td><td><span class="file-ref">settings/reviewerClass.php</span></td><td>reviewer</td><td class="dot-no">—</td><td>&mdash;</td></tr>
+                    <tr><td>17</td><td><span class="file-ref">settings/riskcategoryClass.php</span></td><td>riskcat</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>18</td><td><span class="file-ref">users/usersClass.php</span></td><td>users, permission</td><td class="dot-no">—</td><td>&mdash;</td></tr>
+                    <tr><td>19</td><td><span class="file-ref">department/departmentClass.php</span></td><td>department</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>20</td><td><span class="file-ref">control/controlClass.php</span></td><td>control, risk_control</td><td class="dot-yes">✓</td><td>&mdash;</td></tr>
+                    <tr><td>21</td><td><span class="file-ref">risk/riskClass.php</span></td><td>risk, assessment, ass_action</td><td class="dot-yes">✓</td><td>2 fixed</td></tr>
+                    <tr><td>22</td><td><span class="file-ref">raf/kriClass.php</span></td><td>kri_parameter, performance, kri_hist</td><td class="dot-yes">✓</td><td>1 fixed</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Methods kept custom ── -->
+    <div class="section-title">Methods Kept as Custom Prepared Statements</div>
+
+    <div class="change-card info">
+        <div class="change-header">
+            <span class="badge badge-info">Design Decision</span>
+            <h3>When BaseRepository Helpers Were Not Used</h3>
+        </div>
+        <div class="change-body">
+            <p>Not every method maps cleanly to a helper. These patterns were kept as custom prepared statements:</p>
+            <table class="class-table" style="margin-top:10px;">
+                <thead>
+                    <tr><th>Reason</th><th>Examples</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>ORDER BY</code> clause</td>
+                        <td><code>showcontrol()</code>, <code>showRisk()</code>, <code>showassessment()</code></td>
+                    </tr>
+                    <tr>
+                        <td>Multiple WHERE conditions</td>
+                        <td><code>showRiskassess()</code> (<code>assessment=0 AND approval=2</code>), <code>joinriskcontrol()</code> (<code>risk_id=? AND status=1</code>), <code>deleteRisk()</code></td>
+                    </tr>
+                    <tr>
+                        <td>JOIN queries</td>
+                        <td><code>kpidashboard()</code>, <code>fetchcontrol()</code>, <code>showassessment()</code>, <code>fetchrphistory()</code></td>
+                    </tr>
+                    <tr>
+                        <td>Aggregate / GROUP BY</td>
+                        <td><code>dashboardrcat()</code>, <code>dashboardcstrength()</code>, <code>dashboardcstrengthdept()</code></td>
+                    </tr>
+                    <tr>
+                        <td>Multi-step operations (loops + multiple INSERTs)</td>
+                        <td><code>addassessment()</code>, <code>accepttreat()</code>, <code>transfertreat()</code>, <code>addkri()</code></td>
+                    </tr>
+                    <tr>
+                        <td>DISTINCT queries</td>
+                        <td><code>riskDept()</code>, <code>entitysearch()</code>, <code>processsearch()</code></td>
+                    </tr>
+                    <tr>
+                        <td>Returns HTML markup</td>
+                        <td><code>fetchprocess()</code> in riskClass — builds <code>&lt;option&gt;</code> tags</td>
+                    </tr>
+                    <tr>
+                        <td>Pure PHP logic — no DB call</td>
+                        <td><code>inherent()</code>, <code>residual()</code>, <code>ranking()</code>, <code>calcperform()</code>, <code>apetite()</code>, <code>audit()</code>, <code>paragraph()</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Bugs fixed ── -->
+    <div class="section-title">Bugs Fixed Opportunistically</div>
+
+    <div class="change-card bugfix">
+        <div class="change-header">
+            <span class="badge badge-bugfix">Bug Fix</span>
+            <h3>3 Pre-existing Bugs Corrected During Migration</h3>
+        </div>
+        <div class="change-body">
+            <table class="class-table">
+                <thead>
+                    <tr><th>Class</th><th>Method</th><th>Bug</th><th>Fix</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>kriClass</code></td>
+                        <td><code>fetchkrichecklist()</code></td>
+                        <td>SQL syntax error — <code>ASC</code> placed after <code>WHERE</code> clause instead of after <code>ORDER BY</code>. Query always failed.</td>
+                        <td>Removed stray <code>ASC</code> keyword</td>
+                    </tr>
+                    <tr>
+                        <td><code>riskClass</code></td>
+                        <td><code>fetchprocess()</code></td>
+                        <td><code>return</code> inside <code>while</code> loop — only ever returned the first <code>&lt;option&gt;</code> tag; all others silently dropped</td>
+                        <td>Moved <code>return</code> outside loop; now returns all options</td>
+                    </tr>
+                    <tr>
+                        <td><code>departmentClass</code></td>
+                        <td><code>showDept()</code></td>
+                        <td>Inverted condition <code>if(!$count &lt; 0)</code> — logic was backwards, condition was never true</td>
+                        <td>Eliminated by replacing method with <code>fetchAll()</code> which has correct empty-array fallback</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Excluded ── -->
+    <div class="section-title">Excluded from Phase 2</div>
+
+    <div class="change-card" style="border-left-color: #888;">
+        <div class="change-header">
+            <span class="badge badge-skip">Excluded</span>
+            <h3>loginClass — Deferred to Dedicated Auth Sprint</h3>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/login/loginClass.php</span></p>
+            <p>
+                <code>loginClass</code> handles password verification, session assignment, Google OAuth registration,
+                password reset token generation, and login attempt tracking. Modifying it as part of a structural
+                migration carries disproportionate risk — a regression here locks every user out of the system.
+                It remains on <code>connectionClass</code> and is flagged for a focused auth-security sprint after
+                Phase 2 is validated in production.
+            </p>
+        </div>
+        <div class="impact-row"><strong>Risk if deferred:</strong> loginClass still uses <code>real_escape_string()</code> on user input. Acceptable short-term; must be addressed before public deployment.</div>
+    </div>
+
+    <!-- ── Inheritance chain ── -->
+    <div class="section-title">Inheritance Chain After Phase 2</div>
+
+    <div class="notice-card" style="border-left: 5px solid #4f8ef7;">
+        <div class="change-body">
+            <div class="code-block">
+                <div class="code-label file">Inheritance Diagram</div>
+                <pre>mysqli
+  └── connectionClass          Project/connection/connectionClass.php
+        └── BaseRepository     Project/core/BaseRepository.php  ← loads ActivityLogger automatically
+              ├── actionClass
+              ├── companyClass
+              ├── incidentClass
+              ├── joindpClass
+              ├── kiClass
+              ├── processClass
+              ├── recommendClass
+              ├── controlstrengthClass
+              ├── controltypeClass
+              ├── divisionClass
+              ├── impactClass
+              ├── likelihoodClass
+              ├── nomineeClass
+              ├── ownerClass
+              ├── projectClass
+              ├── reviewerClass
+              ├── riskCatClass
+              ├── usersClass
+              ├── departmentClass
+              ├── controlClass
+              ├── riskClass
+              └── kriClass
+
+  connectionClass (direct — not migrated)
+        └── loginClass         Project/login/loginClass.php</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Risk assessment ── -->
+    <div class="section-title">Risk Assessment</div>
+
+    <div class="change-card info">
+        <div class="change-header">
+            <span class="badge badge-info">Risk</span>
+            <h3>Potential Issues &amp; Mitigations</h3>
+        </div>
+        <div class="change-body">
+            <table class="class-table">
+                <thead>
+                    <tr><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Return value change breaking a caller</td>
+                        <td style="color:#27ae60;">Very Low</td>
+                        <td>All return strings preserved verbatim from original</td>
+                    </tr>
+                    <tr>
+                        <td>UPDATE affected_rows=0 when values unchanged</td>
+                        <td style="color:#e67e22;">Low</td>
+                        <td>UPDATE methods execute and return success (matching original dead-code pattern — <code>if(!$query)</code> was always false for successful queries)</td>
+                    </tr>
+                    <tr>
+                        <td>FK constraint DELETE returning error string instead of dying</td>
+                        <td style="color:#27ae60;">Low</td>
+                        <td>Actually more graceful — callers already handled the return string</td>
+                    </tr>
+                    <tr>
+                        <td>loginClass still SQL-injectable</td>
+                        <td style="color:#e67e22;">Remains</td>
+                        <td>Intentionally deferred; flagged for auth sprint</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Next step ── -->
+    <div class="section-title">Next Step</div>
+    <div class="notice-card" style="border-left: 5px solid #b7950b;">
+        <div class="change-body">
+            <p>
+                <strong>Phase 3 &mdash; AJAX Wrapper Standardisation:</strong> The flat action files
+                (<code>actionadd.php</code>, <code>actiondelete.php</code>, <code>processdelete.php</code>, etc.)
+                currently <code>echo</code> raw inconsistent strings back to JavaScript. Phase 3 wires them
+                to use <code>Response::success()</code> / <code>Response::error()</code> from the Phase 1
+                core layer, giving the JS side a reliable <code>data.status</code> field to check instead
+                of string-matching unpredictable text.
+            </p>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

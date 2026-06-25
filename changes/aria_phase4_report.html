@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Phase 4 Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-dark  { background: #3a3a5c; }
+        .btn-print { background: #0d47a1; }
+
+        .container {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #0d47a1 0%, #051e4a 100%);
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+        .report-header .phase-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        .report-header h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        .report-header .subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 20px; }
+        .meta-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        .meta-item { font-size: 12px; opacity: 0.7; }
+        .meta-item strong { opacity: 1; font-weight: 600; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-top: 3px solid #1565c0;
+        }
+        .stat-card .number { font-size: 30px; font-weight: 700; color: #0d47a1; line-height: 1; }
+        .stat-card .label  { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+        .card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0d47a1;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+        .card h4 { font-size: 13px; font-weight: 700; color: #333; margin: 14px 0 6px; }
+        .card p  { margin-bottom: 10px; color: #444; }
+        .card ul, .card ol { padding-left: 20px; color: #444; }
+        .card li { margin-bottom: 5px; }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #aaa;
+            margin: 32px 0 14px;
+        }
+
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 14px 0;
+        }
+        @media (max-width: 640px) { .before-after { grid-template-columns: 1fr; } }
+
+        .code-block {
+            background: #1e1e2e;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .code-block .label {
+            background: #16162a;
+            color: #aaa;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+        }
+        .code-block.before .label { color: #e57373; }
+        .code-block.after  .label { color: #81c784; }
+        .code-block pre {
+            padding: 14px;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 11.5px;
+            line-height: 1.6;
+            color: #cdd6f4;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .code-block pre .kw  { color: #89b4fa; }
+        .code-block pre .fn  { color: #cba6f7; }
+        .code-block pre .str { color: #a6e3a1; }
+        .code-block pre .cmt { color: #6c7086; font-style: italic; }
+        .code-block pre .var { color: #f38ba8; }
+        .code-block pre .tag { color: #f9e2af; }
+
+        .code-block-full {
+            background: #1e1e2e;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 14px 0;
+        }
+        .code-block-full .label {
+            background: #16162a;
+            color: #aaa;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+        }
+        .code-block-full pre {
+            padding: 14px;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 11.5px;
+            line-height: 1.6;
+            color: #cdd6f4;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .code-block-full pre .kw  { color: #89b4fa; }
+        .code-block-full pre .fn  { color: #cba6f7; }
+        .code-block-full pre .str { color: #a6e3a1; }
+        .code-block-full pre .cmt { color: #6c7086; font-style: italic; }
+        .code-block-full pre .var { color: #f38ba8; }
+        .code-block-full pre .tag { color: #f9e2af; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        th {
+            background: #e3f2fd;
+            color: #0d47a1;
+            font-weight: 700;
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 12px;
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f5f9ff; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-red    { background: #fde8e8; color: #c0392b; }
+        .badge-green  { background: #eafaf1; color: #1e8449; }
+        .badge-blue   { background: #e3f2fd; color: #0d47a1; }
+        .badge-orange { background: #fff3e0; color: #e65100; }
+        .badge-grey   { background: #f4f6f9; color: #666; border: 1px solid #ddd; }
+        .badge-purple { background: #f3e5f5; color: #6a1b9a; }
+
+        .alert {
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            font-size: 13px;
+        }
+        .alert-danger  { background: #fde8e8; border-left: 4px solid #c0392b; color: #6b1010; }
+        .alert-success { background: #eafaf1; border-left: 4px solid #1e8449; color: #0e4b22; }
+        .alert-info    { background: #e3f2fd; border-left: 4px solid #1565c0; color: #0d3069; }
+        .alert-warn    { background: #fff3e0; border-left: 4px solid #e65100; color: #6b2a00; }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        .flow-box {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 5px;
+            padding: 6px 12px;
+            font-weight: 600;
+            color: #0d47a1;
+        }
+        .flow-arrow { color: #aaa; font-size: 18px; }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 14px 0;
+        }
+        @media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+        .section-box {
+            background: #f5f9ff;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            padding: 14px 16px;
+        }
+        .section-box .box-title { font-size: 12px; font-weight: 700; color: #0d47a1; margin-bottom: 6px; }
+        .section-box .box-files { font-size: 11px; color: #666; }
+        .section-box .box-count { font-size: 18px; font-weight: 700; color: #1565c0; float: right; margin-top: -2px; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+        .phase-link {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #0d47a1;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .phase-link:hover { background: #bbdefb; }
+
+        .toc { list-style: none; padding: 0; }
+        .toc li { border-bottom: 1px solid #f0f0f0; }
+        .toc li:last-child { border-bottom: none; }
+        .toc a { display: block; padding: 8px 4px; color: #0d47a1; text-decoration: none; font-size: 13px; }
+        .toc a:hover { color: #1565c0; padding-left: 8px; transition: padding 0.15s; }
+        .toc .toc-num { display: inline-block; width: 24px; color: #aaa; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; ARIA Phase 4 Report</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Back to Index</a>
+        <button class="btn btn-print" onclick="window.print()">Print / PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── Report Header ── -->
+    <div class="report-header">
+        <div class="phase-label">ARIA Refactoring &mdash; Phase 4</div>
+        <h2>Frontend Consolidation</h2>
+        <div class="subtitle">Move 219 scattered AJAX calls out of 52 PHP view files into a single <code style="background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:3px;">assets/js/app.js</code> — one auditable file, one consistent pattern</div>
+        <div class="meta-row">
+            <div class="meta-item"><strong>Status:</strong> Complete</div>
+            <div class="meta-item"><strong>Date:</strong> 2026-06-22</div>
+            <div class="meta-item"><strong>Scope:</strong> 52 PHP views + 1 new JS file</div>
+            <div class="meta-item"><strong>Depends on:</strong> Phase 3 (AuthGuard)</div>
+        </div>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="number">219</div>
+            <div class="label">Total AJAX calls</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">52</div>
+            <div class="label">PHP files with inline JS</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">1</div>
+            <div class="label">New JS file created</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">0</div>
+            <div class="label">PHP handler changes</div>
+        </div>
+    </div>
+
+    <!-- ── Contents ── -->
+    <div class="section-title">Contents</div>
+    <div class="card">
+        <ul class="toc">
+            <li><a href="#problem"><span class="toc-num">1</span> The Problem — 52 scattered script blocks</a></li>
+            <li><a href="#approach"><span class="toc-num">2</span> Approach — window.GRC config + app.js</a></li>
+            <li><a href="#phase3-link"><span class="toc-num">3</span> How Phase 3 and Phase 4 interact</a></li>
+            <li><a href="#appjs-structure"><span class="toc-num">4</span> app.js section structure</a></li>
+            <li><a href="#before-after"><span class="toc-num">5</span> Before / After code example</a></li>
+            <li><a href="#inventory"><span class="toc-num">6</span> File inventory (52 files, 219 calls)</a></li>
+            <li><a href="#summary"><span class="toc-num">7</span> Summary &amp; implementation order</a></li>
+        </ul>
+    </div>
+
+    <!-- ── Problem ── -->
+    <div class="section-title" id="problem">1 — The Problem</div>
+
+    <div class="card">
+        <h3>219 AJAX calls living inside PHP files</h3>
+        <p>A scan of the entire <code>Project/</code> directory found <strong>182 inline <code>$.ajax()</code> calls across 52 PHP view files</strong>, plus the 37 calls already centralised in <code>mine.js</code> for the bussinf settings page.</p>
+
+        <div class="alert alert-danger">
+            <strong>Problem 1 — Not auditable.</strong> To find all AJAX targets you have to grep every PHP file. There is no single place to see what the frontend calls, what it sends, or what it expects back.
+        </div>
+        <div class="alert alert-danger">
+            <strong>Problem 2 — Inconsistent patterns.</strong> Some calls use <code>dataType:'text'</code> and read a raw echo string. Others use <code>dataType:"json"</code> but with inconsistent success-handler shapes. Some use <code>Toastify</code>, some use <code>Swal.fire</code>, some use neither. There is no shared standard.
+        </div>
+        <div class="alert alert-danger">
+            <strong>Problem 3 — PHP variables baked into JS.</strong> Inline scripts can reference <code>&lt;?=$suid?&gt;</code>, <code>&lt;?=$sdid?&gt;</code>, and <code>getuseripaddress()</code> directly in hidden form inputs that get serialised into AJAX data. A standalone JS file cannot do this — and after Phase 3 these values come from the server session anyway, so baking them in becomes a security concern.
+        </div>
+        <div class="alert alert-warn">
+            <strong>Problem 4 — Nested event binding.</strong> Identified first in mine.js but present across many view files: a submit-handler registered inside a modal-open click handler stacks up every time the modal is opened, causing multiple AJAX fires per click.
+        </div>
+
+        <h4>Where the calls are concentrated</h4>
+        <div class="section-grid">
+            <div class="section-box">
+                <span class="box-count">31</span>
+                <div class="box-title">Approval &amp; Workflow</div>
+                <div class="box-files">inbox.php (20), riskstatus.php (11)</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">37</span>
+                <div class="box-title">Settings pages</div>
+                <div class="box-files">companylist, entitylist, processlist, riskcat, impact, likelihood, controlstrength, controltype</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">31</span>
+                <div class="box-title">KRI / Performance / BSC</div>
+                <div class="box-files">kri.php (8), b_objective.php (6), kpi.php (5), bsciso.php (5), kra_settings, performance, kriadd, krihist, parameteradd</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">24</span>
+                <div class="box-title">Risk Management</div>
+                <div class="box-files">addrisk, risklist, risktreatment, riskassessadd, riskassessedit, riskregister, riskmatrix, risk_report, overallrisk, risktop, bulk_risk_upload</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">13</span>
+                <div class="box-title">Entity / Dept / Process</div>
+                <div class="box-files">entity.php (11), add_entity.php (1), addprocess.php (1)</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">12</span>
+                <div class="box-title">Control Management</div>
+                <div class="box-files">controls.php (4), editcontrols, addcontrol, update_rcontrol, overallcontrol</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">9</span>
+                <div class="box-title">Users &amp; Profile</div>
+                <div class="box-files">userslist.php (5), profile (2), usersadd (1), permissionedit (1)</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">7</span>
+                <div class="box-title">Actions</div>
+                <div class="box-files">actions.php (5), addaction.php (2)</div>
+            </div>
+            <div class="section-box">
+                <span class="box-count">9</span>
+                <div class="box-title">Recommendations &amp; Incidents</div>
+                <div class="box-files">recommendations (5), addrecommend (2), incidents (4), incidentadd (2)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Approach ── -->
+    <div class="section-title" id="approach">2 — Approach</div>
+
+    <div class="card">
+        <h3>Two-part solution: config block + app.js</h3>
+
+        <h4>Part A — window.GRC config in header.php</h4>
+        <p><code>layout/header.php</code> already sets <code>$suid</code>, <code>$sdid</code>, <code>$sess_roles</code>, and calls <code>getuseripaddress()</code>. Add one small inline <code>&lt;script&gt;</code> block there (the only PHP-dependent JS that remains) to expose these as a global config object.</p>
+
+        <div class="code-block-full">
+            <div class="label">layout/header.php — add at end of &lt;head&gt; section</div>
+            <pre><span class="tag">&lt;script&gt;</span>
+  <span class="kw">window</span>.GRC = {
+    uid:   <span class="str">"&lt;?= htmlspecialchars($suid, ENT_QUOTES) ?&gt;"</span>,
+    sdid:  <span class="str">"&lt;?= htmlspecialchars($sdid, ENT_QUOTES) ?&gt;"</span>,
+    roles: <span class="str">&lt;?= (int)$sess_roles ?&gt;</span>,
+    ip:    <span class="str">"&lt;?= htmlspecialchars(getuseripaddress(), ENT_QUOTES) ?&gt;"</span>
+  };
+<span class="tag">&lt;/script&gt;</span></pre>
+        </div>
+
+        <p>After Phase 3 (AuthGuard), the PHP handlers get uid/sdid/ip from <code>$_SESSION</code> — they no longer trust values POSTed from the frontend. So <code>window.GRC</code> is only needed for <strong>UI logic</strong> (e.g. role-based show/hide of buttons), not for security-critical operations. This is a clean, safe pattern.</p>
+
+        <h4>Part B — assets/js/app.js</h4>
+        <p>One file, structured in sections by module. Every <code>$.ajax()</code> block that currently lives in a PHP view's <code>&lt;script&gt;</code> tag moves here. The PHP view loses its inline script entirely — it just includes the header (which loads app.js) and outputs HTML.</p>
+
+        <div class="alert alert-info">
+            <strong>mine.js is merged in.</strong> The 37 calls in <code>mine.js</code> become the Settings section of <code>app.js</code>. The <code>&lt;script src="mine.js"&gt;</code> reference in <code>bussinf.php</code> is replaced by the shared <code>app.js</code> load in the header. One less file to maintain.
+        </div>
+
+        <h4>How app.js is loaded</h4>
+        <p>Add one script tag at the bottom of <code>layout/footer.php</code>, after all vendor scripts:</p>
+        <div class="code-block-full">
+            <div class="label">layout/footer.php — add once</div>
+            <pre><span class="tag">&lt;script</span> src=<span class="str">"../assets/js/app.js"</span><span class="tag">&gt;&lt;/script&gt;</span></pre>
+        </div>
+        <p>Because it loads on every page, the handlers are always available — delegated event listeners on <code>document</code> (the existing pattern) ensure they only fire when the matching element is present on the current page.</p>
+    </div>
+
+    <!-- ── Phase 3 Link ── -->
+    <div class="section-title" id="phase3-link">3 — How Phase 3 and Phase 4 interact</div>
+
+    <div class="card">
+        <h3>Phase 4 is most effective after Phase 3</h3>
+        <table>
+            <tr><th>Concern</th><th>Before Phase 3</th><th>After Phase 3 (ideal state)</th></tr>
+            <tr>
+                <td>uid / sdid sent to server</td>
+                <td>Via hidden form inputs (<code>&lt;input type="hidden" name="entityuid" value="&lt;?=$suid?&gt;"&gt;</code>) serialised into POST data</td>
+                <td>Read from <code>$_SESSION</code> inside AuthGuard — frontend never needs to send them</td>
+            </tr>
+            <tr>
+                <td>Hidden inputs in forms</td>
+                <td>Required — handlers use <code>$_POST['entityuid']</code></td>
+                <td>Redundant — can be removed from HTML forms</td>
+            </tr>
+            <tr>
+                <td>IP address</td>
+                <td>Called via <code>getuseripaddress()</code> inline in some hidden inputs</td>
+                <td>Called inside AuthGuard on the PHP side</td>
+            </tr>
+            <tr>
+                <td>window.GRC.uid / .ip</td>
+                <td>Still needed to populate hidden inputs</td>
+                <td>Only needed for UI logic (role-based display) — not security</td>
+            </tr>
+        </table>
+        <p style="margin-top:12px;color:#555;">You can do Phase 4 before Phase 3 — it still works, since the hidden inputs still feed the handlers. But doing Phase 3 first means you can remove the hidden inputs from forms as you go, which shrinks the app.js data payloads and tightens security at the same time.</p>
+    </div>
+
+    <!-- ── app.js structure ── -->
+    <div class="section-title" id="appjs-structure">4 — app.js section structure</div>
+
+    <div class="card">
+        <h3>Proposed section layout for assets/js/app.js</h3>
+        <p>Each section is clearly delimited with a comment header. Within each section, read/fetch handlers come first, then write handlers (add, update, delete).</p>
+        <table>
+            <tr><th>#</th><th>Section</th><th>Calls</th><th>Source files</th></tr>
+            <tr><td>1</td><td>Settings — Company</td><td>4</td><td>Extracted from mine.js + companylist.php</td></tr>
+            <tr><td>2</td><td>Settings — Entity / Dept</td><td>10</td><td>mine.js + entitylist.php</td></tr>
+            <tr><td>3</td><td>Settings — Process</td><td>8</td><td>mine.js + processlist.php</td></tr>
+            <tr><td>4</td><td>Settings — Users</td><td>6</td><td>mine.js + userslist.php + usersadd.php</td></tr>
+            <tr><td>5</td><td>Settings — Impact</td><td>8</td><td>mine.js + impact.php</td></tr>
+            <tr><td>6</td><td>Settings — Likelihood</td><td>8</td><td>mine.js + likelihood.php</td></tr>
+            <tr><td>7</td><td>Settings — Risk Category</td><td>8</td><td>mine.js + riskcat.php</td></tr>
+            <tr><td>8</td><td>Settings — Control Type</td><td>8</td><td>mine.js + controltype.php</td></tr>
+            <tr><td>9</td><td>Settings — Control Strength</td><td>8</td><td>mine.js + controlstrength.php</td></tr>
+            <tr><td>10</td><td>Risk</td><td>24</td><td>addrisk, risklist, risktreatment, riskassessadd, riskassessedit, riskregister, riskmatrix, risk_report, overallrisk, risktop, bulk_risk_upload</td></tr>
+            <tr><td>11</td><td>Control</td><td>12</td><td>controls, addcontrol, editcontrols, update_rcontrol, overallcontrol</td></tr>
+            <tr><td>12</td><td>Entity</td><td>13</td><td>entity.php, add_entity.php, addprocess.php</td></tr>
+            <tr><td>13</td><td>KRI &amp; Performance</td><td>14</td><td>kri, kriadd, krihist, kriperform, parameteradd, performance</td></tr>
+            <tr><td>14</td><td>KPI &amp; BSC / Objective</td><td>16</td><td>kpi, b_objective, bsciso, kra_settings</td></tr>
+            <tr><td>15</td><td>Actions</td><td>7</td><td>actions, addaction</td></tr>
+            <tr><td>16</td><td>Recommendations</td><td>7</td><td>recommendations, addrecommend</td></tr>
+            <tr><td>17</td><td>Incidents</td><td>6</td><td>incidents, incidentadd</td></tr>
+            <tr><td>18</td><td>Approval &amp; Inbox</td><td>31</td><td>inbox, riskstatus</td></tr>
+            <tr><td>19</td><td>Profile &amp; Permissions</td><td>3</td><td>profile, permissionedit</td></tr>
+        </table>
+    </div>
+
+    <!-- ── Before / After ── -->
+    <div class="section-title" id="before-after">5 — Before / After code example</div>
+
+    <div class="card">
+        <h3>Example: approval AJAX in inbox.php</h3>
+        <p>This shows a complete block — inline script in a PHP view — moved to app.js with the standardised JSON pattern.</p>
+        <div class="before-after">
+            <div class="code-block before">
+                <div class="label">Before — inside inbox.php &lt;script&gt;</div>
+                <pre><span class="cmt">/* inline in inbox.php — line 1044 */</span>
+$(<span class="kw">document</span>).<span class="fn">on</span>(<span class="str">'click'</span>,<span class="str">'.approverisk-btn'</span>,
+<span class="kw">function</span>(e){
+    e.<span class="fn">preventDefault</span>();
+    $.ajax({
+        url: <span class="str">'riskapprove.php'</span>,
+        method: <span class="str">'post'</span>,
+        data: $(<span class="str">'#approveriskform'</span>).<span class="fn">serialize</span>(),
+        dataType: <span class="str">'json'</span>,
+        success: <span class="kw">function</span>(<span class="var">r</span>) {
+            Toastify({
+                text: <span class="var">r</span>.message,
+                backgroundColor:
+                  <span class="var">r</span>.status === <span class="str">'ok'</span>
+                    ? <span class="str">'#4fbe87'</span>
+                    : <span class="str">'#f0470d'</span>
+            }).<span class="fn">showToast</span>();
+        }
+    });
+});</pre>
+            </div>
+            <div class="code-block after">
+                <div class="label">After — in app.js, Section 18: Approval</div>
+                <pre><span class="cmt">/* ── Section 18: Approval &amp; Inbox ──── */</span>
+
+$(<span class="kw">document</span>).<span class="fn">on</span>(<span class="str">'click'</span>,<span class="str">'.approverisk'</span>,
+<span class="kw">function</span>(e){
+    e.<span class="fn">preventDefault</span>();
+    <span class="kw">var</span> <span class="var">id</span> = $(<span class="kw">this</span>).<span class="fn">attr</span>(<span class="str">'id'</span>);
+    $.ajax({
+        url: <span class="str">'riskdelupdate.php'</span>,
+        method: <span class="str">'post'</span>,
+        data: { riskid: <span class="var">id</span> },
+        dataType: <span class="str">'json'</span>,
+        success: <span class="kw">function</span>(<span class="var">d</span>) {
+            $(<span class="str">"#dcid"</span>).<span class="fn">val</span>(<span class="var">d</span>.risk_id);
+            $(<span class="str">"#dcname"</span>).<span class="fn">html</span>(<span class="var">d</span>.risk_name);
+            $(<span class="str">"#approverisk-modal"</span>).<span class="fn">modal</span>(<span class="str">'show'</span>);
+        }
+    });
+});
+
+<span class="cmt">/* submit handler at top level — not nested */</span>
+$(<span class="kw">document</span>).<span class="fn">on</span>(<span class="str">'click'</span>,<span class="str">'.approverisk-btn'</span>,
+<span class="kw">function</span>(e){
+    e.<span class="fn">preventDefault</span>();
+    $.ajax({
+        url: <span class="str">'riskapprove.php'</span>,
+        method: <span class="str">'post'</span>,
+        data: $(<span class="str">'#approveriskform'</span>).<span class="fn">serialize</span>(),
+        dataType: <span class="str">'json'</span>,
+        success: <span class="kw">function</span>(<span class="var">r</span>) {
+            Toastify({
+                text: <span class="var">r</span>.message,
+                backgroundColor:
+                  <span class="var">r</span>.status === <span class="str">'ok'</span>
+                    ? <span class="str">'#4fbe87'</span>
+                    : <span class="str">'#f0470d'</span>
+            }).<span class="fn">showToast</span>();
+        }
+    });
+});</pre>
+            </div>
+        </div>
+        <p style="color:#666;font-size:12px;margin-top:8px;">The PHP view (inbox.php) loses its entire <code>&lt;script&gt;</code> block. Nothing else in inbox.php changes.</p>
+    </div>
+
+    <div class="card">
+        <h3>How PHP views change</h3>
+        <div class="before-after">
+            <div class="code-block before">
+                <div class="label">Before — bottom of any view file</div>
+                <pre><span class="cmt">&lt;!-- vendor scripts --&gt;</span>
+<span class="tag">&lt;script</span> src=<span class="str">"../assets/vendors/..."</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="tag">&lt;script&gt;</span>
+  <span class="cmt">// 50-200 lines of inline AJAX</span>
+  $(<span class="kw">document</span>).<span class="fn">on</span>(<span class="str">'click'</span>, <span class="str">'.approve'</span>, ...);
+  $(<span class="kw">document</span>).<span class="fn">on</span>(<span class="str">'click'</span>, <span class="str">'.delete'</span>, ...);
+  <span class="cmt">// etc.</span>
+<span class="tag">&lt;/script&gt;</span></pre>
+            </div>
+            <div class="code-block after">
+                <div class="label">After — bottom of any view file</div>
+                <pre><span class="cmt">&lt;!-- vendor scripts --&gt;</span>
+<span class="tag">&lt;script</span> src=<span class="str">"../assets/vendors/..."</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="cmt">&lt;!-- no inline script block --&gt;</span>
+<span class="cmt">&lt;!-- app.js loaded via footer.php --&gt;</span>
+</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Inventory ── -->
+    <div class="section-title" id="inventory">6 — File inventory</div>
+
+    <div class="card">
+        <h3>All 52 PHP files with inline AJAX</h3>
+        <table>
+            <tr><th>File</th><th>Calls</th><th>app.js section</th><th>Notes</th></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Approval &amp; Workflow — 31 calls</td></tr>
+            <tr><td>inbox.php</td><td>20</td><td>Section 18</td><td>Largest single file; risk + control + KI + recommendation + action approvals</td></tr>
+            <tr><td>riskstatus.php</td><td>11</td><td>Section 18</td><td>Risk status transitions; some utility functions (display, fetchprocess)</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Settings pages — 37 calls (overlaps with mine.js patterns)</td></tr>
+            <tr><td>companylist.php</td><td>4</td><td>Section 1</td><td>Duplicate of mine.js company section — merge, deduplicate selectors</td></tr>
+            <tr><td>entitylist.php</td><td>4</td><td>Section 2</td><td>Entity list page CRUD modals</td></tr>
+            <tr><td>processlist.php</td><td>4</td><td>Section 3</td><td>Process list page CRUD modals</td></tr>
+            <tr><td>userslist.php</td><td>5</td><td>Section 4</td><td>User list CRUD + permission modal</td></tr>
+            <tr><td>impact.php</td><td>5</td><td>Section 5</td><td>Individual impact settings page (separate from bussinf)</td></tr>
+            <tr><td>likelihood.php</td><td>5</td><td>Section 6</td><td>Individual likelihood settings page</td></tr>
+            <tr><td>riskcat.php</td><td>5</td><td>Section 7</td><td>Individual risk category settings page</td></tr>
+            <tr><td>controltype.php</td><td>5</td><td>Section 8</td><td>Individual control type settings page</td></tr>
+            <tr><td>controlstrength.php</td><td>5</td><td>Section 9</td><td>Individual control strength settings page</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">KRI / Performance / BSC — 31 calls</td></tr>
+            <tr><td>kri.php</td><td>8</td><td>Section 13</td><td>KRI list; fetch + CRUD operations</td></tr>
+            <tr><td>b_objective.php</td><td>6</td><td>Section 14</td><td>BSC objectives; fetch + write operations</td></tr>
+            <tr><td>kpi.php</td><td>5</td><td>Section 14</td><td>KPI CRUD modals</td></tr>
+            <tr><td>bsciso.php</td><td>5</td><td>Section 14</td><td>BSC-ISO mappings</td></tr>
+            <tr><td>kra_settings.php</td><td>2</td><td>Section 14</td><td>KRA settings add/edit</td></tr>
+            <tr><td>performance.php</td><td>2</td><td>Section 13</td><td>Performance read + update</td></tr>
+            <tr><td>parameteradd.php</td><td>1</td><td>Section 13</td><td>KRI parameter add form</td></tr>
+            <tr><td>kriadd.php</td><td>1</td><td>Section 13</td><td>KRI add form fetch</td></tr>
+            <tr><td>krihist.php</td><td>1</td><td>Section 13</td><td>KRI history fetch</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Risk Management — 24 calls</td></tr>
+            <tr><td>addrisk.php</td><td>4</td><td>Section 10</td><td>Risk add form; process fetch + control fetch</td></tr>
+            <tr><td>risklist.php</td><td>4</td><td>Section 10</td><td>Risk list view; edit + approve modals</td></tr>
+            <tr><td>risktreatment.php</td><td>5</td><td>Section 10</td><td>Treatment actions; accept, mitigate, transfer, avoid, amend</td></tr>
+            <tr><td>riskassessadd.php</td><td>2</td><td>Section 10</td><td>Assessment add; control fetch</td></tr>
+            <tr><td>riskassessedit.php</td><td>2</td><td>Section 10</td><td>Assessment edit; control fetch</td></tr>
+            <tr><td>riskregister.php</td><td>1</td><td>Section 10</td><td>Register view fetch</td></tr>
+            <tr><td>riskmatrix.php</td><td>1</td><td>Section 10</td><td>Matrix view data load</td></tr>
+            <tr><td>risk_report.php</td><td>1</td><td>—</td><td><strong>Kept inline</strong> — DataTable conditional init + form enable/disable tightly coupled; AJAX call cannot be cleanly separated</td></tr>
+            <tr><td>overallrisk.php</td><td>1</td><td>Section 10</td><td>Overall risk summary load</td></tr>
+            <tr><td>risktop.php</td><td>2</td><td>Section 10</td><td>Top risk filter</td></tr>
+            <tr><td>bulk_risk_upload.php</td><td>1</td><td>—</td><td><strong>Kept inline</strong> — 170-line self-contained script: drag-drop UI, <code>selectedFiles</code> state, <code>displayResults()</code>, progress bar; app.js Section 20 is a comment placeholder only</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Entity / Department / Process — 13 calls</td></tr>
+            <tr><td>entity.php</td><td>11</td><td>Section 12</td><td>Full entity management; 11 modals (add dept, edit, delete, process, joins)</td></tr>
+            <tr><td>add_entity.php</td><td>1</td><td>Section 12</td><td>Entity add form utility fetch</td></tr>
+            <tr><td>addprocess.php</td><td>1</td><td>Section 12</td><td>Process add form fetch</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Control Management — 12 calls</td></tr>
+            <tr><td>controls.php</td><td>4</td><td>Section 11</td><td>Control list; fetch + approve modals</td></tr>
+            <tr><td>addcontrol.php</td><td>2</td><td>Section 11</td><td>Control add; process + risk fetch</td></tr>
+            <tr><td>editcontrols.php</td><td>2</td><td>Section 11</td><td>Control edit; fetch + submit</td></tr>
+            <tr><td>update_rcontrol.php</td><td>3</td><td>Section 11</td><td>Risk-control link; add, update, delete</td></tr>
+            <tr><td>overallcontrol.php</td><td>1</td><td>Section 11</td><td>Overall control summary load</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Actions — 7 calls</td></tr>
+            <tr><td>actions.php</td><td>5</td><td>Section 15</td><td>Action list; fetch + approve + amend modals</td></tr>
+            <tr><td>addaction.php</td><td>2</td><td>Section 15</td><td>Action add; risk fetch + submit</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Recommendations — 7 calls</td></tr>
+            <tr><td>recommendations.php</td><td>5</td><td>Section 16</td><td>Recommendation list; fetch + approve + amend modals</td></tr>
+            <tr><td>addrecommend.php</td><td>2</td><td>Section 16</td><td>Recommendation add; risk + process fetch</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Incidents — 6 calls</td></tr>
+            <tr><td>incidents.php</td><td>4</td><td>Section 17</td><td>Incident list; fetch + approve + amend modals</td></tr>
+            <tr><td>incidentadd.php</td><td>2</td><td>Section 17</td><td>Incident add; department + risk fetch</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Users &amp; Profile — 9 calls</td></tr>
+            <tr><td>usersadd.php</td><td>1</td><td>Section 4</td><td>User add form submit</td></tr>
+            <tr><td>profile.php</td><td>2</td><td>Section 19</td><td>Profile fetch + update</td></tr>
+            <tr><td>permissionedit.php</td><td>1</td><td>Section 19</td><td>Permission edit submit</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Key Indicators — 2 calls</td></tr>
+            <tr><td>addkeyindicator.php</td><td>2</td><td>Section 13</td><td>KI add; process fetch + submit</td></tr>
+
+            <tr><td colspan="4" style="background:#f5f9ff;font-weight:700;color:#0d47a1;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Excluded</td></tr>
+            <tr><td>login_test.php</td><td>1</td><td>—</td><td>Pre-auth page — exclude from app.js; keep its script inline or in a login-specific file</td></tr>
+            <tr><td>bussinf.php</td><td>1</td><td>Section 1</td><td>Its 37 calls are already in mine.js — only 1 remaining inline call to move</td></tr>
+        </table>
+    </div>
+
+    <!-- ── Summary ── -->
+    <div class="section-title" id="summary">7 — Summary &amp; implementation order</div>
+
+    <div class="card">
+        <h3>What changes</h3>
+        <table>
+            <tr><th>File / area</th><th>Change</th></tr>
+            <tr><td><code>layout/header.php</code></td><td>Add <code>window.GRC = {...}</code> script block — 6 lines added</td></tr>
+            <tr><td><code>layout/footer.php</code></td><td>Add <code>&lt;script src="../assets/js/app.js"&gt;</code> — 1 line added</td></tr>
+            <tr><td><code>assets/js/app.js</code></td><td>New file — 19 sections, all AJAX from 52 PHP files + mine.js merged in</td></tr>
+            <tr><td><code>assets/js/mine.js</code></td><td>NOT deleted — still referenced by <code>audit/</code> and <code>Iso/</code> modules (21 files outside Phase 4 scope). Its content was duplicated into app.js Sections 1–9. Project/ files no longer carry a <code>&lt;script src="mine.js"&gt;</code> tag.</td></tr>
+            <tr><td>52 PHP view files</td><td>50 files: inline <code>&lt;script&gt;</code> blocks removed — nothing else changes. 2 exceptions kept inline: <code>bulk_risk_upload.php</code> (self-contained drag-drop UI) and <code>risk_report.php</code> (tightly coupled page-specific form state)</td></tr>
+            <tr><td><code>bussinf.php</code></td><td>Remove <code>&lt;script src="mine.js"&gt;</code> reference — app.js covers it via footer</td></tr>
+        </table>
+
+        <h4 style="margin-top:16px;">Recommended implementation order</h4>
+        <ol style="padding-left:20px;color:#444;margin-top:8px;">
+            <li style="margin-bottom:6px;">Complete Phase 3 (AuthGuard) first — removes the need for hidden uid/sdid inputs</li>
+            <li style="margin-bottom:6px;">Create <code>app.js</code> skeleton with section headers and no code</li>
+            <li style="margin-bottom:6px;">Add <code>window.GRC</code> to header.php and <code>app.js</code> load to footer.php</li>
+            <li style="margin-bottom:6px;">Start with the settings sections (1–9): migrate mine.js + individual settings pages together — these are self-contained</li>
+            <li style="margin-bottom:6px;">Move risk + control + entity sections next (10–12)</li>
+            <li style="margin-bottom:6px;">Move KRI/BSC section (13–14)</li>
+            <li style="margin-bottom:6px;">Move the remaining sections (15–19)</li>
+            <li style="margin-bottom:6px;">Tackle inbox.php and riskstatus.php last — largest files, most calls</li>
+            <li style="margin-bottom:6px;">Delete mine.js, remove bussinf.php script reference</li>
+        </ol>
+
+        <div class="alert alert-success" style="margin-top:16px;">
+            <strong>End state:</strong> ~217 AJAX calls in one file, structured in 20 labelled sections (Section 20 is a comment placeholder for bulk_risk_upload.php). 50 of 52 PHP views are now plain HTML + PHP data rendering with no inline JavaScript. The 2 exceptions (bulk_risk_upload.php, risk_report.php) retain self-contained scripts that cannot be cleanly extracted. Debugging, auditing, and updating AJAX behaviour happens in one place.
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

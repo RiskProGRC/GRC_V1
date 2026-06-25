@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRC V1 — Changes Index</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+
+        .toolbar { background: #1a1a2e; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .toolbar h1 { font-size: 16px; font-weight: 600; }
+
+        .container { max-width: 860px; margin: 40px auto; padding: 0 20px 60px; }
+
+        .page-header { margin-bottom: 32px; }
+        .page-header h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+        .page-header p { color: #888; font-size: 13px; }
+
+        .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin: 28px 0 12px; }
+
+        .card-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            text-decoration: none;
+            color: inherit;
+            border-left: 5px solid #ccc;
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .card-link:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); transform: translateY(-1px); }
+
+        .card-link.audit   { border-left-color: #1a1a2e; }
+        .card-link.step1   { border-left-color: #28a745; }
+        .card-link.step2   { border-left-color: #c0392b; }
+        .card-link.step3   { border-left-color: #b7950b; }
+        .card-link.step4   { border-left-color: #4f8ef7; }
+        .card-link.step5   { border-left-color: #8e44ad; }
+        .card-link.aria1   { border-left-color: #6c3483; }
+        .card-link.aria2   { border-left-color: #0f3460; }
+        .card-link.aria3   { border-left-color: #1b5e20; }
+        .card-link.aria4   { border-left-color: #0d47a1; }
+        .card-link.schedule   { border-left-color: #6a1b9a; }
+        .card-link.dashboard  { border-left-color: #00838f; }
+        .card-link.styling    { border-left-color: #e65100; }
+        .card-link.login      { border-left-color: #b5451b; }
+        .card-link.ariaLogin  { border-left-color: #b5451b; }
+        .card-link.loginRec   { border-left-color: #8e44ad; }
+        .card-link.loginNew    { border-left-color: #4a1080; }
+        .card-link.loginMaster    { border-left-color: #1a1a2e; }
+        .card-link.registration   { border-left-color: #00695c; }
+        .card-link.registrationV2  { border-left-color: #1565c0; }
+        .card-link.userMgmt        { border-left-color: #283593; }
+        .card-link.validation      { border-left-color: #00897b; }
+        .card-link.fixes           { border-left-color: #c0392b; }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .card-link.login .card-icon     { background: #fff0eb; }
+        .card-link.ariaLogin .card-icon { background: #fff0eb; }
+        .card-link.loginRec .card-icon  { background: #f5eeff; }
+        .card-link.loginNew    .card-icon { background: #ede7f6; }
+        .card-link.loginMaster .card-icon { background: #eef; }
+        .card-link.sqlChanges  { border-left-color: #1b5e20; }
+        .card-link.sqlChanges .card-icon { background: #e8f5e9; }
+        .card-link.registration    .card-icon { background: #e0f2f1; }
+        .card-link.registrationV2  .card-icon { background: #e3f2fd; }
+        .card-link.userMgmt        .card-icon { background: #e8eaf6; }
+        .card-link.validation      .card-icon { background: #e0f2f1; }
+        .card-link.fixes           .card-icon { background: #fde8e8; }
+        .card-link.audit .card-icon   { background: #eef; }
+        .card-link.aria1 .card-icon  { background: #f5eeff; }
+        .card-link.aria2 .card-icon  { background: #e8f0ff; }
+        .card-link.aria3 .card-icon  { background: #e8f5e9; }
+        .card-link.aria4 .card-icon  { background: #e3f2fd; }
+        .card-link.schedule .card-icon  { background: #f5eeff; }
+        .card-link.dashboard .card-icon { background: #e0f7fa; }
+        .card-link.styling .card-icon   { background: #fff3e0; }
+        .card-link.step1 .card-icon   { background: #eafaf1; }
+        .card-link.step2 .card-icon   { background: #fde8e8; }
+        .card-link.step3 .card-icon   { background: #fef9e7; }
+        .card-link.step4 .card-icon   { background: #eef2ff; }
+        .card-link.step5 .card-icon   { background: #f5eeff; }
+
+        .card-info { flex: 1; }
+        .card-info h3 { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; }
+        .card-info p  { font-size: 12px; color: #888; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .badge-done    { background: #eafaf1; color: #1e8449; }
+        .badge-pending { background: #f4f6f9; color: #aaa; border: 1px solid #ddd; }
+
+        .arrow { font-size: 18px; color: #ccc; }
+        .card-link:hover .arrow { color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; Changes &amp; Reports Index</h1>
+</div>
+
+<div class="container">
+
+    <div class="page-header">
+        <h2>All Change Reports</h2>
+        <p>Track every improvement made to the GRC_V1 codebase — click any report to open it.</p>
+    </div>
+
+    <div class="section-title">Audit</div>
+
+    <a href="grc_audit_report.html" class="card-link audit">
+        <div class="card-icon">&#128202;</div>
+        <div class="card-info">
+            <h3>Full Code Audit Report</h3>
+            <p>13 findings across security, performance, redundancy &amp; cleanup — full codebase review</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <div class="section-title">Login System</div>
+
+    <a href="sql_changes.html" class="card-link sqlChanges">
+        <div class="card-icon">&#128200;</div>
+        <div class="card-info">
+            <h3>SQL Table Changes &mdash; Login System</h3>
+            <p>6 SQL statements across 2 tables &mdash; verify_token and token_expires_at missing from users (blocking), login_attempt table to create, plus 3 existing schema issues (phone INT, bsc_setting YEAR, entity VARCHAR too short)</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="login_master.html" class="card-link loginMaster">
+        <div class="card-icon">&#128218;</div>
+        <div class="card-info">
+            <h3>Login System &mdash; Master Improvement Guide &#9733;</h3>
+            <p>All 4 login reports merged into a single step-by-step flow &mdash; 26 changes across 5 ordered steps with sticky navigation, before/after diffs, and a master checklist</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="aria_login.html" class="card-link ariaLogin">
+        <div class="card-icon">&#9965;</div>
+        <div class="card-info">
+            <h3>Login System &mdash; ARIA Phases 2–4 Plan</h3>
+            <p>13 planned changes across 6 files — loginClass.php (Phase 2), 3 handler files (Phase 3), 3 view files (Phase 4) — before/after diffs for each</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="login.html" class="card-link login">
+        <div class="card-icon">&#128274;</div>
+        <div class="card-info">
+            <h3>Login System &mdash; Audit &amp; Improvement Report</h3>
+            <p>13 issues across login.php, loginaction.php, loginClass.php, reset-password.php, confirmpass.php &mdash; 2 critical, 5 security, 4 UX, 2 cleanup</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="login_new_findings.html" class="card-link loginNew">
+        <div class="card-icon">&#128270;</div>
+        <div class="card-info">
+            <h3>Login System &mdash; New Findings Only</h3>
+            <p>8 issues not in either previous report &mdash; 3 critical (session fixation, debug log, token expiry), 2 security (CSRF, email enumeration), 2 UX (loading state, autocomplete), 1 code bug (dead branch)</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="login_recommended.html" class="card-link loginRec">
+        <div class="card-icon">&#10024;</div>
+        <div class="card-info">
+            <h3>Login System &mdash; Recommended Redesign</h3>
+            <p>18 changes across 7 files — 7 new issues not in either previous report (session fixation, debug log, token expiry, CSRF, email enumeration, loading state, autocomplete) plus all prior findings</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <div class="section-title">User Registration</div>
+
+    <a href="usermgmt_fixes.html" class="card-link fixes">
+        <div class="card-icon">&#128295;</div>
+        <div class="card-info">
+            <h3>User Management &mdash; Bug Fixes (Post-Build)</h3>
+            <p>6 fixes across 5 files &mdash; session_start notice, suspended count always 0, SweetAlert duplicate handler, Enter-key page navigation, empty-form POST guard, success redirect vs error stay-on-page</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="validation.html" class="card-link validation">
+        <div class="card-icon">&#10003;</div>
+        <div class="card-info">
+            <h3>Form Validation &mdash; Centralised GRC.validate() Utility</h3>
+            <p>New <code>formvalidation.js</code> shared utility — 6 rules for Add User form, inline feedback messages, email format check, password length check, reusable by any future form</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="user_management.html" class="card-link userMgmt">
+        <div class="card-icon">&#128101;</div>
+        <div class="card-info">
+            <h3>User Management Module &mdash; Master Guide &#9733;</h3>
+            <p>Complete 8-phase build plan — registration form fixes (ARIA, bugs, styling, responsive), 5 new usersClass methods, 5 new handler files, userslist &amp; profile enhancements, usermanagement.js, 5 SQL migrations, nav integration</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="registration_v2.html" class="card-link registrationV2">
+        <div class="card-icon">&#128101;</div>
+        <div class="card-info">
+            <h3>Registration Form v2 &amp; User Management Module &#9733;</h3>
+            <p>13 form improvements (styling, responsiveness, UX) + full User Management module plan — 9 new files, 4 DB changes, stats dashboard, suspend/activate, soft-delete, CSV export, activity log, photo upload</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="registration.html" class="card-link registration">
+        <div class="card-icon">&#128100;</div>
+        <div class="card-info">
+            <h3>Registration Form &mdash; ARIA Improvement Report</h3>
+            <p>10 issues in usersadd.php &mdash; 4 accessibility (labels, input types, aria-required, live region), 3 bugs (PHP delimiters, missing data fetch, orphan datatable), 3 architecture gaps (CSRF, AJAX handler, Response class)</p>
+        </div>
+        <span class="badge badge-pending">&#9888; Pending</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <div class="section-title">Part 1 &mdash; Changes by Step</div>
+
+    <a href="step1_changes_report.html" class="card-link step1">
+        <div class="card-icon">&#128295;</div>
+        <div class="card-info">
+            <h3>Step 1 &mdash; Fix the Broken Things</h3>
+            <p>3 bug fixes: validate.js tag, entityEdit.php path, footer JS timing &mdash; 3 files changed</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="step2_changes_report.html" class="card-link step2">
+        <div class="card-icon">&#128274;</div>
+        <div class="card-info">
+            <h3>Step 2 &mdash; SQL Injection Fixes</h3>
+            <p>2 security fixes: OOP mysqli prepared statements in ajaxdata.php &amp; processfetch.php &mdash; 2 files changed</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="step3_changes_report.html" class="card-link step3">
+        <div class="card-icon">&#128260;</div>
+        <div class="card-info">
+            <h3>Step 3 &mdash; Consolidate DB Configuration</h3>
+            <p>Created config.php, removed duplicate $db connection, centralised credentials &mdash; 3 files changed</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="step4_changes_report.html" class="card-link step4">
+        <div class="card-icon">&#9889;</div>
+        <div class="card-info">
+            <h3>Step 4 &mdash; Remove jQuery Double-Load</h3>
+            <p>Removed duplicate jQuery from 69 files, moved jquery-ui to header.php &mdash; 70 files changed</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="step5_changes_report.html" class="card-link step5">
+        <div class="card-icon">&#128465;</div>
+        <div class="card-info">
+            <h3>Step 5 &mdash; Clean Up nav.php</h3>
+            <p>Removed 430 lines of dead Mazer template code, reformatted &mdash; 627 lines → 197 lines</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <div class="section-title">Part 2 &mdash; ARIA Refactoring</div>
+
+    <a href="aria_phase1_report.html" class="card-link aria1">
+        <div class="card-icon">&#9965;</div>
+        <div class="card-info">
+            <h3>Phase 1 &mdash; Foundation Layer</h3>
+            <p>3 new base classes: BaseRepository, ActivityLogger, Response &mdash; 0 existing files modified</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="aria_phase2_report.html" class="card-link aria2">
+        <div class="card-icon">&#128257;</div>
+        <div class="card-info">
+            <h3>Phase 2 &mdash; Entity Class Migration</h3>
+            <p>22 entity classes migrated to BaseRepository &mdash; SQL injection eliminated, audit logging centralised, 3 bugs fixed</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="aria_phase3_report.html" class="card-link aria3">
+        <div class="card-icon">&#128274;</div>
+        <div class="card-info">
+            <h3>Phase 3 &mdash; Handler Security Layer</h3>
+            <p>AuthGuard.php + ~45 handler files hardened &mdash; session gate, UID from session, forged IP removed, JSON responses</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <a href="aria_phase4_report.html" class="card-link aria4">
+        <div class="card-icon">&#128196;</div>
+        <div class="card-info">
+            <h3>Phase 4 &mdash; Frontend Consolidation</h3>
+            <p>219 AJAX calls across 52 PHP files moved to one assets/js/app.js &mdash; window.GRC config, consistent JSON pattern, mine.js absorbed</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <div class="section-title">Styling</div>
+
+    <a href="#" class="card-link styling">
+        <div class="card-icon">&#127912;</div>
+        <div class="card-info">
+            <h3>Global Font — Segoe UI</h3>
+            <p>Replaced "Poppins" with 'Segoe UI', Arial, sans-serif on body &amp; all headings in assets/css/style.css — matched to risk_dashboard.html</p>
+        </div>
+        <span class="badge badge-done">&#10003; Complete</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <div class="section-title">Templates &amp; Prototypes</div>
+
+    <a href="risk_dashboard.html" class="card-link dashboard">
+        <div class="card-icon">&#128202;</div>
+        <div class="card-info">
+            <h3>Enterprise Risk Dashboard</h3>
+            <p>Bootstrap 5 template — heatmap, appetite gauges, residual bar, KRI radar, scenario loss curve, ownership map, watchlist, priority table</p>
+        </div>
+        <span class="badge badge-done">&#10003; Ready</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+    <div class="section-title">Study Guide</div>
+
+    <a href="schedule.html" class="card-link schedule">
+        <div class="card-icon">&#128197;</div>
+        <div class="card-info">
+            <h3>3-Day Study Schedule</h3>
+            <p>Structured walkthrough to understand every change — Day 1: Foundation, Day 2: Full request trace, Day 3: Frontend &amp; big picture</p>
+        </div>
+        <span class="badge badge-done">&#10003; Ready</span>
+        <span class="arrow">&#8250;</span>
+    </a>
+
+</div>
+</body>
+</html>

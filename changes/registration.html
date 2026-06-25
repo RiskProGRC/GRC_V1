@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form — ARIA Improvement Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-dark  { background: #3a3a5c; }
+        .btn-print { background: #00695c; }
+
+        .container {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #00695c 0%, #00332b 100%);
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+        .report-header .phase-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.75;
+            margin-bottom: 8px;
+        }
+        .report-header h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+        .report-header p  { opacity: 0.85; font-size: 14px; max-width: 620px; }
+
+        .meta-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .meta-pill {
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #aaa;
+            margin: 36px 0 14px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .card-header .num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .card-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+
+        .card-body { padding: 18px 20px; }
+        .card-body p { margin-bottom: 10px; color: #444; }
+        .card-body p:last-child { margin-bottom: 0; }
+
+        .severity-critical { background: #fde8e8; color: #c0392b; }
+        .severity-high     { background: #fff3cd; color: #856404; }
+        .severity-medium   { background: #e8f0ff; color: #1a56db; }
+        .severity-low      { background: #e8f5e9; color: #1e8449; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .badge-critical { background: #fde8e8; color: #c0392b; }
+        .badge-high     { background: #fff3cd; color: #856404; }
+        .badge-medium   { background: #e8f0ff; color: #1a56db; }
+        .badge-low      { background: #e8f5e9; color: #1e8449; }
+        .badge-arch     { background: #f5eeff; color: #6c3483; }
+
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: 6px;
+            padding: 16px 18px;
+            font-size: 12.5px;
+            overflow-x: auto;
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+        .line-del { color: #f38ba8; }
+        .line-add { color: #a6e3a1; }
+        .line-comment { color: #6c7086; }
+
+        .diff-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 14px;
+            margin-bottom: 4px;
+        }
+        .diff-label.before { color: #c0392b; }
+        .diff-label.after  { color: #1e8449; }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .summary-table th {
+            background: #f4f6f9;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            border-bottom: 2px solid #e8e8e8;
+        }
+        .summary-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .summary-table tr:last-child td { border-bottom: none; }
+
+        .tag {
+            display: inline-block;
+            background: #eef;
+            color: #333;
+            border-radius: 4px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            padding: 7px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+
+        .info-box {
+            background: #e8f5e9;
+            border-left: 4px solid #1e8449;
+            border-radius: 0 6px 6px 0;
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 14px;
+            color: #1b5e20;
+        }
+        .warn-box {
+            background: #fff3cd;
+            border-left: 4px solid #856404;
+            border-radius: 0 6px 6px 0;
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 14px;
+            color: #533f03;
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; Registration Form ARIA Report</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128424; Print</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="report-header">
+        <div class="phase-label">User Registration &mdash; usersadd.php</div>
+        <h2>ARIA Improvement Report</h2>
+        <p>Accessibility and architectural audit of the Add User registration form — 10 issues across accessibility, bugs, and missing ARIA architecture patterns.</p>
+        <div class="meta-row">
+            <span class="meta-pill">&#128196; 1 file audited</span>
+            <span class="meta-pill">&#9888; 4 accessibility issues</span>
+            <span class="meta-pill">&#128027; 3 bugs</span>
+            <span class="meta-pill">&#9965; 3 architecture gaps</span>
+            <span class="meta-pill">&#128197; June 24, 2026</span>
+        </div>
+    </div>
+
+    <!-- SUMMARY TABLE -->
+    <div class="section-title">Summary</div>
+    <div class="card">
+        <div class="card-body" style="padding:0;">
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Issue</th>
+                        <th>Category</th>
+                        <th>Severity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Labels not linked to inputs — no <span class="tag">for</span> / <span class="tag">id</span> pairing</td>
+                        <td>Accessibility</td>
+                        <td><span class="badge badge-critical">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Empty <span class="tag">id=""</span> on all three <span class="tag">&lt;select&gt;</span> elements</td>
+                        <td>Accessibility</td>
+                        <td><span class="badge badge-critical">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Wrong input types — email, phone, password</td>
+                        <td>Accessibility / Bug</td>
+                        <td><span class="badge badge-high">High</span></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>No <span class="tag">aria-required</span> or <span class="tag">autocomplete</span> on any field</td>
+                        <td>Accessibility</td>
+                        <td><span class="badge badge-high">High</span></td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>No live region for form submission feedback</td>
+                        <td>Accessibility</td>
+                        <td><span class="badge badge-medium">Medium</span></td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>Stray PHP string delimiters <span class="tag">';</span> bleeding into HTML (lines 104, 129)</td>
+                        <td>Bug</td>
+                        <td><span class="badge badge-critical">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td><span class="tag">$showdept</span> and <span class="tag">$profile</span> used but never fetched in this file</td>
+                        <td>Bug</td>
+                        <td><span class="badge badge-critical">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Datatable script references <span class="tag">#table1</span> which does not exist on the page</td>
+                        <td>Bug</td>
+                        <td><span class="badge badge-medium">Medium</span></td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>No CSRF token on the form — security gap</td>
+                        <td>Architecture (ARIA Step 2)</td>
+                        <td><span class="badge badge-arch">Arch</span></td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>ADD USERS button has no JS handler — form cannot submit</td>
+                        <td>Architecture (ARIA Step 3/4)</td>
+                        <td><span class="badge badge-arch">Arch</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ACCESSIBILITY ISSUES -->
+    <div class="section-title">Accessibility Issues</div>
+
+    <!-- Issue 1 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-critical">1</div>
+            <h3>Labels not linked to inputs</h3>
+            <span class="badge badge-critical">Critical</span>
+        </div>
+        <div class="card-body">
+            <p>Every <span class="tag">&lt;label&gt;</span> in the form has no <span class="tag">for</span> attribute, and every <span class="tag">&lt;input&gt;</span> has no <span class="tag">id</span>. Screen readers cannot associate the label with its field — clicking a label also will not focus the input for mouse users.</p>
+
+            <div class="diff-label before">Before</div>
+            <pre><span class="line-del">&lt;label class="labels"&gt;Name&lt;/label&gt;</span>
+<span class="line-del">&lt;input type="text" class="form-control" name="fname" value=""&gt;</span>
+
+<span class="line-del">&lt;label class="labels"&gt;Email ID&lt;/label&gt;</span>
+<span class="line-del">&lt;input type="text" class="form-control" name="email" value=""&gt;</span></pre>
+
+            <div class="diff-label after">After</div>
+            <pre><span class="line-add">&lt;label class="labels" for="fname"&gt;Name&lt;/label&gt;</span>
+<span class="line-add">&lt;input type="text" id="fname" class="form-control" name="fname" value=""&gt;</span>
+
+<span class="line-add">&lt;label class="labels" for="email"&gt;Email ID&lt;/label&gt;</span>
+<span class="line-add">&lt;input type="email" id="email" class="form-control" name="email" value=""&gt;</span></pre>
+
+            <div class="info-box">Apply to all fields: <strong>fname, sname, uname, phone, gender, email, roles, dept, password</strong>.</div>
+        </div>
+    </div>
+
+    <!-- Issue 2 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-critical">2</div>
+            <h3>Empty <code>id=""</code> on all three &lt;select&gt; elements</h3>
+            <span class="badge badge-critical">Critical</span>
+        </div>
+        <div class="card-body">
+            <p><span class="tag">id=""</span> is invalid HTML. The three selects for <strong>Gender</strong>, <strong>User Roles</strong>, and <strong>Department</strong> all carry it. An empty id cannot be targeted by a <span class="tag">for</span> attribute, and multiple elements sharing an empty id violates the uniqueness constraint.</p>
+
+            <div class="diff-label before">Before</div>
+            <pre><span class="line-del">&lt;select class="form-select" name="gender" id=""&gt;</span>
+<span class="line-del">&lt;select class="form-select" name="roles" id=""&gt;</span>
+<span class="line-del">&lt;select class="form-select" name="dept" id=""&gt;</span></pre>
+
+            <div class="diff-label after">After</div>
+            <pre><span class="line-add">&lt;select class="form-select" id="gender" name="gender"&gt;</span>
+<span class="line-add">&lt;select class="form-select" id="roles" name="roles"&gt;</span>
+<span class="line-add">&lt;select class="form-select" id="dept" name="dept"&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- Issue 3 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-high">3</div>
+            <h3>Wrong input types on Email, Phone, and Password</h3>
+            <span class="badge badge-high">High</span>
+        </div>
+        <div class="card-body">
+            <p>Correct <span class="tag">type</span> values trigger the right keyboard on mobile, enable browser validation, and signal semantics to assistive technology. The password field has a capitalization error (<span class="tag">type="Password"</span>) which technically works in most browsers but is non-standard and fragile.</p>
+
+            <div class="diff-label before">Before</div>
+            <pre><span class="line-del">&lt;input type="text"     name="phone"    ...&gt;  &lt;!-- should be tel --&gt;</span>
+<span class="line-del">&lt;input type="text"     name="email"    ...&gt;  &lt;!-- should be email --&gt;</span>
+<span class="line-del">&lt;input type="Password" name="password" ...&gt;  &lt;!-- wrong casing --&gt;</span></pre>
+
+            <div class="diff-label after">After</div>
+            <pre><span class="line-add">&lt;input type="tel"      id="phone"    name="phone"    ...&gt;</span>
+<span class="line-add">&lt;input type="email"    id="email"    name="email"    ...&gt;</span>
+<span class="line-add">&lt;input type="password" id="password" name="password" ...&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- Issue 4 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-high">4</div>
+            <h3>No <code>aria-required</code> or <code>autocomplete</code> on any field</h3>
+            <span class="badge badge-high">High</span>
+        </div>
+        <div class="card-body">
+            <p><span class="tag">aria-required="true"</span> tells screen readers a field must be filled. <span class="tag">autocomplete</span> enables browser autofill and is required for WCAG 1.3.5 (Identify Input Purpose). Neither is present on any field.</p>
+
+            <div class="diff-label after">After — full field set</div>
+            <pre><span class="line-add">&lt;input type="text"     id="fname"    name="fname"    autocomplete="given-name"   aria-required="true"&gt;</span>
+<span class="line-add">&lt;input type="text"     id="sname"    name="sname"    autocomplete="family-name"  aria-required="true"&gt;</span>
+<span class="line-add">&lt;input type="text"     id="uname"    name="uname"    autocomplete="username"     aria-required="true"&gt;</span>
+<span class="line-add">&lt;input type="tel"      id="phone"    name="phone"    autocomplete="tel"          aria-required="true"&gt;</span>
+<span class="line-add">&lt;input type="email"    id="email"    name="email"    autocomplete="email"        aria-required="true"&gt;</span>
+<span class="line-add">&lt;input type="password" id="password" name="password" autocomplete="new-password" aria-required="true"&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- Issue 5 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-medium">5</div>
+            <h3>No live region for submission feedback</h3>
+            <span class="badge badge-medium">Medium</span>
+        </div>
+        <div class="card-body">
+            <p>When the form submits via AJAX there is nowhere to announce success or error to screen readers. A <span class="tag">role="alert"</span> region is announced automatically by assistive technology when its content changes.</p>
+
+            <div class="diff-label after">Add before the &lt;/form&gt; tag</div>
+            <pre><span class="line-add">&lt;div id="form-feedback" role="alert" aria-live="polite" class="mt-3"&gt;&lt;/div&gt;</span></pre>
+
+            <p style="margin-top:12px;">Then in the AJAX success/error callback populate it:</p>
+            <pre><span class="line-add">$('#form-feedback').html('&lt;div class="alert alert-success"&gt;User added successfully.&lt;/div&gt;');</span>
+<span class="line-comment">// or on error:</span>
+<span class="line-add">$('#form-feedback').html('&lt;div class="alert alert-danger"&gt;' + res.message + '&lt;/div&gt;');</span></pre>
+        </div>
+    </div>
+
+    <!-- BUG ISSUES -->
+    <div class="section-title">Bugs</div>
+
+    <!-- Issue 6 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-critical">6</div>
+            <h3>Stray PHP string delimiters <code>';</code> bleeding into HTML</h3>
+            <span class="badge badge-critical">Critical</span>
+        </div>
+        <div class="card-body">
+            <p>Lines 104 and 129 have <span class="tag">';</span> after the closing <span class="tag">&lt;/option&gt;</span> tag. These are remnants of a PHP <span class="tag">echo</span> statement that was refactored into inline HTML but not fully cleaned up. They render literally in the browser as visible characters.</p>
+
+            <div class="diff-label before">Before (line 104)</div>
+            <pre><span class="line-del">        &lt;option value="female"&gt;Female&lt;/option&gt;';</span></pre>
+
+            <div class="diff-label after">After</div>
+            <pre><span class="line-add">        &lt;option value="female"&gt;Female&lt;/option&gt;</span></pre>
+
+            <div class="warn-box">Same fix applies to line 129: <span class="tag">&lt;option value="2"&gt;User&lt;/option&gt;';</span></div>
+        </div>
+    </div>
+
+    <!-- Issue 7 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-critical">7</div>
+            <h3><code>$showdept</code> and <code>$profile</code> are used but never fetched</h3>
+            <span class="badge badge-critical">Critical</span>
+        </div>
+        <div class="card-body">
+            <p>The Department <span class="tag">&lt;select&gt;</span> loop on line 137 references <span class="tag">$showdept</span> and <span class="tag">$profile</span>, but neither variable is defined or fetched anywhere in this file. The page will throw a PHP warning and the department dropdown will be empty.</p>
+
+            <div class="diff-label before">Current (broken)</div>
+            <pre><span class="line-del">&lt;?php
+include_once'./users/usersClass.php';
+$usersclass = new usersClass();
+<span class="line-comment">// $showdept and $profile are never set</span>
+?&gt;</span></pre>
+
+            <div class="diff-label after">Fix — fetch the data at the top of the file</div>
+            <pre><span class="line-add">&lt;?php</span>
+<span class="line-add">include_once './users/usersClass.php';</span>
+<span class="line-add">$usersclass = new usersClass();</span>
+<span class="line-add">$showdept   = $usersclass-&gt;getDepartments();  // method must exist in usersClass</span>
+<span class="line-add">$profile    = [];                              // empty default — no pre-selected dept on add form</span>
+<span class="line-add">?&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- Issue 8 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num severity-medium">8</div>
+            <h3>Datatable script references <code>#table1</code> which does not exist</h3>
+            <span class="badge badge-medium">Medium</span>
+        </div>
+        <div class="card-body">
+            <p>The inline script at the bottom of the page initialises a Simple Datatable on <span class="tag">#table1</span>, but no table with that id exists on this form page. This throws a JS error on every page load and is likely copied from another page by mistake.</p>
+
+            <div class="diff-label before">Before — remove this block entirely</div>
+            <pre><span class="line-del">&lt;script src="../assets/vendors/simple-datatables/simple-datatables.js"&gt;&lt;/script&gt;</span>
+<span class="line-del">&lt;script&gt;</span>
+<span class="line-del">    let table1 = document.querySelector('#table1');</span>
+<span class="line-del">    let dataTable = new simpleDatatables.DataTable(table1);</span>
+<span class="line-del">&lt;/script&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- ARCHITECTURE ISSUES -->
+    <div class="section-title">Architecture Gaps (ARIA Patterns)</div>
+
+    <!-- Issue 9 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num" style="background:#f5eeff;color:#6c3483;">9</div>
+            <h3>No CSRF token on the form</h3>
+            <span class="badge badge-arch">Arch — ARIA Step 2</span>
+        </div>
+        <div class="card-body">
+            <p>The CSRF pattern applied to the login system in Step 2 is missing here. Any authenticated user's browser could be tricked into posting a forged user-creation request.</p>
+
+            <div class="diff-label after">Add to the form — PHP side</div>
+            <pre><span class="line-add">&lt;?php if (empty($_SESSION['csrf_token'])) {</span>
+<span class="line-add">    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));</span>
+<span class="line-add">} ?&gt;</span>
+<span class="line-add">&lt;input type="hidden" name="csrf_token" value="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;</span></pre>
+
+            <div class="diff-label after">Validate in the action handler</div>
+            <pre><span class="line-add">if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {</span>
+<span class="line-add">    Response::error('Invalid request.', 403);</span>
+<span class="line-add">}</span></pre>
+        </div>
+    </div>
+
+    <!-- Issue 10 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="num" style="background:#f5eeff;color:#6c3483;">10</div>
+            <h3>ADD USERS button has no JS handler — form cannot submit</h3>
+            <span class="badge badge-arch">Arch — ARIA Steps 3 &amp; 4</span>
+        </div>
+        <div class="card-body">
+            <p>The button is <span class="tag">type="button"</span> (prevents native form submission) but no JavaScript is attached to it in this file or any included script. The form is effectively non-functional. A handler must be wired up following the ARIA Step 4 pattern: a dedicated JS file, <span class="tag">dataType:'json'</span>, and the <span class="tag">Response</span> class on the server.</p>
+
+            <div class="diff-label after">Handler skeleton — assets/js/usersadd.js (new file)</div>
+            <pre><span class="line-add">$('.adduser-button').on('click', function () {</span>
+<span class="line-add">    const $btn = $(this);</span>
+<span class="line-add">    $btn.prop('disabled', true).text('Adding…');</span>
+<span class="line-add">    $('#form-feedback').empty();</span>
+<span class="line-add"></span>
+<span class="line-add">    $.ajax({</span>
+<span class="line-add">        url:      window.GRC.base + 'Project/usersaddaction.php',</span>
+<span class="line-add">        method:   'POST',</span>
+<span class="line-add">        dataType: 'json',</span>
+<span class="line-add">        data:     $('#profileform').serialize(),</span>
+<span class="line-add">        success: function (res) {</span>
+<span class="line-add">            if (res.status === 'success') {</span>
+<span class="line-add">                $('#form-feedback').html('&lt;div class="alert alert-success"&gt;' + res.message + '&lt;/div&gt;');</span>
+<span class="line-add">                $('#profileform')[0].reset();</span>
+<span class="line-add">            } else {</span>
+<span class="line-add">                $('#form-feedback').html('&lt;div class="alert alert-danger"&gt;' + res.message + '&lt;/div&gt;');</span>
+<span class="line-add">            }</span>
+<span class="line-add">        },</span>
+<span class="line-add">        error: function () {</span>
+<span class="line-add">            $('#form-feedback').html('&lt;div class="alert alert-danger"&gt;Server error. Please try again.&lt;/div&gt;');</span>
+<span class="line-add">        },</span>
+<span class="line-add">        complete: function () {</span>
+<span class="line-add">            $btn.prop('disabled', false).text('ADD USERS');</span>
+<span class="line-add">        }</span>
+<span class="line-add">    });</span>
+<span class="line-add">});</span></pre>
+
+            <div class="diff-label after">Server response — usersaddaction.php (new handler)</div>
+            <pre><span class="line-add">&lt;?php</span>
+<span class="line-add">require_once '../Project/aria/Response.php';</span>
+<span class="line-add">require_once '../Project/aria/AuthGuard.php';</span>
+<span class="line-add">AuthGuard::require();</span>
+<span class="line-add"></span>
+<span class="line-add">if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {</span>
+<span class="line-add">    Response::error('Invalid request.', 403);</span>
+<span class="line-add">}</span>
+<span class="line-add"></span>
+<span class="line-add">require_once './users/usersClass.php';</span>
+<span class="line-add">$uc     = new usersClass();</span>
+<span class="line-add">$result = $uc-&gt;addUser($_POST);</span>
+<span class="line-add">$result ? Response::success('User added.') : Response::error('Could not add user.');</span></pre>
+        </div>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div class="section-title">Implementation Checklist</div>
+    <div class="card">
+        <div class="card-body">
+            <ul class="checklist">
+                <li><span class="icon">&#9744;</span> Add <span class="tag">id</span> to every input and <span class="tag">for</span> to every label (9 fields)</li>
+                <li><span class="icon">&#9744;</span> Remove <span class="tag">id=""</span> from Gender, Roles, Department selects — use unique ids</li>
+                <li><span class="icon">&#9744;</span> Fix input types: <span class="tag">type="email"</span>, <span class="tag">type="tel"</span>, <span class="tag">type="password"</span></li>
+                <li><span class="icon">&#9744;</span> Add <span class="tag">autocomplete</span> and <span class="tag">aria-required="true"</span> to all mandatory fields</li>
+                <li><span class="icon">&#9744;</span> Add <span class="tag">&lt;div id="form-feedback" role="alert" aria-live="polite"&gt;</span> inside the form</li>
+                <li><span class="icon">&#9744;</span> Remove stray <span class="tag">';</span> from lines 104 and 129</li>
+                <li><span class="icon">&#9744;</span> Fetch <span class="tag">$showdept</span> via <span class="tag">$usersclass-&gt;getDepartments()</span> at top of file</li>
+                <li><span class="icon">&#9744;</span> Remove the orphaned <span class="tag">#table1</span> datatable script block</li>
+                <li><span class="icon">&#9744;</span> Add CSRF token to the form and validate in the action handler</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">assets/js/usersadd.js</span> with the AJAX handler</li>
+                <li><span class="icon">&#9744;</span> Create <span class="tag">usersaddaction.php</span> using <span class="tag">Response</span> + <span class="tag">AuthGuard</span></li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+# IDE and Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.metadata
+.buildpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+.netbeans/
+nbproject/
+
+# IntelliJ/PhpStorm Files
+*.iml
+*.ipr
+*.iws
+dataSources.xml
+laravel-idea.xml
+modules.xml
+php.xml
+vcs.xml
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs and Debug Files
+*.log
+logs/
+google_auth_debug.log
+googlesignup_debug.log
+registeraction_debug.log
+debug.log
+error.log
+access.log
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.temp
+.tmp/
+Project/tmp.html/
+
+# PHP Files
+composer.phar
+/vendor/
+.env
+.env.local
+.env.*.local
+
+# Cache Files
+cache/
+.cache/
+*.cache
+
+# Session Files
+sessions/
+*.sess
+
+# Upload Files (if you don't want to track them)
+uploads/
+files/
+
+# Database Files
+*.sqlite
+*.sqlite3
+*.db
+
+# Reports and Generated Files
+reports/*.xls
+reports/*.xlsx
+reports/*.pdf
+risk_report-*.xls
+risk_report-*.xlsx
+
+# Configuration Files (uncomment if they contain sensitive data)
+# config.php
+# database.php
+# settings.php
+
+# Backup Files
+*.backup
+*.bak
+*.old
+
+# Node.js (if you use any frontend build tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build directories
+build/
+dist/
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip

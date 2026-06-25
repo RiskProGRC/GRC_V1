@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Risk Dashboard — GRC V1</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --navy:   #0d1340;
+            --navy2:  #1a1f5e;
+            --body-bg:#f0f2f7;
+        }
+
+        * { box-sizing: border-box; }
+        body { background: var(--body-bg); font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #222; margin: 0; }
+
+        /* ── Top bar ── */
+        .topbar {
+            background: var(--navy);
+            color: #fff;
+            padding: 0 20px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .topbar .brand { font-size: 18px; font-weight: 800; letter-spacing: 2px; color: #7eb3ff; margin-right: 12px; white-space: nowrap; }
+        .topbar label { font-size: 11px; color: #aab4d0; margin-bottom: 0; white-space: nowrap; }
+        .topbar select {
+            background: #1f2a6b;
+            border: 1px solid #2d3a80;
+            color: #fff;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .topbar select option { background: #1a1f5e; }
+        .filter-group { display: flex; flex-direction: column; gap: 1px; }
+        .topbar .ms-auto { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 32px; height: 32px; background: #7eb3ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #0d1340; font-size: 13px; }
+
+        /* ── Page wrapper ── */
+        .dash { padding: 14px 16px 30px; }
+
+        /* ── Cards ── */
+        .card { border: none; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: #555; margin-bottom: 10px; }
+
+        /* ── KPI strip ── */
+        .kpi-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .kpi-icon {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .kpi-num  { font-size: 24px; font-weight: 800; line-height: 1; }
+        .kpi-lbl  { font-size: 11px; color: #888; margin-top: 2px; }
+
+        /* ── Heatmap ── */
+        .heatmap-wrap { overflow-x: auto; }
+        .heatmap-grid { display: grid; grid-template-columns: 60px repeat(5, 1fr); gap: 3px; min-width: 280px; }
+        .hm-cell {
+            height: 34px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: #fff;
+        }
+        .hm-axis-y { font-size: 10px; color: #666; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; height: 34px; font-weight: 600; }
+        .hm-axis-x { font-size: 9px; color: #666; text-align: center; padding-top: 4px; font-weight: 600; }
+        .hm-empty  { background: transparent; }
+        .hm-c1  { background: #388e3c; }
+        .hm-c2  { background: #7cb342; }
+        .hm-c3  { background: #fbc02d; }
+        .hm-c4  { background: #f57c00; }
+        .hm-c5  { background: #d32f2f; }
+        .hm-c6  { background: #7b0000; }
+        .hm-blank { background: #f0f2f7; }
+
+        /* ── Gauges ── */
+        .gauge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .gauge-item { text-align: center; }
+        .gauge-lbl  { font-size: 10px; color: #555; font-weight: 600; margin-top: -6px; }
+        .gauge-5th  { grid-column: 1 / -1; max-width: 130px; margin: 0 auto; }
+
+        /* ── Treatment Pipeline ── */
+        .pipe-row { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+        .pipe-label { font-size: 11px; color: #555; width: 72px; flex-shrink: 0; }
+        .pipe-bar-wrap { flex: 1; background: #f0f2f7; border-radius: 4px; height: 22px; overflow: hidden; }
+        .pipe-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 700; color: #fff; }
+        .pipe-num { font-size: 11px; font-weight: 700; width: 24px; text-align: right; color: #555; }
+
+        /* ── Ownership tiles ── */
+        .own-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .own-tile {
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 12px;
+        }
+        .own-tile .dept { font-weight: 700; font-size: 13px; }
+        .own-tile .pct  { font-size: 18px; font-weight: 800; }
+
+        /* ── Watchlist ── */
+        .watch-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f2f7;
+        }
+        .watch-item:last-child { border-bottom: none; }
+        .watch-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .watch-name { font-weight: 700; font-size: 12px; }
+        .watch-sub  { font-size: 10px; color: #888; }
+        .risk-badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-left: auto; white-space: nowrap; }
+        .badge-high   { background: #fde8e8; color: #c0392b; }
+        .badge-med    { background: #fff3e0; color: #e65100; }
+        .badge-low    { background: #eafaf1; color: #1e8449; }
+
+        /* ── Priority table ── */
+        .pri-table { width: 100%; font-size: 11px; }
+        .pri-table th { background: #f5f6fa; color: #888; font-weight: 700; padding: 6px 8px; text-transform: uppercase; font-size: 10px; }
+        .pri-table td { padding: 7px 8px; border-bottom: 1px solid #f0f2f7; vertical-align: middle; }
+        .pri-table tr:last-child td { border-bottom: none; }
+        .status-pill { padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+        .s-overdue   { background: #fde8e8; color: #c0392b; }
+        .s-progress  { background: #e3f2fd; color: #1565c0; }
+        .s-approved  { background: #eafaf1; color: #1e8449; }
+        .s-identified{ background: #f5eeff; color: #6a1b9a; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ TOP BAR -->
+<div class="topbar">
+    <span class="brand">GRC</span>
+
+    <div class="filter-group">
+        <label>Year</label>
+        <select><option>2026</option><option>2025</option></select>
+    </div>
+    <div class="filter-group">
+        <label>Risk Universe</label>
+        <select><option>All</option></select>
+    </div>
+    <div class="filter-group">
+        <label>Business Unit</label>
+        <select><option>All</option></select>
+    </div>
+    <div class="filter-group">
+        <label>Risk Owner</label>
+        <select><option>All</option></select>
+    </div>
+    <div class="filter-group">
+        <label>Status</label>
+        <select><option>All</option><option>Active</option><option>Closed</option></select>
+    </div>
+
+    <div class="ms-auto">
+        <span style="font-size:12px;color:#aab4d0;">Welcome, <strong style="color:#fff;">Admin</strong></span>
+        <div class="avatar">A</div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ DASHBOARD -->
+<div class="dash">
+
+    <!-- ── KPI strip ── -->
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-sm-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#e3f2fd;"><i class="fa fa-shield-halved" style="color:#1565c0;"></i></div>
+                <div>
+                    <div class="kpi-num" style="color:#1565c0;">132</div>
+                    <div class="kpi-lbl">Total Enterprise Risks</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#fde8e8;"><i class="fa fa-fire" style="color:#c0392b;"></i></div>
+                <div>
+                    <div class="kpi-num" style="color:#c0392b;">11</div>
+                    <div class="kpi-lbl">Extreme Risks</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#fff3e0;"><i class="fa fa-circle-exclamation" style="color:#e65100;"></i></div>
+                <div>
+                    <div class="kpi-num" style="color:#e65100;">24</div>
+                    <div class="kpi-lbl">Above Appetite</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#eafaf1;"><i class="fa fa-chart-pie" style="color:#1e8449;"></i></div>
+                <div>
+                    <div class="kpi-num" style="color:#1e8449;">72%</div>
+                    <div class="kpi-lbl">Mitigation Progress</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#f5eeff;"><i class="fa fa-bell" style="color:#6a1b9a;"></i></div>
+                <div>
+                    <div class="kpi-num" style="color:#6a1b9a;">18</div>
+                    <div class="kpi-lbl">KRI Breaches</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-xl-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#fff8e1;"><i class="fa fa-dollar-sign" style="color:#f9a825;"></i></div>
+                <div>
+                    <div class="kpi-num" style="color:#f9a825;">$4.6M</div>
+                    <div class="kpi-lbl">Risk Exposure</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 2: Heatmap | Gauges | Bar Chart ── -->
+    <div class="row g-2 mb-2">
+
+        <!-- 1. Enterprise Risk Heatmap -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">1. Enterprise Risk Heatmap</div>
+                <div class="heatmap-wrap">
+                    <div class="heatmap-grid">
+                        <!-- header row -->
+                        <div></div>
+                        <div class="hm-axis-x">Rare</div>
+                        <div class="hm-axis-x">Unlikely</div>
+                        <div class="hm-axis-x">Possible</div>
+                        <div class="hm-axis-x">Likely</div>
+                        <div class="hm-axis-x">Almost<br>Certain</div>
+                        <!-- Very High -->
+                        <div class="hm-axis-y">Very High</div>
+                        <div class="hm-cell hm-c3"></div>
+                        <div class="hm-cell hm-c4"></div>
+                        <div class="hm-cell hm-c5">6</div>
+                        <div class="hm-cell hm-c6">8</div>
+                        <div class="hm-cell hm-c6">1</div>
+                        <!-- High -->
+                        <div class="hm-axis-y">High</div>
+                        <div class="hm-cell hm-c2"></div>
+                        <div class="hm-cell hm-c3">1</div>
+                        <div class="hm-cell hm-c4">4</div>
+                        <div class="hm-cell hm-c5">2</div>
+                        <div class="hm-cell hm-c5"></div>
+                        <!-- Medium -->
+                        <div class="hm-axis-y">Medium</div>
+                        <div class="hm-cell hm-c1"></div>
+                        <div class="hm-cell hm-c2"></div>
+                        <div class="hm-cell hm-c3">3</div>
+                        <div class="hm-cell hm-c4"></div>
+                        <div class="hm-cell hm-c4"></div>
+                        <!-- Low -->
+                        <div class="hm-axis-y">Low</div>
+                        <div class="hm-cell hm-c1"></div>
+                        <div class="hm-cell hm-c1"></div>
+                        <div class="hm-cell hm-c2"></div>
+                        <div class="hm-cell hm-c3"></div>
+                        <div class="hm-cell hm-c3"></div>
+                        <!-- Very Low -->
+                        <div class="hm-axis-y">Very Low</div>
+                        <div class="hm-cell hm-c1"></div>
+                        <div class="hm-cell hm-c1"></div>
+                        <div class="hm-cell hm-c1"></div>
+                        <div class="hm-cell hm-c2"></div>
+                        <div class="hm-cell hm-c2"></div>
+                        <!-- x-axis label row -->
+                        <div></div>
+                        <div colspan="5" style="grid-column:2/-1;text-align:center;font-size:10px;color:#999;padding-top:4px;">← Likelihood →</div>
+                    </div>
+                </div>
+                <!-- legend -->
+                <div class="d-flex gap-2 mt-2 flex-wrap">
+                    <span style="font-size:10px;display:flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;border-radius:2px;background:#388e3c;display:inline-block;"></span>Low</span>
+                    <span style="font-size:10px;display:flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;border-radius:2px;background:#fbc02d;display:inline-block;"></span>Medium</span>
+                    <span style="font-size:10px;display:flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;border-radius:2px;background:#f57c00;display:inline-block;"></span>High</span>
+                    <span style="font-size:10px;display:flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;border-radius:2px;background:#7b0000;display:inline-block;"></span>Extreme</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Risk Appetite Overview (gauges) -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">2. Risk Appetite Overview</div>
+                <div class="gauge-grid">
+                    <div class="gauge-item">
+                        <svg id="g1" viewBox="0 0 200 110" style="width:100%;max-width:130px;"></svg>
+                        <div class="gauge-lbl">Strategic Risk</div>
+                    </div>
+                    <div class="gauge-item">
+                        <svg id="g2" viewBox="0 0 200 110" style="width:100%;max-width:130px;"></svg>
+                        <div class="gauge-lbl">Operational Risk</div>
+                    </div>
+                    <div class="gauge-item">
+                        <svg id="g3" viewBox="0 0 200 110" style="width:100%;max-width:130px;"></svg>
+                        <div class="gauge-lbl">Financial Risk</div>
+                    </div>
+                    <div class="gauge-item">
+                        <svg id="g4" viewBox="0 0 200 110" style="width:100%;max-width:130px;"></svg>
+                        <div class="gauge-lbl">Cyber Risk</div>
+                    </div>
+                    <div class="gauge-item gauge-5th">
+                        <svg id="g5" viewBox="0 0 200 110" style="width:100%;max-width:130px;"></svg>
+                        <div class="gauge-lbl">Third-Party Risk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Residual Risk Exposure -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">3. Residual Risk Exposure (USD)</div>
+                <canvas id="barChart" style="max-height:220px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 3: Pipeline | Radar | Ownership ── -->
+    <div class="row g-2 mb-2">
+
+        <!-- 4. Risk Treatment Pipeline -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">4. Risk Treatment Pipeline</div>
+                <div class="mt-1">
+                    <div class="pipe-row">
+                        <span class="pipe-label">Identified</span>
+                        <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:100%;background:#1565c0;">46</div></div>
+                        <span class="pipe-num">46</span>
+                    </div>
+                    <div class="pipe-row">
+                        <span class="pipe-label">Assessed</span>
+                        <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:83%;background:#1976d2;">38</div></div>
+                        <span class="pipe-num">38</span>
+                    </div>
+                    <div class="pipe-row">
+                        <span class="pipe-label">Approved</span>
+                        <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:59%;background:#f57c00;">27</div></div>
+                        <span class="pipe-num">27</span>
+                    </div>
+                    <div class="pipe-row">
+                        <span class="pipe-label">Treatment</span>
+                        <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:100%;background:#7b1fa2;">59</div></div>
+                        <span class="pipe-num">59</span>
+                    </div>
+                    <div class="pipe-row">
+                        <span class="pipe-label">Monitored</span>
+                        <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:89%;background:#2e7d32;">41</div></div>
+                        <span class="pipe-num">41</span>
+                    </div>
+                    <div class="pipe-row">
+                        <span class="pipe-label">Closed</span>
+                        <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:67%;background:#546e7a;">31</div></div>
+                        <span class="pipe-num">31</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. KRI Breach Radar -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">5. KRI Breach Radar (Early Warning Signals)</div>
+                <canvas id="radarChart" style="max-height:220px;"></canvas>
+            </div>
+        </div>
+
+        <!-- 6. Risk Ownership Map -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">6. Risk Ownership Map (Exposure Distribution)</div>
+                <div class="own-grid mt-2">
+                    <div class="own-tile" style="background:#1565c0;">
+                        <div class="dept">Finance</div>
+                        <div class="pct">22%</div>
+                    </div>
+                    <div class="own-tile" style="background:#2e7d32;">
+                        <div class="dept">Operations</div>
+                        <div class="pct">25%</div>
+                    </div>
+                    <div class="own-tile" style="background:#0097a7;">
+                        <div class="dept">IT</div>
+                        <div class="pct">18%</div>
+                    </div>
+                    <div class="own-tile" style="background:#f57c00;">
+                        <div class="dept">Procurement</div>
+                        <div class="pct">15%</div>
+                    </div>
+                    <div class="own-tile" style="background:#7b1fa2;">
+                        <div class="dept">HR</div>
+                        <div class="pct">10%</div>
+                    </div>
+                    <div class="own-tile" style="background:#546e7a;">
+                        <div class="dept">Legal</div>
+                        <div class="pct">10%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 4: Line Chart | Watchlist | Priority Table ── -->
+    <div class="row g-2">
+
+        <!-- 7. Scenario Loss Curve -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">7. Scenario Loss Curve (Cumulative Exposure)</div>
+                <canvas id="lineChart" style="max-height:220px;"></canvas>
+            </div>
+        </div>
+
+        <!-- 8. Emerging Risk Watchlist -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">8. Emerging Risk Watchlist</div>
+                <div class="watch-item">
+                    <div class="watch-icon" style="background:#fde8e8;">🤖</div>
+                    <div>
+                        <div class="watch-name">AI Risk</div>
+                        <div class="watch-sub">Model bias, governance gaps</div>
+                    </div>
+                    <span class="risk-badge badge-high">High</span>
+                </div>
+                <div class="watch-item">
+                    <div class="watch-icon" style="background:#fff3e0;">🌍</div>
+                    <div>
+                        <div class="watch-name">Geopolitical Risk</div>
+                        <div class="watch-sub">Trade disruption, sanctions</div>
+                    </div>
+                    <span class="risk-badge badge-med">Medium</span>
+                </div>
+                <div class="watch-item">
+                    <div class="watch-icon" style="background:#eafaf1;">🌱</div>
+                    <div>
+                        <div class="watch-name">Climate Risk</div>
+                        <div class="watch-sub">ESG compliance exposure</div>
+                    </div>
+                    <span class="risk-badge badge-high">High</span>
+                </div>
+                <div class="watch-item">
+                    <div class="watch-icon" style="background:#e3f2fd;">🏭</div>
+                    <div>
+                        <div class="watch-name">Vendor Concentration</div>
+                        <div class="watch-sub">Single-source dependencies</div>
+                    </div>
+                    <span class="risk-badge badge-med">Medium</span>
+                </div>
+                <div class="watch-item">
+                    <div class="watch-icon" style="background:#f5eeff;">⚡</div>
+                    <div>
+                        <div class="watch-name">Business Continuity</div>
+                        <div class="watch-sub">Resilience gaps identified</div>
+                    </div>
+                    <span class="risk-badge badge-high">High</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Priority Risks -->
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 p-3">
+                <div class="card-title">Top Priority Risks</div>
+                <table class="pri-table">
+                    <thead>
+                        <tr>
+                            <th>Risk ID</th>
+                            <th>Risk Event</th>
+                            <th>Owner</th>
+                            <th>Exposure</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight:700;color:#1565c0;">RM-B9</td>
+                            <td>Critical vendor dependency</td>
+                            <td>Procurement</td>
+                            <td style="font-weight:700;">$1.25M</td>
+                            <td><span class="status-pill s-overdue">Overdue</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:700;color:#1565c0;">RM-007</td>
+                            <td>System outage exposure</td>
+                            <td>IT</td>
+                            <td style="font-weight:700;">$980K</td>
+                            <td><span class="status-pill s-progress">In Progress</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:700;color:#1565c0;">RM-AM</td>
+                            <td>Demand volatility impact</td>
+                            <td>Operations</td>
+                            <td style="font-weight:700;">$760K</td>
+                            <td><span class="status-pill s-approved">Approved</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:700;color:#1565c0;">RM-B51</td>
+                            <td>Currency fluctuation risk</td>
+                            <td>Finance</td>
+                            <td style="font-weight:700;">$760K</td>
+                            <td><span class="status-pill s-overdue">Overdue</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:700;color:#1565c0;">RM-B71</td>
+                            <td>Business continuity gap</td>
+                            <td>Risk Mgmt</td>
+                            <td style="font-weight:700;">$710K</td>
+                            <td><span class="status-pill s-identified">Identified</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /dash -->
+
+<script>
+// ── Gauge helper ────────────────────────────────────────────────────────────
+function drawGauge(svgId, value, color) {
+    const svg = document.getElementById(svgId);
+    const r   = 78;
+    const cx  = 100, cy = 100;
+    const angle = (1 - value / 100) * Math.PI;
+    const ex    = cx + r * Math.cos(angle);
+    const ey    = cy - r * Math.sin(angle);
+    const large = value > 50 ? 1 : 0;
+
+    const bg  = `M ${cx - r} ${cy} A ${r} ${r} 0 0 0 ${cx + r} ${cy}`;
+    const fg  = value >= 100
+        ? `M ${cx - r} ${cy} A ${r} ${r} 0 0 0 ${cx} ${cy - r} A ${r} ${r} 0 0 0 ${cx + r} ${cy}`
+        : value <= 0
+            ? ''
+            : `M ${cx - r} ${cy} A ${r} ${r} 0 ${large} 0 ${ex.toFixed(2)} ${ey.toFixed(2)}`;
+
+    svg.innerHTML = `
+        <path d="${bg}" fill="none" stroke="#e9ecef" stroke-width="13"/>
+        ${fg ? `<path d="${fg}" fill="none" stroke="${color}" stroke-width="13" stroke-linecap="round"/>` : ''}
+        <text x="${cx}" y="${cy - 4}" text-anchor="middle"
+              font-size="26" font-weight="800" fill="#1a1a2e"
+              font-family="Segoe UI,Arial,sans-serif">${value}%</text>`;
+}
+
+drawGauge('g1', 70, '#1565c0');
+drawGauge('g2', 65, '#2e7d32');
+drawGauge('g3', 60, '#f57c00');
+drawGauge('g4', 75, '#7b1fa2');
+drawGauge('g5', 55, '#c62828');
+
+// ── Bar Chart — Residual Risk Exposure ──────────────────────────────────────
+new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Inherent\nExposure', 'Existing\nControls', 'Treatment\nActions', 'Residual\nExposure'],
+        datasets: [{
+            data: [5.8, -1.9, -1.3, 2.6],
+            backgroundColor: ['#1565c0', '#c62828', '#c62828', '#2e7d32'],
+            borderRadius: 4
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                ticks: { callback: v => '$' + v + 'M', font: { size: 10 } },
+                grid: { color: '#f0f2f7' }
+            },
+            x: {
+                ticks: { font: { size: 9 } },
+                grid: { display: false }
+            }
+        }
+    }
+});
+
+// ── Radar Chart — KRI Breach ─────────────────────────────────────────────────
+new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+        labels: ['Regulatory\nChange', 'Supplier\nDependency', 'Downtime', 'Data\nQuality', 'Safety', 'Liquidity'],
+        datasets: [{
+            label: 'Breach Score',
+            data: [82, 68, 55, 74, 45, 60],
+            backgroundColor: 'rgba(21, 101, 192, 0.15)',
+            borderColor: '#1565c0',
+            pointBackgroundColor: '#1565c0',
+            pointRadius: 4,
+            borderWidth: 2
+        }, {
+            label: 'Appetite Limit',
+            data: [70, 70, 70, 70, 70, 70],
+            backgroundColor: 'rgba(198, 40, 40, 0.05)',
+            borderColor: '#c62828',
+            borderDash: [4, 4],
+            pointRadius: 0,
+            borderWidth: 1.5
+        }]
+    },
+    options: {
+        plugins: {
+            legend: { labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } }
+        },
+        scales: {
+            r: {
+                min: 0, max: 100,
+                ticks: { stepSize: 25, font: { size: 9 }, display: false },
+                pointLabels: { font: { size: 9 } },
+                grid: { color: '#e9ecef' }
+            }
+        }
+    }
+});
+
+// ── Line Chart — Scenario Loss Curve ─────────────────────────────────────────
+new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+        labels: ['0%', '20%', '40%', '60%', '80%', '100%'],
+        datasets: [{
+            label: 'Base Case',
+            data: [0, 0.6, 1.4, 2.5, 3.8, 4.6],
+            borderColor: '#1565c0',
+            backgroundColor: 'rgba(21,101,192,0.08)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2
+        }, {
+            label: 'Severe Case',
+            data: [0, 0.9, 2.1, 3.6, 5.2, 6.8],
+            borderColor: '#f57c00',
+            backgroundColor: 'rgba(245,124,0,0.06)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2
+        }, {
+            label: 'Stress Case',
+            data: [0, 1.3, 3.0, 5.2, 7.5, 9.8],
+            borderColor: '#c62828',
+            backgroundColor: 'rgba(198,40,40,0.05)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2
+        }]
+    },
+    options: {
+        plugins: {
+            legend: { labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } }
+        },
+        scales: {
+            y: {
+                ticks: { callback: v => '$' + v + 'M', font: { size: 10 } },
+                grid: { color: '#f0f2f7' }
+            },
+            x: {
+                title: { display: true, text: 'Probability', font: { size: 10 } },
+                ticks: { font: { size: 9 } },
+                grid: { display: false }
+            }
+        }
+    }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

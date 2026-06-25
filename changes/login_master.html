@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login System — Master Improvement Guide — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #222; font-size: 14px; line-height: 1.6; }
+
+        /* ─── TOOLBAR ─── */
+        .toolbar {
+            background: #1a1a2e; color: #fff; padding: 13px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 200;
+        }
+        .toolbar h1 { font-size: 15px; font-weight: 600; }
+        .btn { padding: 7px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 700; color: #fff; text-decoration: none; display: inline-block; }
+        .btn-back  { background: #3a3a5c; }
+        .btn-print { background: #1b5e20; }
+
+        /* ─── STEP NAV ─── */
+        .step-nav {
+            background: #fff; border-bottom: 1px solid #e0e0e0;
+            padding: 0 28px; display: flex; gap: 0;
+            position: sticky; top: 44px; z-index: 190; overflow-x: auto;
+        }
+        .step-nav a {
+            display: flex; align-items: center; gap: 7px;
+            padding: 11px 18px; font-size: 12px; font-weight: 600;
+            text-decoration: none; color: #888; border-bottom: 3px solid transparent;
+            white-space: nowrap; transition: color 0.2s;
+        }
+        .step-nav a:hover { color: #1a1a2e; }
+        .step-nav a.s1 { border-bottom-color: transparent; }
+        .step-nav a.s1:hover { color: #c0392b; border-bottom-color: #c0392b; }
+        .step-nav a.s2:hover { color: #d35400; border-bottom-color: #d35400; }
+        .step-nav a.s3:hover { color: #0d47a1; border-bottom-color: #0d47a1; }
+        .step-nav a.s4:hover { color: #00838f; border-bottom-color: #00838f; }
+        .step-nav a.s5:hover { color: #1b5e20; border-bottom-color: #1b5e20; }
+        .step-nav .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot-1 { background: #c0392b; }
+        .dot-2 { background: #d35400; }
+        .dot-3 { background: #0d47a1; }
+        .dot-4 { background: #00838f; }
+        .dot-5 { background: #1b5e20; }
+        .step-nav .sep { align-self: center; color: #ddd; padding: 0 4px; font-size: 16px; }
+
+        /* ─── LAYOUT ─── */
+        .container { max-width: 980px; margin: 28px auto; padding: 0 20px 80px; }
+
+        /* ─── REPORT HEADER ─── */
+        .report-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2c3e6e 100%);
+            color: #fff; border-radius: 10px; padding: 34px 40px; margin-bottom: 24px;
+        }
+        .report-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px; }
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header .sub { font-size: 13px; opacity: 0.78; margin-bottom: 22px; }
+        .meta-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        .meta-item span { display: block; font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+
+        /* ─── FLOW DIAGRAM ─── */
+        .flow-diagram {
+            background: #fff; border-radius: 10px; padding: 22px 28px; margin-bottom: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        }
+        .flow-diagram h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 14px; }
+        .flow-row { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin-bottom: 12px; }
+        .flow-row:last-child { margin-bottom: 0; }
+        .fnode { background: #f4f6f9; border: 1.5px solid #dce0ea; border-radius: 7px; padding: 9px 14px; font-size: 12px; font-weight: 600; color: #1a1a2e; text-align: center; min-width: 120px; }
+        .fnode code { display: block; font-size: 11px; color: #b5451b; font-family: 'Courier New',monospace; background: none; border: none; padding: 0; }
+        .farrow { font-size: 18px; color: #c0c8d8; padding: 0 10px; font-weight: 700; }
+        .flow-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #b0b8c8; margin-right: 10px; align-self: center; white-space: nowrap; }
+
+        /* ─── STEP OVERVIEW CARDS ─── */
+        .step-overview { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 28px; }
+        @media(max-width:700px){ .step-overview { grid-template-columns: repeat(2,1fr); } }
+        .so-card { background:#fff; border-radius:8px; padding:14px 16px; box-shadow:0 1px 4px rgba(0,0,0,0.07); border-top:4px solid #ccc; }
+        .so-card.s1 { border-top-color:#c0392b; }
+        .so-card.s2 { border-top-color:#d35400; }
+        .so-card.s3 { border-top-color:#0d47a1; }
+        .so-card.s4 { border-top-color:#00838f; }
+        .so-card.s5 { border-top-color:#1b5e20; }
+        .so-card .n { font-size:28px; font-weight:700; color:#1a1a2e; line-height:1; }
+        .so-card .lbl { font-size:11px; color:#888; margin-top:2px; }
+        .so-card .step-num { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#bbb; margin-bottom:4px; }
+
+        /* ─── STEP SECTION ─── */
+        .step-section { margin-bottom: 40px; }
+        .step-banner {
+            border-radius: 9px; padding: 16px 22px; margin-bottom: 18px;
+            display: flex; align-items: flex-start; gap: 16px; color: #fff;
+        }
+        .step-banner .icon { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+        .step-banner .title { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+        .step-banner .desc  { font-size: 12px; opacity: 0.85; }
+        .sb-1 { background: linear-gradient(90deg, #922b21, #c0392b); }
+        .sb-2 { background: linear-gradient(90deg, #9c4a1a, #d35400); }
+        .sb-3 { background: linear-gradient(90deg, #0a3070, #0d47a1); }
+        .sb-4 { background: linear-gradient(90deg, #005f6a, #00838f); }
+        .sb-5 { background: linear-gradient(90deg, #145a1a, #1b5e20); }
+
+        .section-divider {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; color: #bbb; margin: 22px 0 12px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-divider::after { content:''; flex:1; height:1px; background:#e0e0e0; }
+
+        /* ─── CARDS ─── */
+        .card {
+            background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 16px; overflow: hidden;
+        }
+        .card-header {
+            padding: 12px 18px; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid #f4f4f4; flex-wrap: wrap;
+        }
+        .card-header h3 { font-size: 13px; font-weight: 600; flex: 1; min-width: 180px; }
+        .card.t1 { border-left: 5px solid #c0392b; }
+        .card.t2 { border-left: 5px solid #d35400; }
+        .card.t3 { border-left: 5px solid #0d47a1; }
+        .card.t4 { border-left: 5px solid #00838f; }
+        .card.t5 { border-left: 5px solid #1b5e20; }
+        .card-body { padding: 14px 18px; color: #444; font-size: 13px; }
+        .card-body p { margin-bottom: 9px; }
+        .card-body p:last-child { margin-bottom: 0; }
+        .card-body ul { padding-left: 20px; margin-bottom: 9px; }
+        .card-body ul li { margin-bottom: 3px; }
+        .impact { background: #f8f9fa; border-top: 1px solid #f0f0f0; padding: 8px 18px; font-size: 12px; color: #666; }
+        .impact strong { color: #444; }
+
+        /* ─── BADGES ─── */
+        .badge {
+            display: inline-block; padding: 2px 9px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; white-space: nowrap;
+        }
+        .b-crit   { background:#fde8e8; color:#c0392b; }
+        .b-sec    { background:#fef3e2; color:#d35400; }
+        .b-aria   { background:#e3f0ff; color:#0d47a1; }
+        .b-ux     { background:#e0f7fa; color:#006064; }
+        .b-code   { background:#e8f5e9; color:#1b5e20; }
+        .b-new    { background:#f5eeff; color:#6c3483; }
+        .b-audit  { background:#fff3e0; color:#b5451b; }
+        .b-pend   { background:#f4f6f9; color:#888; border:1px solid #ddd; }
+        .b-done   { background:#e8f5e9; color:#1b5e20; }
+        .b-part   { background:#fff8e1; color:#e65100; border:1px solid #ffe0b2; }
+
+        /* ─── CODE ─── */
+        code {
+            background: #f4f6f9; border: 1px solid #e0e0e0; border-radius: 3px;
+            padding: 1px 5px; font-size: 12px; font-family: 'Courier New', monospace; color: #b5451b;
+        }
+        .file-ref {
+            display: inline-block; background: #eef2ff; color: #3b5bdb; border: 1px solid #c5d0fa;
+            border-radius: 4px; padding: 2px 8px; font-size: 12px; font-family: 'Courier New', monospace;
+        }
+        .file-pill {
+            display: inline-block; background: #eef2ff; color: #3b5bdb; border: 1px solid #c5d0fa;
+            border-radius: 4px; padding: 1px 7px; font-size: 11px; font-family: 'Courier New', monospace; font-weight: 600;
+        }
+
+        /* ─── DIFFS ─── */
+        .diff-block { margin: 10px 0; border-radius: 6px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 11.5px; line-height: 1.6; }
+        .diff-label { padding: 4px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+        .diff-before .diff-label { background:#2a1a1a; color:#f5a0a0; }
+        .diff-before pre { background:#1e1212; color:#f5a5a5; padding:10px 14px; overflow-x:auto; }
+        .diff-after  .diff-label { background:#1a2a1a; color:#90f0a0; }
+        .diff-after  pre { background:#121e12; color:#a5f5a5; padding:10px 14px; overflow-x:auto; }
+        .diff-rec    .diff-label { background:#16162a; color:#a0c4ff; }
+        .diff-rec    pre { background:#10101e; color:#c8d8f8; padding:10px 14px; overflow-x:auto; }
+
+        /* ─── SOURCE RIBBON ─── */
+        .src-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+        .src-tag {
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+            padding: 2px 8px; border-radius: 3px; white-space: nowrap;
+        }
+        .from-audit { background:#fff3e0; color:#b5451b; }
+        .from-new   { background:#f5eeff; color:#6c3483; }
+        .from-aria  { background:#e3f0ff; color:#0d47a1; }
+
+        /* ─── MASTER TABLE ─── */
+        .master-table { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.07); overflow:hidden; }
+        .master-table table { width:100%; border-collapse:collapse; font-size:12px; }
+        .master-table thead tr { background:#1a1a2e; color:#fff; }
+        .master-table th { padding:9px 12px; text-align:left; font-size:11px; letter-spacing:0.4px; }
+        .master-table td { padding:8px 12px; border-bottom:1px solid #f4f4f4; vertical-align:middle; }
+        .master-table tr:nth-child(even) td { background:#fafafa; }
+        .step-chip {
+            display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .chip-1 { background:#fde8e8; color:#c0392b; }
+        .chip-2 { background:#fef3e2; color:#d35400; }
+        .chip-3 { background:#e3f0ff; color:#0d47a1; }
+        .chip-4 { background:#e0f7fa; color:#006064; }
+        .chip-5 { background:#e8f5e9; color:#1b5e20; }
+
+        @media print {
+            .toolbar, .step-nav { display:none; }
+            body { background:#fff; }
+            .container { margin:0; padding:20px; max-width:100%; }
+            .card, .step-banner { break-inside:avoid; }
+            .report-header, .step-banner, .so-card { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     TOOLBAR
+═══════════════════════════════════════════════ -->
+<div class="toolbar">
+    <h1>Login System &mdash; Master Improvement Guide &mdash; GRC V1</h1>
+    <div style="display:flex;gap:8px;">
+        <a href="index.html" class="btn btn-back">&#8592; Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128438; Print</button>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP NAVIGATOR
+═══════════════════════════════════════════════ -->
+<div class="step-nav">
+    <a href="#step1" class="s1"><span class="dot dot-1"></span>Step 1 &mdash; Critical Stops</a>
+    <span class="sep">&#8250;</span>
+    <a href="#step2" class="s2"><span class="dot dot-2"></span>Step 2 &mdash; Security Hardening</a>
+    <span class="sep">&#8250;</span>
+    <a href="#step3" class="s3"><span class="dot dot-3"></span>Step 3 &mdash; ARIA Refactoring</a>
+    <span class="sep">&#8250;</span>
+    <a href="#step4" class="s4"><span class="dot dot-4"></span>Step 4 &mdash; UX Improvements</a>
+    <span class="sep">&#8250;</span>
+    <a href="#step5" class="s5"><span class="dot dot-5"></span>Step 5 &mdash; Code Cleanup</a>
+    <span class="sep">&#8250;</span>
+    <a href="#checklist">&#9744; Checklist</a>
+</div>
+
+<div class="container">
+
+    <!-- ─── HEADER ─── -->
+    <div class="report-header">
+        <div class="eyebrow">Master Guide &mdash; All Login Reports Combined</div>
+        <h2>Login System &mdash; Complete Improvement Flow</h2>
+        <div class="sub">All findings from the audit report, ARIA plan, and new findings report &mdash; reorganised into 5 ordered steps. Follow top to bottom for the safest implementation order.</div>
+        <div class="meta-row">
+            <div class="meta-item"><span>Last Updated</span><strong>June 24, 2026</strong></div>
+            <div class="meta-item"><span>Files Affected</span><strong>7 files + 1 new</strong></div>
+            <div class="meta-item"><span>Total Changes</span><strong>26 items</strong></div>
+            <div class="meta-item"><span>Completed</span><strong>26 / 26 items</strong></div>
+        </div>
+    </div>
+
+    <!-- ─── FILE FLOW ─── -->
+    <div class="flow-diagram">
+        <h4>File Flows Covered in This Guide</h4>
+        <div class="flow-row">
+            <span class="flow-label">Login</span>
+            <div class="fnode"><code>login.php</code>Form + JS</div>
+            <div class="farrow">&rarr;</div>
+            <div class="fnode"><code>loginaction.php</code>POST handler</div>
+            <div class="farrow">&rarr;</div>
+            <div class="fnode"><code>loginClass.php</code>login() method</div>
+            <div class="farrow">&rarr;</div>
+            <div class="fnode"><code>systemover.php</code>Dashboard</div>
+        </div>
+        <div class="flow-row">
+            <span class="flow-label">Reset</span>
+            <div class="fnode"><code>reset-password.php</code>Email form</div>
+            <div class="farrow">&rarr;</div>
+            <div class="fnode"><code>reset-password-action.php</code>Token + mailer</div>
+            <div class="farrow">&rarr;</div>
+            <div class="fnode"><code>confirmpass.php</code>New password</div>
+            <div class="farrow">&rarr;</div>
+            <div class="fnode"><code>confirmaction.php</code>Save password</div>
+        </div>
+    </div>
+
+    <!-- ─── STEP OVERVIEW ─── -->
+    <div class="step-overview">
+        <div class="so-card s1">
+            <div class="step-num">Step 1</div>
+            <div class="n">7</div>
+            <div class="lbl">Critical Stops</div>
+        </div>
+        <div class="so-card s2">
+            <div class="step-num">Step 2</div>
+            <div class="n">6</div>
+            <div class="lbl">Security Hardening</div>
+        </div>
+        <div class="so-card s3">
+            <div class="step-num">Step 3</div>
+            <div class="n">6</div>
+            <div class="lbl">ARIA Refactoring</div>
+        </div>
+        <div class="so-card s4">
+            <div class="step-num">Step 4</div>
+            <div class="n">5</div>
+            <div class="lbl">UX Improvements</div>
+        </div>
+        <div class="so-card s5">
+            <div class="step-num">Step 5</div>
+            <div class="n">2</div>
+            <div class="lbl">Code Cleanup</div>
+        </div>
+    </div>
+
+
+    <!-- ─── PROGRESS NOTE ─── -->
+    <div style="background:#fff; border-radius:8px; padding:14px 20px; margin-bottom:24px; box-shadow:0 1px 4px rgba(0,0,0,0.07); border-left:5px solid #1b5e20; font-size:13px; color:#444;">
+        <strong style="color:#1a1a2e;">Completed (June 24, 2026):</strong> All 26 items across Steps 1&ndash;5 are done &mdash; including the full reset-password flow. The <code>login_attempt</code> DB migration has been verified.
+        <span class="badge b-done" style="margin-left:10px;">Step 1 Complete</span>
+        <span class="badge b-done" style="margin-left:6px;">Step 2 Complete</span>
+        <span class="badge b-done" style="margin-left:6px;">Step 3 Complete</span>
+        <span class="badge b-done" style="margin-left:6px;">Step 4 Complete</span>
+        <span class="badge b-done" style="margin-left:6px;">Step 5 Complete</span>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         STEP 1 — CRITICAL STOPS
+    ═══════════════════════════════════════════ -->
+    <div class="step-section" id="step1">
+        <div class="step-banner sb-1">
+            <div class="icon">&#128308;</div>
+            <div>
+                <div class="title">Step 1 &mdash; Critical Stops</div>
+                <div class="desc">7 issues that cause data loss, account takeover, or completely broken features. Fix these before anything else — none of the subsequent steps should be done while these exist.</div>
+            </div>
+        </div>
+
+        <!-- 1.1 -->
+        <div class="card t1">
+            <div class="card-header">
+                <span class="badge b-crit">Critical</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>1.1 &mdash; Session Fixation: No session_regenerate_id() After Login</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">Project/login/loginClass.php &mdash; Login_test() line 250</span></div>
+                <p>After a successful password check the session ID is never rotated. An attacker who pre-plants a known session ID on the victim's browser (session fixation) will be fully authenticated the moment the victim logs in.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before &mdash; session ID unchanged</div><pre>if (password_verify($pass, $row['upassword']) && $row["user_type"] == 1) {
+    $_SESSION["uid"]     = $row["id"];
+    $_SESSION["user"]    = $row["username"];  // old session ID still active</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After &mdash; one line closes session fixation</div><pre>if (password_verify($pass, $row['upassword']) && $row["user_type"] == 1) {
+    session_regenerate_id(true); // issue a new ID, destroy the old one
+    $_SESSION["uid"]     = $row["id"];
+    $_SESSION["user"]    = $row["username"];</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Any session ID the attacker knew before login is invalidated the moment the user authenticates.</div>
+        </div>
+
+        <!-- 1.2 -->
+        <div class="card t1">
+            <div class="card-header">
+                <span class="badge b-crit">Critical</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>1.2 &mdash; Debug Log Writes SQL + Emails to a Public File on Every Google Login</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">Project/login/loginClass.php &mdash; googlesignup() lines 58–163</span></div>
+                <p><code>googlesignup()</code> opens <code>googlesignup_debug.log</code> in the web root and writes user emails, raw SQL (including hashed passwords), and session data to it on every call. This file is publicly readable by anyone who knows its URL.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before &mdash; live data written to public file</div><pre>$debug_file = fopen("googlesignup_debug.log", "a");
+fwrite($debug_file, "email: $email\n");      // PII
+fwrite($debug_file, "SQL Query: $insert\n"); // raw SQL + password hash
+fwrite($debug_file, "Session set: uid=...\n"); // session data</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After &mdash; all debug lines removed</div><pre>// Remove all fopen / fwrite / fclose lines.
+// Use php error_log() to server log if temporary debugging is needed.
+// Never write to the web root.</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> User emails, SQL, and session data are no longer written to a publicly accessible file.</div>
+        </div>
+
+        <!-- 1.3 -->
+        <div class="card t1">
+            <div class="card-header">
+                <span class="badge b-crit">Critical</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>1.3 &mdash; Reset Tokens Have No Expiry — Old Links Work Forever</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">reset-password-action.php</span><span class="file-ref">loginClass.php &mdash; passupdate()</span></div>
+                <p>A reset token is stored with no timestamp. <code>passupdate()</code> only checks whether the token exists — never when it was issued. A link from months ago, found in an old email or browser history, still works.</p>
+                <div class="diff-block diff-rec"><div class="diff-label">Schema — add expiry column</div><pre>ALTER TABLE users ADD COLUMN token_expires_at DATETIME NULL AFTER verify_token;</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">reset-password-action.php — set expiry + use secure token</div><pre>$token   = bin2hex(random_bytes(16));               // replaces md5(rand())
+$expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+$stmt = $conn->prepare("UPDATE users SET verify_token=?, token_expires_at=? WHERE email=? LIMIT 1");
+$stmt->bind_param('sss', $token, $expires, $email);
+$stmt->execute();</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">loginClass passupdate() — check expiry before accepting</div><pre>$row = $this->fetchOne('users', 'verify_token', $token);
+if (!$row) { return 'Invalid token'; }
+if (strtotime($row['token_expires_at']) < time()) {
+    return 'This reset link has expired. Please request a new one.';
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Reset links expire after 1 hour. Intercepted or old links are rejected automatically.</div>
+        </div>
+
+        <!-- 1.4 -->
+        <div class="card t1">
+            <div class="card-header">
+                <span class="badge b-crit">Critical</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>1.4 &mdash; XSS: $_GET Values Printed Without htmlspecialchars() in confirmpass.php</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">confirmpass.php &mdash; lines 82, 86</span></div>
+                <p><code>$_GET["token"]</code> and <code>$_GET["email"]</code> are printed raw into HTML attributes. A crafted reset URL can inject JavaScript into the page.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>echo $_GET["token"];
+echo $_GET["email"];</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After</div><pre>echo htmlspecialchars($_GET["token"], ENT_QUOTES, 'UTF-8');
+echo htmlspecialchars($_GET["email"], ENT_QUOTES, 'UTF-8');</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Script injection via the password reset URL is blocked.</div>
+        </div>
+
+        <!-- 1.5 -->
+        <div class="card t1">
+            <div class="card-header">
+                <span class="badge b-crit">Critical</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>1.5 &mdash; confirmaction.php Trusts Client-Submitted uid (Hidden Field)</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">confirmpass.php line 93</span><span class="file-ref">confirmaction.php line 6</span></div>
+                <p>The uid is placed in a hidden HTML field and submitted back. Any user can change it in browser DevTools and update someone else's password.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before — uid from POST</div><pre>$uid = $_POST["uid"]; // browser-controlled</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — uid from session only</div><pre>session_start();
+if (!isset($_SESSION['uid'])) { echo json_encode(['status'=>'error','message'=>'Session expired']); exit; }
+$uid = $_SESSION['uid']; // server-controlled — user cannot tamper</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Password update is bound to the authenticated session. One user cannot update another's password.</div>
+        </div>
+
+        <!-- 1.6 -->
+        <div class="card t1">
+            <div class="card-header">
+                <span class="badge b-crit">Critical</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>1.6 &mdash; Missing session_start() in login.php — Error Banner Dead Code</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">login.php &mdash; line 1 / line 42</span></div>
+                <p><code>login.php</code> checks <code>$_SESSION['login_error']</code> at line 42 to show a Google OAuth error banner — but <code>session_start()</code> is never called. The <code>$_SESSION</code> array is always empty so the error banner can never appear.</p>
+                <div class="diff-block diff-after"><div class="diff-label">After — add at very top of file</div><pre>&lt;?php session_start(); ?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Google OAuth error messages stored in <code>$_SESSION['login_error']</code> will now display correctly.</div>
+        </div>
+
+        <!-- 1.7 -->
+        <div class="card t1">
+            <div class="card-header">
+                <span class="badge b-crit">Critical</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>1.7 &mdash; send_password_reset() Is Empty — No Email Is Ever Sent from loginClass</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">Project/login/loginClass.php &mdash; lines 41–43</span></div>
+                <p>Inside <code>resetPassword()</code> an inner function <code>send_password_reset()</code> is defined with a completely empty body. A token is correctly saved to the DB but no email is dispatched from this path. The working mailer lives in <code>reset-password-action.php</code> (PHPMailer). The empty function creates a false impression something is being sent.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>if($query_token){
+    function send_password_reset($get_name,$get_email,$token){
+        // EMPTY — nothing happens
+    }
+}</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — remove the empty function entirely</div><pre>if ($query_token) {
+    return "its available"; // token saved — reset-password-action.php sends the email
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> No phantom function. The active email path in <code>reset-password-action.php</code> is the single source of truth for sending reset emails.</div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         STEP 2 — SECURITY HARDENING
+    ═══════════════════════════════════════════ -->
+    <div class="step-section" id="step2">
+        <div class="step-banner sb-2">
+            <div class="icon">&#128274;</div>
+            <div>
+                <div class="title">Step 2 &mdash; Security Hardening</div>
+                <div class="desc">6 items that close the remaining attack vectors — CSRF, email enumeration, brute force, SQL injection, and input validation. Do these after Step 1 is complete.</div>
+            </div>
+        </div>
+
+        <!-- 2.1 -->
+        <div class="card t2">
+            <div class="card-header">
+                <span class="badge b-sec">Security</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>2.1 &mdash; No CSRF Tokens on Login or Password Reset Forms</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">login.php</span><span class="file-ref">reset-password.php</span><span class="file-ref">loginaction.php</span></div>
+                <p>Neither form verifies that the POST came from the real page. A malicious site can auto-submit these forms on behalf of a visiting user.</p>
+                <div class="diff-block diff-after"><div class="diff-label">login.php — generate token in session, embed in form</div><pre>// Top of login.php (after session_start from 1.6):
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+// In the form:
+&lt;input type="hidden" name="_token" value="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">loginaction.php — verify before any other processing</div><pre>session_start();
+if (!isset($_POST['_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['_token'])) {
+    echo json_encode(['status'=>'error','message'=>'Invalid request. Refresh and try again.']);
+    exit;
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Cross-site form submissions are rejected. <code>hash_equals()</code> prevents timing-based token comparison attacks.</div>
+        </div>
+
+        <!-- 2.2 -->
+        <div class="card t2">
+            <div class="card-header">
+                <span class="badge b-sec">Security</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>2.2 &mdash; Email Enumeration: Reset Endpoint Reveals Whether an Account Exists</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">reset-password-action.php &mdash; lines 76–80</span></div>
+                <p>Returns <code>"ERROR CHECK"</code> when no account is found and <code>"its available"</code> when one is. An attacker can enumerate every registered email by submitting the form repeatedly.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>if(mysqli_num_rows($query_check) > 0){
+    echo "its available";   // account exists
+} else {
+    echo "ERROR CHECK ";    // no account — leaks this fact
+}</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — always same response</div><pre>// Send the email silently if the account exists, do nothing if not.
+// Client always sees the same message regardless.
+echo json_encode(['status'=>'success','message'=>'If that email is registered, a reset link has been sent.']);</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> An attacker cannot tell from the response whether an email address has an account.</div>
+        </div>
+
+        <!-- 2.3 -->
+        <div class="card t2">
+            <div class="card-header">
+                <span class="badge b-sec">Security</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>2.3 &mdash; No Brute-Force Protection — Unlimited Password Guesses Allowed</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">Project/login/loginClass.php &mdash; Login_test()</span></div>
+                <p>The original <code>login()</code> tracked attempts in <code>login_attempt</code> — it is now fully commented out. <code>Login_test()</code> has no rate limiting. Recommendation: lock per IP <em>and</em> per email after 5 failures in 15 minutes.</p>
+                <div class="diff-block diff-after"><div class="diff-label">Recommended — check both IP and email before querying DB</div><pre>private function countRecentFailures(string $col, string $val): int {
+    $window = date('Y-m-d H:i:s', strtotime('-15 minutes'));
+    $stmt   = $this->prepare("SELECT COUNT(*) FROM login_attempt WHERE `$col`=? AND attempted_at > ?");
+    $stmt->bind_param('ss', $val, $window);
+    $stmt->execute();
+    return (int) $stmt->get_result()->fetch_row()[0];
+}
+// In login() — check before the user query:
+if ($this->countRecentFailures('ip_address',$ip) >= 5 ||
+    $this->countRecentFailures('email',$email)    >= 5) {
+    return 'locked';
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Password guessing is capped at 5 per 15 minutes by IP and by email. VPN-hopping does not bypass the email check.</div>
+        </div>
+
+        <!-- 2.4 -->
+        <div class="card t2">
+            <div class="card-header">
+                <span class="badge b-sec">Security</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>2.4 &mdash; All SQL via Prepared Statements (Replace real_escape_string)</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="src-tag from-aria">ARIA Plan</span><span class="file-ref">Project/login/loginClass.php &mdash; all query methods</span></div>
+                <p>Every SQL query is built by concatenating escaped strings. Parameterized queries separate data from SQL structure at the protocol level — <code>real_escape_string</code> cannot achieve the same guarantee under all character encodings.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>$email = $this->real_escape_string($email);
+$sql   = "SELECT * FROM users WHERE email = '$email'";</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — prepared statement (or BaseRepository fetchOne)</div><pre>// Option A: direct prepared statement
+$stmt = $this->prepare("SELECT * FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Option B: after ARIA Phase 2 (Step 3 below)
+$row = $this->fetchOne('users', 'email', $email);</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> SQL injection via any login field is impossible regardless of character encoding.</div>
+        </div>
+
+        <!-- 2.5 -->
+        <div class="card t2">
+            <div class="card-header">
+                <span class="badge b-sec">Security</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>2.5 &mdash; No isset() Guards on $_POST in Handler Files</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">loginaction.php</span><span class="file-ref">confirmaction.php</span><span class="file-ref">reset-password-action.php</span></div>
+                <p>All three handlers read <code>$_POST</code> keys directly without <code>isset()</code>. A tampered request that omits a field causes PHP notices and passes <code>null</code> into the database layer.</p>
+                <div class="diff-block diff-after"><div class="diff-label">Pattern — apply to every handler</div><pre>if (!isset($_POST['email'], $_POST['password'])) {
+    echo json_encode(['status'=>'error','message'=>'Missing required fields']);
+    exit;
+}
+$email = $_POST['email'];
+$pass  = $_POST['password'];</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Malformed requests exit cleanly with a JSON error. No undefined variables reach the database layer.</div>
+        </div>
+
+        <!-- 2.6 -->
+        <div class="card t2">
+            <div class="card-header">
+                <span class="badge b-sec">Security</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>2.6 &mdash; Weak Token Generation (md5(rand())) in Password Reset</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">reset-password-action.php</span><span class="file-ref">loginClass.php &mdash; passupdate() line 202</span></div>
+                <p><code>md5(rand())</code> is not cryptographically secure. <code>rand()</code> is seeded predictably, and MD5 is fast to brute-force. This is already covered by item 1.3 which uses <code>bin2hex(random_bytes(16))</code>.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>$token     = md5(rand())."funda"; // in reset-password-action.php
+$new_token = md5(rand())."funda"; // in passupdate() after successful reset</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After</div><pre>$token     = bin2hex(random_bytes(16)); // 32-char cryptographically secure hex string
+$new_token = bin2hex(random_bytes(16)); // rotate token after use</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Reset tokens cannot be guessed or brute-forced with practical compute.</div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         STEP 3 — ARIA REFACTORING
+    ═══════════════════════════════════════════ -->
+    <div class="step-section" id="step3">
+        <div class="step-banner sb-3">
+            <div class="icon">&#9965;</div>
+            <div>
+                <div class="title">Step 3 &mdash; ARIA Refactoring</div>
+                <div class="desc">6 structural changes to bring loginClass.php and its handlers in line with the rest of the system — Phase 2 (entity class), Phase 3 (handlers), Phase 4 (frontend). Do these after security is locked down.</div>
+            </div>
+        </div>
+
+        <!-- 3.1 -->
+        <div class="card t3">
+            <div class="card-header">
+                <span class="badge b-aria">ARIA Phase 2</span>
+                <h3>3.1 &mdash; loginClass Extends connectionClass &rarr; Should Extend BaseRepository</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-aria">ARIA Plan</span><span class="file-ref">Project/login/loginClass.php &mdash; line 3</span></div>
+                <p>Every other entity class in the system already extends <code>BaseRepository</code> which provides <code>fetchAll()</code>, <code>fetchOne()</code>, <code>fetchWhere()</code>, <code>deleteById()</code>, and <code>countWhere()</code> with prepared statements built in. Also: add <code>string</code> type hints to all parameters and remove the closing <code>?&gt;</code>.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>class loginClass extends connectionClass{
+    public function Login_test($email, $pass, $ip_address){ ...</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After</div><pre>require_once dirname(__FILE__) . '/../../core/BaseRepository.php';
+class loginClass extends BaseRepository {
+    public function login(string $email, string $pass, string $ip_address): string { ...</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> loginClass gains all BaseRepository helper methods. Class signature matches the rest of the system. No closing <code>?&gt;</code> eliminates whitespace-before-header bugs.</div>
+        </div>
+
+        <!-- 3.2 -->
+        <div class="card t3">
+            <div class="card-header">
+                <span class="badge b-aria">ARIA Phase 2</span>
+                <h3>3.2 &mdash; Use fetchOne() for the Login Query</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-aria">ARIA Plan</span><span class="file-ref">Project/login/loginClass.php &mdash; Login_test() lines 240–244</span></div>
+                <p>The raw <code>SELECT * FROM users WHERE email = '$email'</code> query becomes a single <code>fetchOne()</code> call once the class extends BaseRepository.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>$sql    = "SELECT * FROM users WHERE email = '$email'";
+$result = $this->query($sql);
+if ($result && $result->num_rows > 0) {
+    $row = $result->fetch_assoc();</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After</div><pre>$row = $this->fetchOne('users', 'email', $email);
+if ($row) {</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> One line replaces five. Prepared statement is handled internally by BaseRepository. No raw SQL in the method body.</div>
+        </div>
+
+        <!-- 3.3 -->
+        <div class="card t3">
+            <div class="card-header">
+                <span class="badge b-aria">ARIA Phase 2</span>
+                <h3>3.3 &mdash; Replace Raw INSERT system_logs with ActivityLogger::log()</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-aria">ARIA Plan</span><span class="file-ref">Project/login/loginClass.php &mdash; login() lines 255–257 and logout() lines 335–337</span></div>
+                <p>Both <code>login()</code> and <code>logout()</code> build raw INSERT strings to write to <code>system_logs</code>. All other classes use <code>ActivityLogger::log()</code>.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before — raw INSERT in two methods</div><pre>$insert = "INSERT INTO `system_logs`(`user_id`, `entity`, `action`, `ip_address`)
+VALUES ('$userlogid','Login','user $user Logged in','$ip_address')";
+$this->query($insert);</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — ActivityLogger</div><pre>require_once dirname(__FILE__) . '/../../core/ActivityLogger.php';
+
+// In login():
+ActivityLogger::log($this, $row['id'], 'Login', "user {$row['username']} logged in", $ip_address);
+
+// In logout():
+ActivityLogger::log($this, $uid, 'Logout', "user $user logged out", 'NA');</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Audit logging uses the same prepared-statement path as every other module. No raw SQL for log entries.</div>
+        </div>
+
+        <!-- 3.4 -->
+        <div class="card t3">
+            <div class="card-header">
+                <span class="badge b-aria">ARIA Phase 3</span>
+                <h3>3.4 &mdash; Replace Raw echo $alert with Response Class in All Three Handlers</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-aria">ARIA Plan</span><span class="file-ref">loginaction.php</span><span class="file-ref">confirmaction.php</span><span class="file-ref">reset-password-action.php</span></div>
+                <p>All three handlers currently use raw <code>echo $alert</code> returning plain text. The rest of the system handlers use <code>Response::success()</code> / <code>Response::error()</code> which output <code>{"status":"success","message":"..."}</code> JSON and call <code>exit</code>.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before — loginaction.php</div><pre>echo $alert; // plain text, no JSON</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — loginaction.php</div><pre>require_once 'Project/core/Response.php';
+...
+if ($result === 'WELCOME...') {
+    Response::success('Login successful');
+} elseif ($result === 2) {
+    Response::error('Account not yet verified. Please reset your password first.');
+} elseif ($result === 'locked') {
+    Response::error('Too many failed attempts. Try again in 15 minutes.');
+} else {
+    Response::error('Invalid email or password.');
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> All three handlers output consistent JSON. The AJAX <code>dataType:'json'</code> change in Step 3.5 depends on this.</div>
+        </div>
+
+        <!-- 3.5 -->
+        <div class="card t3">
+            <div class="card-header">
+                <span class="badge b-aria">ARIA Phase 4</span>
+                <h3>3.5 &mdash; Change AJAX dataType from 'text' to 'json' in All Login Views</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-aria">ARIA Plan</span><span class="file-ref">login.php</span><span class="file-ref">reset-password.php</span><span class="file-ref">confirmpass.php</span></div>
+                <p>All three view files use <code>dataType:'text'</code> and compare the raw response string with <code>response==2</code>. After 3.4 the handlers return JSON, so the AJAX calls need to parse it.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>dataType: 'text',
+success: function(response){
+    if(response == 2){ ... }
+    else if(response == 3){ ... }</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After</div><pre>dataType: 'json',
+success: function(response){
+    if(response.status === 'success'){ ... }
+    else { Swal.fire({ icon:'error', text: response.message }); }</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Consistent JSON handling across all login AJAX calls. No more magic number comparisons (response == 2, response == 3).</div>
+        </div>
+
+        <!-- 3.6 -->
+        <div class="card t3">
+            <div class="card-header">
+                <span class="badge b-aria">ARIA Phase 4</span>
+                <h3>3.6 &mdash; Move All Login JS to assets/js/login.js</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-aria">ARIA Plan</span><span class="file-ref">login.php</span><span class="file-ref">reset-password.php</span><span class="file-ref">confirmpass.php</span></div>
+                <p>All three view files have large inline <code>&lt;script&gt;</code> blocks. Following ARIA Phase 4 (all JS in <code>assets/js/</code>), create <code>assets/js/login.js</code> and move everything there. PHP values the JS needs are passed via a small config object.</p>
+                <div class="diff-block diff-after"><div class="diff-label">In each PHP view — small inline config + external file</div><pre>&lt;script&gt;
+window.GRC_LOGIN = {
+    csrfToken:     '&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;',
+    redirectUrl:   'systemover.php',
+    resetUrl:      'reset-password-action.php'
+};
+&lt;/script&gt;
+&lt;script src="assets/js/login.js"&gt;&lt;/script&gt;</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> PHP view files contain only HTML. All login JS is in one cacheable file. Consistent with the rest of the system after ARIA Phase 4.</div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         STEP 4 — UX IMPROVEMENTS
+    ═══════════════════════════════════════════ -->
+    <div class="step-section" id="step4">
+        <div class="step-banner sb-4">
+            <div class="icon">&#127775;</div>
+            <div>
+                <div class="title">Step 4 &mdash; UX Improvements</div>
+                <div class="desc">5 frontend improvements — smaller changes but high impact on daily usability. Two were not in either previous report. Safe to do alongside Step 3 if preferred.</div>
+            </div>
+        </div>
+
+        <!-- 4.1 -->
+        <div class="card t4">
+            <div class="card-header">
+                <span class="badge b-ux">UX</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>4.1 &mdash; Submit Button Has No Loading State — Double-Click Sends Two Requests</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">login.php &mdash; AJAX block</span></div>
+                <p>The login button stays active during the AJAX call. Double-clicking fires two simultaneous POST requests, creating duplicate system_logs entries and potential race conditions on session creation.</p>
+                <div class="diff-block diff-after"><div class="diff-label">After — disable on click, re-enable on response</div><pre>var $btn = $(this).find('button[type="submit"]');
+$btn.prop('disabled', true).html('&lt;span&gt;&#9654;&lt;/span&gt; Logging in...');
+$.ajax({
+    ...
+    complete: function() {
+        $btn.prop('disabled', false).html('Log In'); // always re-enable
+    }
+});</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Exactly one request per click. User gets instant visual confirmation their click registered.</div>
+        </div>
+
+        <!-- 4.2 -->
+        <div class="card t4">
+            <div class="card-header">
+                <span class="badge b-ux">UX</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>4.2 &mdash; Wrong Credentials: Redirects Away and Says "login unsuccess"</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">login.php &mdash; lines 129–137</span></div>
+                <p>On wrong credentials the page redirects back to <code>login.php</code>, clearing the email field. The SweetAlert title says "login unsuccess" (grammatically incorrect). Users must re-type their email to try again.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>Swal.fire({ icon:"error", title:"login unsuccess", timer:3000 })
+window.location.href = "login.php"; // clears form</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — stay on page, clear grammar</div><pre>Swal.fire({
+    icon: 'error',
+    title: 'Login Failed',
+    text: response.message, // from JSON: "Invalid email or password."
+    confirmButtonText: 'Try Again'
+    // no redirect — email stays filled in
+});</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Users correct only the password field without re-typing their email. Clear English error message.</div>
+        </div>
+
+        <!-- 4.3 -->
+        <div class="card t4">
+            <div class="card-header">
+                <span class="badge b-ux">UX</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>4.3 &mdash; No Show/Hide Password Toggle on Login Form</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">login.php &mdash; password field</span></div>
+                <p>No eye icon to reveal the password. Users who mistype cannot verify what they entered, increasing failed login counts — especially on mobile.</p>
+                <div class="diff-block diff-after"><div class="diff-label">HTML + JS</div><pre>&lt;span id="togglePwd" style="cursor:pointer; position:absolute; right:14px; top:50%; transform:translateY(-50%);"&gt;
+    &lt;i class="bi bi-eye" id="eyeIcon"&gt;&lt;/i&gt;
+&lt;/span&gt;
+
+$('#togglePwd').on('click', function(){
+    var f = $('#password');
+    f.attr('type', f.attr('type') === 'password' ? 'text' : 'password');
+    $('#eyeIcon').toggleClass('bi-eye bi-eye-slash');
+});</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Users can confirm what they typed before submitting. Reduces failed logins from invisible typos.</div>
+        </div>
+
+        <!-- 4.4 -->
+        <div class="card t4">
+            <div class="card-header">
+                <span class="badge b-ux">UX</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>4.4 &mdash; Missing autocomplete Attributes — Password Managers Don't Work Reliably</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">login.php &mdash; lines 54 and 60</span></div>
+                <p>Email field uses <code>type="text"</code> (not <code>type="email"</code>) and neither field has an <code>autocomplete</code> attribute. Password managers may fail to fill credentials. Mobile shows the wrong keyboard for the email field.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>&lt;input type="text"     name="email"    ...&gt;
+&lt;input type="password" name="password" ...&gt;</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After</div><pre>&lt;input type="email"    name="email"    autocomplete="email"           ...&gt;
+&lt;input type="password" name="password" autocomplete="current-password" ...&gt;</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Password managers fill correctly. Mobile shows email keyboard. <code>type="email"</code> adds browser-native format validation for free.</div>
+        </div>
+
+        <!-- 4.5 -->
+        <div class="card t4">
+            <div class="card-header">
+                <span class="badge b-ux">UX</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>4.5 &mdash; Reset Password Form: Always Shows Success, Typo, Broken Link, Short Timer, No Validation</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">reset-password.php</span></div>
+                <p>Four issues on the same page:</p>
+                <ul>
+                    <li>AJAX always uses <code>icon:"success"</code> even when server returns an error</li>
+                    <li>Timer: 500 ms — too short to read any message</li>
+                    <li>Button text: <em>"Send Reset <strong>Passoword</strong>"</em> (double&nbsp;o)</li>
+                    <li>Back link: <code>href="auth-login.html"</code> — file does not exist</li>
+                </ul>
+                <div class="diff-block diff-after"><div class="diff-label">After — all four fixed</div><pre>// Button:
+&lt;button ...&gt;Send Reset Password&lt;/button&gt;
+// Back link:
+&lt;a href="login.php"&gt;Back to Log in&lt;/a&gt;
+
+// JS — validate + conditional icon:
+var email = $.trim($('input[name="email"]').val());
+if (!email) { Swal.fire({ icon:'warning', title:'Enter your email address' }); return; }
+$.ajax({ ...,
+    success: function(res) {
+        // after 2.2, response is always 'success' — show one consistent message
+        Swal.fire({ icon:'success', title:'Check your inbox', text: res.message, timer: 4000 });
+        setTimeout(function(){ window.location.href='login.php'; }, 4000);
+    }
+});</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Professional UI — no typos, working back link, readable feedback timer, no wasted server requests from empty form.</div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         STEP 5 — CLEANUP
+    ═══════════════════════════════════════════ -->
+    <div class="step-section" id="step5">
+        <div class="step-banner sb-5">
+            <div class="icon">&#129529;</div>
+            <div>
+                <div class="title">Step 5 &mdash; Code Cleanup</div>
+                <div class="desc">2 final cleanup items — removing dead code and fixing a logic bug. Low risk, do last.</div>
+            </div>
+        </div>
+
+        <!-- 5.1 -->
+        <div class="card t5">
+            <div class="card-header">
+                <span class="badge b-code">Cleanup</span>
+                <span class="badge b-audit">Audit</span>
+                <h3>5.1 &mdash; Rename Login_test &rarr; login and Remove 45-Line Dead Comment Block</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-audit">Audit Report</span><span class="file-ref">loginClass.php &mdash; lines 235, 282–328</span><span class="file-ref">loginaction.php &mdash; line 26</span></div>
+                <p>The production login method is called <code>Login_test</code>. The original <code>login()</code> method below it is 45 lines of commented-out code. After this guide the active method is already renamed in 3.1 — this item is the cleanup confirmation: ensure the commented block is fully deleted and the call in <code>loginaction.php</code> is updated.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before — two methods, one dead</div><pre>public function Login_test($email,$pass,$ip){ ... } // production
+public function login($email,$pass,$ip,$time){
+    /* 45 lines of commented code */
+}</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — one clean method</div><pre>public function login(string $email, string $pass, string $ip): string {
+    // active production code — no dead blocks below
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Single clearly named production method. Zero dead commented code. Method name matches every other entity method naming convention.</div>
+        </div>
+
+        <!-- 5.2 -->
+        <div class="card t5">
+            <div class="card-header">
+                <span class="badge b-code">Cleanup</span>
+                <span class="badge b-new">New Finding</span>
+                <h3>5.2 &mdash; systemlog() Has a Dead Branch: count &lt; 0 Can Never Be True</h3>
+                <span class="badge b-done">Done</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="src-tag from-new">New Finding</span><span class="file-ref">Project/login/loginClass.php &mdash; systemlog() lines 340–357</span></div>
+                <p><code>num_rows</code> is always &ge; 0, so <code>if($count &lt; 0)</code> can never be true. The <code>return "NULL VALUES"</code> path is permanently dead code. After ARIA Phase 2 (Step 3.1) the whole method collapses to one line.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before — dead branch + manual loop</div><pre>$count = $query->num_rows;
+if($count &lt; 0){          // NEVER TRUE
+    return "NULL VALUES"; // dead code
+}else{
+    while($row = $query->fetch_assoc()){ $rows[] = $row; }
+    return !empty($rows) ? $rows : array();
+}</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After — one line with BaseRepository</div><pre>public function systemlog(): array {
+    return $this->fetchAll('system_logs'); // returns [] when empty, never a string
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Return type is predictable — always an array, never the string <code>"NULL VALUES"</code>. Consistent with every other showX() method in the system.</div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         MASTER CHECKLIST
+    ═══════════════════════════════════════════ -->
+    <div id="checklist" style="margin-bottom:10px;">
+        <div class="section-divider">Master Checklist &mdash; All 26 Items</div>
+    </div>
+    <div class="master-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Change</th>
+                    <th>File(s)</th>
+                    <th>Step</th>
+                    <th>Source</th>
+                    <th>Done?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1.1</td><td>session_regenerate_id(true) after login</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-1">Step 1</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>1.2</td><td>Remove debug log from googlesignup()</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-1">Step 1</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>1.3</td><td>Add token expiry (1 hour) + secure token generation</td><td><span class="file-pill">loginClass.php</span> <span class="file-pill">reset-password-action.php</span></td><td><span class="step-chip chip-1">Step 1</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>1.4</td><td>XSS — htmlspecialchars() on GET values in confirmpass.php</td><td><span class="file-pill">confirmpass.php</span></td><td><span class="step-chip chip-1">Step 1</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>1.5</td><td>uid from session only — remove hidden field</td><td><span class="file-pill">confirmaction.php</span></td><td><span class="step-chip chip-1">Step 1</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>1.6</td><td>Add session_start() to login.php</td><td><span class="file-pill">login.php</span></td><td><span class="step-chip chip-1">Step 1</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>1.7</td><td>Remove empty send_password_reset() function</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-1">Step 1</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>2.1</td><td>CSRF tokens on login + reset-password forms</td><td><span class="file-pill">login.php</span> <span class="file-pill">loginaction.php</span></td><td><span class="step-chip chip-2">Step 2</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>2.2</td><td>Email enumeration — always same reset response</td><td><span class="file-pill">reset-password-action.php</span></td><td><span class="step-chip chip-2">Step 2</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>2.3</td><td>Rate limit by IP + email (5 attempts / 15 min)</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-2">Step 2</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>2.4</td><td>All SQL via prepared statements</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-2">Step 2</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>2.5</td><td>isset() guards in all three handler files</td><td><span class="file-pill">loginaction.php</span> <span class="file-pill">confirmaction.php</span> <span class="file-pill">reset-password-action.php</span></td><td><span class="step-chip chip-2">Step 2</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>2.6</td><td>Replace md5(rand()) with bin2hex(random_bytes(16))</td><td><span class="file-pill">reset-password-action.php</span> <span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-2">Step 2</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>3.1</td><td>loginClass extends BaseRepository + type hints + no closing ?&gt;</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-3">Step 3</span></td><td><span class="badge b-aria">ARIA</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>3.2</td><td>Use fetchOne() for login query</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-3">Step 3</span></td><td><span class="badge b-aria">ARIA</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>3.3</td><td>ActivityLogger::log() for login and logout events</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-3">Step 3</span></td><td><span class="badge b-aria">ARIA</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>3.4</td><td>Response class in all 3 handler files</td><td><span class="file-pill">loginaction.php</span> <span class="file-pill">confirmaction.php</span> <span class="file-pill">reset-password-action.php</span></td><td><span class="step-chip chip-3">Step 3</span></td><td><span class="badge b-aria">ARIA</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>3.5</td><td>AJAX dataType:'json' in all 3 view files</td><td><span class="file-pill">login.php</span> <span class="file-pill">reset-password.php</span> <span class="file-pill">confirmpass.php</span></td><td><span class="step-chip chip-3">Step 3</span></td><td><span class="badge b-aria">ARIA</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>3.6</td><td>Move all login JS to assets/js/login.js</td><td><span class="file-pill">login.php</span> <span class="file-pill">reset-password.php</span> <span class="file-pill">confirmpass.php</span></td><td><span class="step-chip chip-3">Step 3</span></td><td><span class="badge b-aria">ARIA</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>4.1</td><td>Submit button loading + disabled state</td><td><span class="file-pill">login.php</span></td><td><span class="step-chip chip-4">Step 4</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>4.2</td><td>Stay on page on wrong credentials + fix message grammar</td><td><span class="file-pill">login.php</span></td><td><span class="step-chip chip-4">Step 4</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>4.3</td><td>Show/hide password toggle</td><td><span class="file-pill">login.php</span></td><td><span class="step-chip chip-4">Step 4</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>4.4</td><td>autocomplete attributes + type="email" on login fields</td><td><span class="file-pill">login.php</span></td><td><span class="step-chip chip-4">Step 4</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>4.5</td><td>Reset form: fix success icon, typo, broken link, timer, validation</td><td><span class="file-pill">reset-password.php</span></td><td><span class="step-chip chip-4">Step 4</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>5.1</td><td>Rename Login_test &rarr; login, remove 45-line dead comment block</td><td><span class="file-pill">loginClass.php</span> <span class="file-pill">loginaction.php</span></td><td><span class="step-chip chip-5">Step 5</span></td><td><span class="badge b-audit">Audit</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+                <tr><td>5.2</td><td>systemlog() dead branch (count &lt; 0 never true)</td><td><span class="file-pill">loginClass.php</span></td><td><span class="step-chip chip-5">Step 5</span></td><td><span class="badge b-new">New</span></td><td style="color:#1b5e20;font-weight:700;">&#9745;</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top:16px; background:#fff; border-radius:8px; padding:14px 20px; box-shadow:0 1px 4px rgba(0,0,0,0.07); font-size:13px; color:#666; display:flex; gap:20px; flex-wrap:wrap; border-left:5px solid #1a1a2e;">
+        <span><strong style="color:#c0392b;">Steps 1–2</strong> = security first (13 items)</span>
+        <span><strong style="color:#0d47a1;">Step 3</strong> = structural modernisation (6 items)</span>
+        <span><strong style="color:#00838f;">Step 4</strong> = frontend UX (5 items)</span>
+        <span><strong style="color:#1b5e20;">Step 5</strong> = final cleanup (2 items)</span>
+        <span><strong style="color:#6c3483;">New</strong> = not in either previous report (8 items)</span>
+        <span><strong style="color:#1b5e20;">&#9745;</strong> = done &mdash; all 26 items complete</span>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════
+         POST-IMPLEMENTATION BUG FIXES (June 24, 2026)
+    ═══════════════════════════════════════════ -->
+    <div id="bugfixes" style="margin-top:40px;">
+        <div class="section-divider">Post-Implementation Bug Fixes &mdash; June 24, 2026</div>
+
+        <div style="background:#fff3e0; border-radius:8px; padding:12px 18px; margin-bottom:18px; border-left:5px solid #e65100; font-size:13px; color:#444;">
+            <strong style="color:#e65100;">Found during integration testing</strong> &mdash; 5 bugs discovered after all 26 planned items were marked complete. None were caught by code review alone &mdash; they only surfaced when the login flow was exercised end-to-end.
+        </div>
+
+        <!-- BF-1 -->
+        <div class="card" style="border-left:5px solid #c0392b;">
+            <div class="card-header">
+                <span class="badge b-crit">Fatal Error</span>
+                <h3>BF-1 &mdash; Wrong <code>require_once</code> Path in loginClass.php &mdash; Login Completely Broken</h3>
+                <span class="badge b-done">Fixed</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="file-ref">Project/login/loginClass.php &mdash; line 2</span></div>
+                <p>Every login attempt produced a PHP fatal error: <em>"Failed to open stream: No such file or directory"</em>. The path used two <code>../</code> hops from <code>Project/login/</code>, landing in <code>GRC_V1/core/</code> (does not exist). One hop lands in <code>Project/core/</code> (correct).</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before &mdash; wrong: resolves to GRC_V1/core/ (missing)</div><pre>require_once dirname(__FILE__) . '/../../core/BaseRepository.php';</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After &mdash; correct: resolves to Project/core/</div><pre>require_once dirname(__FILE__) . '/../core/BaseRepository.php';</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> <code>loginaction.php</code> could never instantiate <code>loginClass</code>. Every AJAX login returned a PHP fatal error body (non-JSON), so the <code>success</code> callback never fired &mdash; the button flickered and went silent.</div>
+        </div>
+
+        <!-- BF-2 -->
+        <div class="card" style="border-left:5px solid #d35400;">
+            <div class="card-header">
+                <span class="badge b-sec">UX / JS</span>
+                <h3>BF-2 &mdash; Login Button: Click Handler &rarr; Form Submit Handler</h3>
+                <span class="badge b-done">Fixed</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="file-ref">assets/js/login.js</span><span class="file-ref">login.php &mdash; button element</span></div>
+                <p>The click handler on <code>.login-btn</code> was replaced with a <code>#loginform</code> submit handler. The button is now found via <code>$(this).find('button[type="submit"]')</code> (scoped to the form). The button also gained <code>type="submit"</code> and the loading label uses <code>.html()</code> to allow the play icon.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before &mdash; login.js</div><pre>var $btn = $('.login-btn'); // global selector
+$btn.on('click', function(e) {
+    e.preventDefault();
+    ...
+    $btn.prop('disabled', true).text('Logging in…');</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After &mdash; login.js + login.php</div><pre>// login.php:
+&lt;button type="submit" class="... login-btn"&gt;Log In&lt;/button&gt;
+
+// login.js:
+$('#loginform').on('submit', function(e) {
+    e.preventDefault();
+    var $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true).html('&lt;span&gt;&#9654;&lt;/span&gt; Logging in...');</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Form submission is captured at the form level. The button selector is scoped so it cannot accidentally match buttons on other forms in the page.</div>
+        </div>
+
+        <!-- BF-3 -->
+        <div class="card" style="border-left:5px solid #d35400;">
+            <div class="card-header">
+                <span class="badge b-sec">PHP Warning</span>
+                <h3>BF-3 &mdash; <code>confirmpass.php</code>: Dead <code>$uid</code> Assignment Warns on Reset Links</h3>
+                <span class="badge b-done">Fixed</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="file-ref">confirmpass.php &mdash; line 3</span></div>
+                <p>A leftover <code>$uid = $_SESSION["uid"];</code> remained at the top of the file after step 1.5 removed uid from the form. Users arriving via an email reset link have no session, so PHP emitted <em>"Undefined array key uid"</em> on every reset link click. The variable was never used in the HTML.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before</div><pre>&lt;?php
+session_start();
+$uid = $_SESSION["uid"]; // dead — variable never used below, warns for reset-link visitors
+?&gt;</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After &mdash; dead line removed</div><pre>&lt;?php
+session_start(); /* session needed for CSRF and first-login uid */
+?&gt;</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> Warning eliminated. Reset-link visitors land on the page cleanly.</div>
+        </div>
+
+        <!-- BF-4 -->
+        <div class="card" style="border-left:5px solid #c0392b;">
+            <div class="card-header">
+                <span class="badge b-crit">Logic Error</span>
+                <h3>BF-4 &mdash; <code>confirmaction.php</code>: Hard Session-uid Block Breaks Reset Flow</h3>
+                <span class="badge b-done">Fixed</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="file-ref">confirmaction.php &mdash; lines 8–9</span></div>
+                <p>Step 1.5 added <code>if (!isset($_SESSION['uid'])) { Response::error('Session expired'); }</code> to prevent uid tampering. Correct for the first-login flow (user is already authenticated). But reset-link users are unauthenticated &mdash; they have no session uid. Every reset-link submission was immediately rejected with "Session expired" before <code>passupdate()</code> was ever called. Two flows, one code path: the uid check must be conditional.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before &mdash; hard block, reset flow always rejected</div><pre>if (!isset($_SESSION['uid'])) {
+    Response::error('Session expired. Please log in again.');
+}
+$uid = $_SESSION['uid'];</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After &mdash; uid from session OR token (either authorises the change)</div><pre>/* uid from session (first-login) or empty string (reset — token identifies user) */
+$uid = $_SESSION['uid'] ?? '';
+
+/* must have either a session uid or a reset token — not both required */
+if (empty($uid) && empty($token)) {
+    Response::error('Session expired. Please log in again.');
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> First-login flow (session uid set) and reset flow (token set, no session) both reach <code>passupdate()</code>. <code>passupdate()</code> identifies the user by token in both cases.</div>
+        </div>
+
+        <!-- BF-5 -->
+        <div class="card" style="border-left:5px solid #d35400;">
+            <div class="card-header">
+                <span class="badge b-sec">JSON Pollution</span>
+                <h3>BF-5 &mdash; <code>passupdate()</code>: <code>echo</code> Statements Break JSON Response</h3>
+                <span class="badge b-done">Fixed</span>
+            </div>
+            <div class="card-body">
+                <div class="src-row"><span class="file-ref">Project/login/loginClass.php &mdash; passupdate() lines 122–128</span></div>
+                <p>Two early-exit guards in <code>passupdate()</code> used <code>echo</code> instead of <code>return</code>. If either guard triggered, the plain-text echo would prepend to the JSON from <code>confirmaction.php</code>, producing an invalid response that jQuery could not parse.</p>
+                <div class="diff-block diff-before"><div class="diff-label">Before &mdash; echo leaks into AJAX response</div><pre>if (empty($token)) {
+    echo "No tokens available"; // pollutes JSON
+    return;
+}
+if (empty($email) || empty($pass)) {
+    echo "Missing Fields available"; // pollutes JSON
+    return;
+}</pre></div>
+                <div class="diff-block diff-after"><div class="diff-label">After &mdash; return string, let confirmaction.php encode it</div><pre>if (empty($token)) {
+    return 'No token provided';
+}
+if (empty($email) || empty($pass)) {
+    return 'Missing required fields';
+}</pre></div>
+            </div>
+            <div class="impact"><strong>Effect:</strong> All exit paths from <code>passupdate()</code> return a string. <code>confirmaction.php</code> encodes it as JSON via <code>Response::error()</code>.</div>
+        </div>
+
+    </div><!-- #bugfixes -->
+
+</div><!-- .container -->
+
+<script>
+    // Highlight active step in nav on scroll
+    (function(){
+        var sections = ['step1','step2','step3','step4','step5','checklist'];
+        var links = document.querySelectorAll('.step-nav a');
+        function onScroll(){
+            var offset = 110;
+            var current = '';
+            sections.forEach(function(id){
+                var el = document.getElementById(id);
+                if(el && el.getBoundingClientRect().top <= offset){ current = id; }
+            });
+            links.forEach(function(a){
+                a.style.borderBottomWidth = '3px';
+                a.style.borderBottomStyle = 'solid';
+                if(a.getAttribute('href') === '#'+current){
+                    a.style.opacity = '1';
+                    a.style.borderBottomColor = a.style.color || '';
+                } else {
+                    a.style.opacity = '0.65';
+                    a.style.borderBottomColor = 'transparent';
+                }
+            });
+        }
+        window.addEventListener('scroll', onScroll, {passive:true});
+        onScroll();
+    })();
+</script>
+</body>
+</html>

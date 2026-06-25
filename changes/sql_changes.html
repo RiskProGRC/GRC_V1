@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Table Changes — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #222; font-size: 14px; line-height: 1.6; }
+
+        .toolbar {
+            background: #1a1a2e; color: #fff; padding: 13px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .toolbar h1 { font-size: 15px; font-weight: 600; }
+        .btn { padding: 7px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 700; color: #fff; text-decoration: none; display: inline-block; }
+        .btn-back  { background: #3a3a5c; }
+        .btn-print { background: #1b5e20; }
+
+        .container { max-width: 940px; margin: 28px auto; padding: 0 20px 80px; }
+
+        .report-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2c3e1a 100%);
+            color: #fff; border-radius: 10px; padding: 32px 38px; margin-bottom: 24px;
+        }
+        .report-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px; }
+        .report-header h2 { font-size: 23px; font-weight: 700; margin-bottom: 6px; }
+        .report-header .sub { font-size: 13px; opacity: 0.78; margin-bottom: 20px; }
+        .meta-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        .meta-item span { display: block; font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+
+        .callout {
+            background: #fff; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px;
+            border-left: 5px solid #c0392b; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            font-size: 13px; color: #444; line-height: 1.7;
+        }
+        .callout.green { border-left-color: #1b5e20; }
+        .callout strong { color: #c0392b; }
+        .callout.green strong { color: #1b5e20; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 26px; }
+        @media(max-width:600px){ .stats-row { grid-template-columns: repeat(2,1fr); } }
+        .stat-card { background:#fff; border-radius:8px; padding:14px 16px; box-shadow:0 1px 4px rgba(0,0,0,0.07); text-align:center; border-top:3px solid #ccc; }
+        .stat-card.s-block { border-top-color:#c0392b; }
+        .stat-card.s-step1 { border-top-color:#d35400; }
+        .stat-card.s-step2 { border-top-color:#0d47a1; }
+        .stat-card.s-exist  { border-top-color:#6c3483; }
+        .stat-card .n { font-size:28px; font-weight:700; color:#1a1a2e; line-height:1; }
+        .stat-card .l { font-size:11px; color:#888; margin-top:3px; }
+
+        .section-title {
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            color: #aaa; margin: 28px 0 14px; display: flex; align-items: center; gap: 10px;
+        }
+        .section-title::after { content:''; flex:1; height:1px; background:#e0e0e0; }
+
+        .card {
+            background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 18px; overflow: hidden;
+        }
+        .card.block  { border-left: 5px solid #c0392b; }
+        .card.step1  { border-left: 5px solid #d35400; }
+        .card.step2  { border-left: 5px solid #0d47a1; }
+        .card.schema { border-left: 5px solid #6c3483; }
+
+        .card-header {
+            padding: 12px 18px; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid #f4f4f4; flex-wrap: wrap;
+        }
+        .card-header h3 { font-size: 13px; font-weight: 600; flex: 1; }
+        .card-body  { padding: 14px 18px; font-size: 13px; color: #444; }
+        .card-body p { margin-bottom: 9px; }
+        .card-body p:last-child { margin-bottom: 0; }
+        .card-body ul { padding-left: 20px; margin-bottom: 9px; }
+        .card-body ul li { margin-bottom: 3px; }
+        .impact { background: #f8f9fa; border-top: 1px solid #f0f0f0; padding: 8px 18px; font-size: 12px; color: #666; }
+        .impact strong { color: #444; }
+
+        .badge {
+            display: inline-block; padding: 2px 9px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; white-space: nowrap;
+        }
+        .b-block  { background:#fde8e8; color:#c0392b; }
+        .b-step1  { background:#fef3e2; color:#d35400; }
+        .b-step2  { background:#e3f0ff; color:#0d47a1; }
+        .b-schema { background:#f5eeff; color:#6c3483; }
+        .b-done   { background:#e8f5e9; color:#1b5e20; }
+
+        .sql-block {
+            background: #0d1117; border-radius: 6px; padding: 14px 18px; margin: 10px 0;
+            font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7;
+            overflow-x: auto;
+        }
+        .sql-block .c-kw   { color: #ff7b72; }  /* keyword */
+        .sql-block .c-tbl  { color: #79c0ff; }  /* table/column name */
+        .sql-block .c-type { color: #7ee787; }  /* data type */
+        .sql-block .c-str  { color: #a5d6ff; }  /* string value */
+        .sql-block .c-cmt  { color: #8b949e; }  /* comment */
+
+        code {
+            background: #f4f6f9; border: 1px solid #e0e0e0; border-radius: 3px;
+            padding: 1px 5px; font-size: 12px; font-family: 'Courier New', monospace; color: #b5451b;
+        }
+        .file-ref {
+            display: inline-block; background: #eef2ff; color: #3b5bdb; border: 1px solid #c5d0fa;
+            border-radius: 4px; padding: 2px 8px; font-size: 12px; font-family: 'Courier New', monospace;
+        }
+
+        .current-schema {
+            background: #f8f9fa; border-radius: 6px; overflow: hidden; margin: 10px 0;
+            border: 1px solid #e0e0e0;
+        }
+        .current-schema table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
+        .current-schema thead tr { background: #1a1a2e; color: #fff; }
+        .current-schema th { padding: 7px 12px; text-align: left; font-size: 11px; }
+        .current-schema td { padding: 6px 12px; border-bottom: 1px solid #eee; color: #444; }
+        .current-schema tr:nth-child(even) td { background: #fff; }
+        .col-missing { background: #fde8e8 !important; color: #c0392b; font-weight: 700; }
+        .col-wrong   { background: #fff8e1 !important; color: #b5451b; font-weight: 700; }
+        .col-ok      { color: #666; }
+
+        .run-order {
+            background: #fff; border-radius: 8px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            margin-bottom: 22px;
+        }
+        .run-order h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #888; margin-bottom: 12px; }
+        .step-row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 10px; }
+        .step-row:last-child { margin-bottom: 0; }
+        .step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; margin-top: 1px; }
+        .sn-red  { background: #c0392b; }
+        .sn-ora  { background: #d35400; }
+        .sn-blu  { background: #0d47a1; }
+        .sn-pur  { background: #6c3483; }
+        .step-row .desc { font-size: 13px; color: #444; }
+        .step-row .desc strong { color: #1a1a2e; }
+
+        .summary-table { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.07); overflow:hidden; }
+        .summary-table table { width:100%; border-collapse:collapse; font-size:12px; }
+        .summary-table thead tr { background:#1a1a2e; color:#fff; }
+        .summary-table th { padding:9px 12px; text-align:left; font-size:11px; }
+        .summary-table td { padding:8px 12px; border-bottom:1px solid #f4f4f4; vertical-align:middle; }
+        .summary-table tr:nth-child(even) td { background:#fafafa; }
+        .tbl-pill {
+            display:inline-block; background:#eef2ff; color:#3b5bdb; border:1px solid #c5d0fa;
+            border-radius:4px; padding:1px 7px; font-size:11px; font-family:'Courier New',monospace; font-weight:600;
+        }
+        .tick { color: #c0392b; font-weight: 700; }
+        .tick.ok { color: #1b5e20; }
+
+        @media print {
+            .toolbar { display:none; }
+            body { background:#fff; }
+            .container { margin:0; padding:20px; max-width:100%; }
+            .card { break-inside:avoid; }
+            .sql-block { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>SQL Table Changes — GRC V1 Login System</h1>
+    <div style="display:flex;gap:8px;">
+        <a href="index.html" class="btn btn-back">&#8592; Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128438; Print</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="report-header">
+        <div class="eyebrow">Database &mdash; Required SQL Changes</div>
+        <h2>SQL Table Changes for Login System Improvements</h2>
+        <div class="sub">Identified by inspecting the live <code style="background:rgba(255,255,255,0.15);color:#fff;border:none;">grc</code> database against all 26 changes in the master improvement guide. Run in the order shown below.</div>
+        <div class="meta-row">
+            <div class="meta-item"><span>Database</span><strong>grc</strong></div>
+            <div class="meta-item"><span>Date</span><strong>June 23, 2026</strong></div>
+            <div class="meta-item"><span>Tables Affected</span><strong>2 tables</strong></div>
+            <div class="meta-item"><span>Total SQL statements</span><strong>7</strong></div>
+        </div>
+    </div>
+
+    <!-- CRITICAL CALLOUT -->
+    <div class="callout">
+        <strong>&#128680; Critical discovery:</strong> The <code>users</code> table has <strong>no <code>verify_token</code> column</strong>. Every SQL query in the reset password flow references this column — meaning password reset has <em>never worked</em> against this database. This must be added before anything else.
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card s-block"><div class="n">2</div><div class="l">Blocking<br>Run First</div></div>
+        <div class="stat-card s-step1"><div class="n">1</div><div class="l">Step 1<br>Token Expiry</div></div>
+        <div class="stat-card s-step2"><div class="n">1</div><div class="l">Step 2<br>Brute Force</div></div>
+        <div class="stat-card s-exist"><div class="n">3</div><div class="l">Existing<br>Schema Issues</div></div>
+    </div>
+
+    <!-- RUN ORDER -->
+    <div class="run-order">
+        <h4>Recommended Run Order</h4>
+        <div class="step-row">
+            <div class="step-num sn-red">1</div>
+            <div class="desc"><strong>Add verify_token to users</strong> — blocking, password reset cannot work without this</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num sn-red">2</div>
+            <div class="desc"><strong>Add token_expires_at to users</strong> — Step 1.3 code already deployed, this activates it</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num sn-blu">3</div>
+            <div class="desc"><strong>Create login_attempt table</strong> — needed before Step 2.3 brute-force code is applied</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num sn-pur">4</div>
+            <div class="desc"><strong>Fix phone column type</strong> — change INT to VARCHAR, no data loss if existing values are numeric</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num sn-pur">5</div>
+            <div class="desc"><strong>Fix bsc_setting column type</strong> — change YEAR to TINYINT, prevents silent value corruption</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num sn-pur">6</div>
+            <div class="desc"><strong>Extend system_logs.entity</strong> — widen VARCHAR(20) to VARCHAR(50), prevents silent truncation</div>
+        </div>
+    </div>
+
+    <!-- CURRENT users SCHEMA -->
+    <div class="section-title">Current users Table &mdash; Annotated</div>
+    <div class="current-schema">
+        <table>
+            <thead><tr><th>Column</th><th>Type</th><th>Null</th><th>Default</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td class="col-ok">id</td><td>int(11)</td><td>NO</td><td>auto_increment</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">authid</td><td>varchar(100)</td><td>YES</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">fname</td><td>varchar(200)</td><td>NO</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">sname</td><td>varchar(200)</td><td>NO</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">gender</td><td>varchar(20)</td><td>YES</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">dept_id</td><td>int(11)</td><td>NO</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">email</td><td>varchar(255)</td><td>NO</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-wrong">phone</td><td>int(11)</td><td>YES</td><td>NULL</td><td>&#9888; Wrong type &mdash; should be VARCHAR(20)</td></tr>
+                <tr><td class="col-ok">username</td><td>varchar(200)</td><td>NO</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">upassword</td><td>varchar(300)</td><td>NO</td><td>NULL</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">roles</td><td>int(11)</td><td>NO</td><td>2</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">access</td><td>int(11)</td><td>NO</td><td>1</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-ok">user_type</td><td>int(11)</td><td>NO</td><td>1</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-wrong">bsc_setting</td><td>year(4)</td><td>NO</td><td>NULL</td><td>&#9888; Wrong type &mdash; should be TINYINT(1)</td></tr>
+                <tr><td class="col-ok">created_at</td><td>datetime</td><td>NO</td><td>current_timestamp()</td><td>&#10003; OK</td></tr>
+                <tr><td class="col-missing">verify_token</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&#10006; MISSING &mdash; password reset broken</td></tr>
+                <tr><td class="col-missing">token_expires_at</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&#10006; MISSING &mdash; Step 1.3 expiry inactive</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- ═══ BLOCKING ═══ -->
+    <div class="section-title">Blocking &mdash; Run These First</div>
+
+    <!-- B1 -->
+    <div class="card block">
+        <div class="card-header">
+            <span class="badge b-block">Blocking</span>
+            <h3>B1 &mdash; Add verify_token to users Table</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Table:</strong> <span class="tbl-pill">users</span> &nbsp; <strong>Used by:</strong> <span class="file-ref">loginClass.php &mdash; resetPassword(), passupdate()</span> &nbsp; <span class="file-ref">reset-password-action.php</span></p>
+            <p>The column <code>verify_token</code> is referenced in every part of the password reset flow. The UPDATE in <code>reset-password-action.php</code> writes to it; <code>passupdate()</code> queries it; <code>confirmpass.php</code> passes it via URL. Without this column every query silently fails or throws a MySQL error.</p>
+            <div class="sql-block">
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">ADD COLUMN</span> <span class="c-tbl">verify_token</span> <span class="c-type">VARCHAR(255)</span> <span class="c-kw">NULL DEFAULT</span> <span class="c-str">NULL</span>
+    <span class="c-kw">AFTER</span> <span class="c-tbl">user_type</span>;
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Password reset token can now be written and read. The reset flow becomes functional for the first time.</div>
+    </div>
+
+    <!-- B2 -->
+    <div class="card block">
+        <div class="card-header">
+            <span class="badge b-block">Blocking</span>
+            <h3>B2 &mdash; Add token_expires_at to users Table</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Table:</strong> <span class="tbl-pill">users</span> &nbsp; <strong>Used by:</strong> <span class="file-ref">reset-password-action.php</span> &nbsp; <span class="file-ref">loginClass.php &mdash; passupdate()</span></p>
+            <p>Step 1.3 code is already deployed. <code>reset-password-action.php</code> now saves this value on every token generation. <code>passupdate()</code> checks it before accepting a reset. Until this column exists the <code>UPDATE</code> in <code>reset-password-action.php</code> will throw a MySQL error on every reset attempt.</p>
+            <div class="sql-block">
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">ADD COLUMN</span> <span class="c-tbl">token_expires_at</span> <span class="c-type">DATETIME</span> <span class="c-kw">NULL DEFAULT</span> <span class="c-str">NULL</span>
+    <span class="c-kw">AFTER</span> <span class="c-tbl">verify_token</span>;
+            </div>
+            <p style="margin-top:10px; font-size:12px; color:#666;">After running B1 and B2, the users table will have: <code>... user_type | verify_token | token_expires_at | bsc_setting ...</code></p>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Reset tokens are now time-bounded to 1 hour. Old or intercepted reset links are rejected automatically.</div>
+    </div>
+
+
+    <!-- ═══ STEP 2 ═══ -->
+    <div class="section-title">Step 2 &mdash; Required for Brute-Force Protection</div>
+
+    <!-- S2 -->
+    <div class="card step2">
+        <div class="card-header">
+            <span class="badge b-step2">Step 2 — Create Table</span>
+            <h3>S1 &mdash; Create login_attempt Table</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Table:</strong> <span class="tbl-pill">login_attempt</span> (does not exist yet) &nbsp; <strong>Used by:</strong> master guide item 2.3</p>
+            <p>The brute-force protection in Step 2.3 tracks failed login attempts per IP and per email. The table does not currently exist. It needs both <code>ip_address</code> and <code>email</code> columns so the double-check (per-IP and per-email) works.</p>
+            <div class="sql-block">
+<span class="c-kw">CREATE TABLE</span> <span class="c-tbl">login_attempt</span> (
+    <span class="c-tbl">id</span>           <span class="c-type">INT(11)</span>      <span class="c-kw">NOT NULL AUTO_INCREMENT</span>,
+    <span class="c-tbl">ip_address</span>   <span class="c-type">VARCHAR(45)</span>  <span class="c-kw">NOT NULL</span>,
+    <span class="c-tbl">email</span>        <span class="c-type">VARCHAR(255)</span> <span class="c-kw">NOT NULL DEFAULT</span> <span class="c-str">''</span>,
+    <span class="c-tbl">attempted_at</span> <span class="c-type">DATETIME</span>     <span class="c-kw">NOT NULL DEFAULT</span> <span class="c-str">CURRENT_TIMESTAMP</span>,
+    <span class="c-kw">PRIMARY KEY</span> (<span class="c-tbl">id</span>),
+    <span class="c-kw">INDEX</span> <span class="c-tbl">idx_ip</span>    (<span class="c-tbl">ip_address</span>, <span class="c-tbl">attempted_at</span>),
+    <span class="c-kw">INDEX</span> <span class="c-tbl">idx_email</span> (<span class="c-tbl">email</span>, <span class="c-tbl">attempted_at</span>)
+) <span class="c-kw">ENGINE</span>=<span class="c-str">InnoDB</span> <span class="c-kw">DEFAULT CHARSET</span>=<span class="c-str">utf8mb4</span>;
+            </div>
+            <p style="margin-top:10px;font-size:12px;color:#666;">The two indexes mean the rate-limit queries run on indexed columns — no full table scans even with many rows. Old rows can be cleaned with a periodic job: <code>DELETE FROM login_attempt WHERE attempted_at &lt; DATE_SUB(NOW(), INTERVAL 1 DAY);</code></p>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Step 2.3 brute-force protection becomes active. Failed attempts are tracked per IP and per email.</div>
+    </div>
+
+
+    <!-- ═══ EXISTING SCHEMA ISSUES ═══ -->
+    <div class="section-title">Existing Schema Issues — Not Blocking But Should Be Fixed</div>
+
+    <!-- E1 -->
+    <div class="card schema">
+        <div class="card-header">
+            <span class="badge b-schema">Schema Issue</span>
+            <h3>E1 &mdash; users.phone Is INT(11) — Should Be VARCHAR(20)</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Table:</strong> <span class="tbl-pill">users</span> &nbsp; <strong>Current type:</strong> <code>INT(11)</code> &nbsp; <strong>Correct type:</strong> <code>VARCHAR(20)</code></p>
+            <p>Phone numbers are not integers. Storing them as <code>INT</code> causes three real problems:</p>
+            <ul>
+                <li>Leading zeros are silently dropped — <code>0712345678</code> becomes <code>712345678</code></li>
+                <li>International format <code>+254712345678</code> cannot be stored at all — the <code>+</code> causes a SQL error</li>
+                <li>The <code>googlesignup()</code> default of <code>'0000'</code> is stored as integer <code>0</code>, not the string <code>"0000"</code></li>
+            </ul>
+            <div class="sql-block">
+<span class="c-cmt">-- Safe: VARCHAR stores the same digits, existing numeric values are preserved as strings</span>
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">MODIFY COLUMN</span> <span class="c-tbl">phone</span> <span class="c-type">VARCHAR(20)</span> <span class="c-kw">NULL DEFAULT</span> <span class="c-str">NULL</span>;
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Phone numbers with leading zeros and international formats can be stored correctly. No data loss on existing rows.</div>
+    </div>
+
+    <!-- E2 -->
+    <div class="card schema">
+        <div class="card-header">
+            <span class="badge b-schema">Schema Issue</span>
+            <h3>E2 &mdash; users.bsc_setting Is YEAR(4) — Should Be TINYINT(1)</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Table:</strong> <span class="tbl-pill">users</span> &nbsp; <strong>Current type:</strong> <code>YEAR(4)</code> &nbsp; <strong>Correct type:</strong> <code>TINYINT(1)</code></p>
+            <p>The code sets <code>bsc_setting = 0</code> as a flag (0 = not configured, 1 = configured). The <code>YEAR</code> type stores calendar years (1901–2155) — MySQL silently converts <code>0</code> to <code>0000</code> (an out-of-range sentinel value). Any code that compares <code>bsc_setting == 0</code> may behave unexpectedly depending on how MySQL returns the value to PHP.</p>
+            <div class="sql-block">
+<span class="c-cmt">-- Current 0 values stored as YEAR '0000' become TINYINT 0 — logically equivalent</span>
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">MODIFY COLUMN</span> <span class="c-tbl">bsc_setting</span> <span class="c-type">TINYINT(1)</span> <span class="c-kw">NOT NULL DEFAULT</span> <span class="c-str">0</span>;
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> bsc_setting behaves as a clean boolean flag. No silent year-conversion side-effects.</div>
+    </div>
+
+    <!-- E3 -->
+    <div class="card schema">
+        <div class="card-header">
+            <span class="badge b-schema">Schema Issue</span>
+            <h3>E3 &mdash; system_logs.entity Is VARCHAR(20) — Too Short</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Table:</strong> <span class="tbl-pill">system_logs</span> &nbsp; <strong>Current type:</strong> <code>VARCHAR(20)</code> &nbsp; <strong>Correct type:</strong> <code>VARCHAR(50)</code></p>
+            <p>The <code>ActivityLogger::log()</code> call passes module names as the <code>$entity</code> parameter — for example <code>'Login'</code>, <code>'Company'</code>, <code>'Risk Control'</code>. At 20 characters, any entity name over that length is silently truncated, corrupting the audit log. <code>'Login'</code> fits, but longer module names in future may not.</p>
+            <div class="sql-block">
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">system_logs</span>
+    <span class="c-kw">MODIFY COLUMN</span> <span class="c-tbl">entity</span> <span class="c-type">VARCHAR(50)</span> <span class="c-kw">NOT NULL</span>;
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Audit log entries are never silently truncated. All current values (under 20 chars) are unchanged.</div>
+    </div>
+
+
+    <!-- FULL SQL SCRIPT -->
+    <div class="section-title">Complete SQL Script &mdash; Run All at Once in phpMyAdmin</div>
+
+    <div class="card" style="border-left:5px solid #1a1a2e;">
+        <div class="card-header">
+            <h3>grc_login_migrations.sql &mdash; All 6 statements in run order</h3>
+        </div>
+        <div class="card-body">
+            <div class="sql-block">
+<span class="c-cmt">-- ================================================================
+-- GRC V1 — Login System SQL Migrations
+-- Run in phpMyAdmin: select database 'grc', then paste below
+-- Date: June 23, 2026
+-- ================================================================</span>
+
+<span class="c-cmt">-- B1: Add verify_token (BLOCKING — password reset broken without this)</span>
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">ADD COLUMN</span> <span class="c-tbl">verify_token</span> <span class="c-type">VARCHAR(255)</span> <span class="c-kw">NULL DEFAULT</span> <span class="c-str">NULL</span>
+    <span class="c-kw">AFTER</span> <span class="c-tbl">user_type</span>;
+
+<span class="c-cmt">-- B2: Add token_expires_at (Step 1.3 — already coded, needs this column)</span>
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">ADD COLUMN</span> <span class="c-tbl">token_expires_at</span> <span class="c-type">DATETIME</span> <span class="c-kw">NULL DEFAULT</span> <span class="c-str">NULL</span>
+    <span class="c-kw">AFTER</span> <span class="c-tbl">verify_token</span>;
+
+<span class="c-cmt">-- S1: Create login_attempt table (Step 2.3 — brute-force protection)</span>
+<span class="c-kw">CREATE TABLE</span> <span class="c-tbl">login_attempt</span> (
+    <span class="c-tbl">id</span>           <span class="c-type">INT(11)</span>      <span class="c-kw">NOT NULL AUTO_INCREMENT</span>,
+    <span class="c-tbl">ip_address</span>   <span class="c-type">VARCHAR(45)</span>  <span class="c-kw">NOT NULL</span>,
+    <span class="c-tbl">email</span>        <span class="c-type">VARCHAR(255)</span> <span class="c-kw">NOT NULL DEFAULT</span> <span class="c-str">''</span>,
+    <span class="c-tbl">attempted_at</span> <span class="c-type">DATETIME</span>     <span class="c-kw">NOT NULL DEFAULT</span> <span class="c-str">CURRENT_TIMESTAMP</span>,
+    <span class="c-kw">PRIMARY KEY</span> (<span class="c-tbl">id</span>),
+    <span class="c-kw">INDEX</span> <span class="c-tbl">idx_ip</span>    (<span class="c-tbl">ip_address</span>, <span class="c-tbl">attempted_at</span>),
+    <span class="c-kw">INDEX</span> <span class="c-tbl">idx_email</span> (<span class="c-tbl">email</span>, <span class="c-tbl">attempted_at</span>)
+) <span class="c-kw">ENGINE</span>=<span class="c-str">InnoDB</span> <span class="c-kw">DEFAULT CHARSET</span>=<span class="c-str">utf8mb4</span>;
+
+<span class="c-cmt">-- E1: Fix phone column type</span>
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">MODIFY COLUMN</span> <span class="c-tbl">phone</span> <span class="c-type">VARCHAR(20)</span> <span class="c-kw">NULL DEFAULT</span> <span class="c-str">NULL</span>;
+
+<span class="c-cmt">-- E2: Fix bsc_setting column type</span>
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">users</span>
+    <span class="c-kw">MODIFY COLUMN</span> <span class="c-tbl">bsc_setting</span> <span class="c-type">TINYINT(1)</span> <span class="c-kw">NOT NULL DEFAULT</span> <span class="c-str">0</span>;
+
+<span class="c-cmt">-- E3: Widen system_logs.entity</span>
+<span class="c-kw">ALTER TABLE</span> <span class="c-tbl">system_logs</span>
+    <span class="c-kw">MODIFY COLUMN</span> <span class="c-tbl">entity</span> <span class="c-type">VARCHAR(50)</span> <span class="c-kw">NOT NULL</span>;
+            </div>
+        </div>
+    </div>
+
+
+    <!-- SUMMARY TABLE -->
+    <div class="section-title">Summary</div>
+    <div class="summary-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Table</th>
+                    <th>Change</th>
+                    <th>Why</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>B1</td>
+                    <td><span class="tbl-pill">users</span></td>
+                    <td>ADD <code>verify_token VARCHAR(255)</code></td>
+                    <td>Password reset references this column — currently missing</td>
+                    <td><span class="badge b-block">Blocking</span></td>
+                </tr>
+                <tr>
+                    <td>B2</td>
+                    <td><span class="tbl-pill">users</span></td>
+                    <td>ADD <code>token_expires_at DATETIME</code></td>
+                    <td>Step 1.3 code already deployed — activates 1-hour expiry</td>
+                    <td><span class="badge b-block">Blocking</span></td>
+                </tr>
+                <tr>
+                    <td>S1</td>
+                    <td><span class="tbl-pill">login_attempt</span></td>
+                    <td>CREATE TABLE with ip_address, email, attempted_at</td>
+                    <td>Step 2.3 brute-force protection requires this table</td>
+                    <td><span class="badge b-step2">Step 2</span></td>
+                </tr>
+                <tr>
+                    <td>E1</td>
+                    <td><span class="tbl-pill">users</span></td>
+                    <td>MODIFY <code>phone</code> INT &rarr; VARCHAR(20)</td>
+                    <td>Leading zeros and + prefix are silently dropped by INT</td>
+                    <td><span class="badge b-schema">Schema</span></td>
+                </tr>
+                <tr>
+                    <td>E2</td>
+                    <td><span class="tbl-pill">users</span></td>
+                    <td>MODIFY <code>bsc_setting</code> YEAR &rarr; TINYINT(1)</td>
+                    <td>Code uses it as a 0/1 flag, YEAR type causes silent conversion</td>
+                    <td><span class="badge b-schema">Schema</span></td>
+                </tr>
+                <tr>
+                    <td>E3</td>
+                    <td><span class="tbl-pill">system_logs</span></td>
+                    <td>MODIFY <code>entity</code> VARCHAR(20) &rarr; VARCHAR(50)</td>
+                    <td>Long module names are silently truncated in audit logs</td>
+                    <td><span class="badge b-schema">Schema</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top:16px;" class="callout green">
+        <strong>How to run:</strong> Open phpMyAdmin &rarr; select the <code>grc</code> database &rarr; click the <strong>SQL</strong> tab &rarr; paste the complete script above &rarr; click <strong>Go</strong>. All 6 statements can be run together — each is independent.
+    </div>
+
+</div>
+</body>
+</html>

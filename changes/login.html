@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login System Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            background: #b5451b;
+            color: #fff;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+
+        .container {
+            max-width: 900px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header p { color: #aab4cc; font-size: 13px; margin-bottom: 20px; }
+
+        .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+        .meta-item span { display: block; font-size: 11px; color: #aab4cc; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+
+        .summary-bar {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 24px;
+            flex: 1;
+            min-width: 140px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border-top: 4px solid #ccc;
+            text-align: center;
+        }
+
+        .stat-card.red    { border-top-color: #c0392b; }
+        .stat-card.orange { border-top-color: #b5451b; }
+        .stat-card.green  { border-top-color: #28a745; }
+        .stat-card.blue   { border-top-color: #4f8ef7; }
+
+        .stat-card .number { font-size: 32px; font-weight: 700; color: #1a1a2e; }
+        .stat-card .label  { font-size: 12px; color: #888; margin-top: 2px; }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 28px 0 12px;
+        }
+
+        .change-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border-left: 5px solid #b5451b;
+        }
+
+        .change-card.security { border-left-color: #c0392b; }
+        .change-card.ux       { border-left-color: #4f8ef7; }
+        .change-card.bug      { border-left-color: #d35400; }
+        .change-card.broken   { border-left-color: #8e44ad; }
+
+        .change-header {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .change-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-critical  { background: #fde8e8; color: #c0392b; }
+        .badge-security  { background: #fef3e2; color: #d35400; }
+        .badge-ux        { background: #eef2ff; color: #3b5bdb; }
+        .badge-bug       { background: #fff8e1; color: #b5451b; }
+        .badge-broken    { background: #f5eeff; color: #6c3483; }
+        .badge-fixed     { background: #eafaf1; color: #1e8449; }
+        .badge-pending   { background: #f4f6f9; color: #888; border: 1px solid #ddd; }
+
+        .sev-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .sev-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #888;
+        }
+        .sev-dot {
+            width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+        }
+        .sev-critical { background: #c0392b; }
+        .sev-high     { background: #d35400; }
+        .sev-medium   { background: #f0ad4e; }
+        .sev-low      { background: #4f8ef7; }
+
+        .change-body { padding: 16px 20px; color: #444; }
+        .change-body p { margin-bottom: 10px; }
+        .change-body p:last-child { margin-bottom: 0; }
+
+        .file-ref {
+            display: inline-block;
+            background: #eef2ff;
+            color: #3b5bdb;
+            border: 1px solid #c5d0fa;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        code {
+            background: #f4f6f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: #b5451b;
+        }
+
+        .diff-block {
+            margin: 12px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .diff-label {
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .diff-before .diff-label { background: #5c1a1a; color: #f5a5a5; }
+        .diff-before pre { background: #2d1a1a; color: #f5a5a5; padding: 12px 16px; overflow-x: auto; }
+
+        .diff-after .diff-label { background: #1a4d1a; color: #a5f5a5; }
+        .diff-after pre { background: #1a2d1a; color: #a5f5a5; padding: 12px 16px; overflow-x: auto; }
+
+        .impact-row {
+            background: #f8f9fa;
+            border-top: 1px solid #f0f0f0;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .impact-row strong { color: #444; }
+
+        .flow-diagram {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .flow-diagram h4 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 16px; }
+
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: #f4f6f9;
+            border: 2px solid #dce0ea;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1a1a2e;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            font-size: 18px;
+            color: #b5451b;
+            padding: 0 8px;
+            font-weight: 700;
+        }
+
+        .file-pill {
+            display: inline-block;
+            background: #fff0eb;
+            color: #b5451b;
+            border: 1px solid #f5c6aa;
+            border-radius: 4px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        @media print {
+            .toolbar { display: none; }
+            body { background: #fff; }
+            .container { margin: 0; padding: 20px; max-width: 100%; }
+            .change-card { break-inside: avoid; }
+            .report-header, .stat-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>Login System Report &mdash; GRC V1</h1>
+    <button class="btn" onclick="window.print()">&#128438; Download / Print PDF</button>
+</div>
+
+<div class="container">
+
+    <!-- ═══════════ HEADER ═══════════ -->
+    <div class="report-header">
+        <h2>Login System &mdash; Audit &amp; Improvement Report</h2>
+        <p>Full review of login.php &rarr; loginaction.php &rarr; loginClass.php and the Forgot Password flow &mdash; GRC_V1</p>
+        <div class="meta">
+            <div class="meta-item"><span>Date</span><strong>June 23, 2026</strong></div>
+            <div class="meta-item"><span>Files Reviewed</span><strong>6 files</strong></div>
+            <div class="meta-item"><span>Issues Found</span><strong>13 issues</strong></div>
+            <div class="meta-item"><span>Status</span><strong>&#9888; Pending Fixes</strong></div>
+        </div>
+    </div>
+
+    <!-- ═══════════ STATS ═══════════ -->
+    <div class="summary-bar">
+        <div class="stat-card red">
+            <div class="number">2</div>
+            <div class="label">Critical (Broken)</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="number">5</div>
+            <div class="label">High (Security)</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="number">4</div>
+            <div class="label">Medium (UX / Logic)</div>
+        </div>
+        <div class="stat-card green">
+            <div class="number">2</div>
+            <div class="label">Low (Cleanup)</div>
+        </div>
+    </div>
+
+    <!-- ═══════════ FLOW ═══════════ -->
+    <div class="flow-diagram">
+        <h4>Login Request Flow</h4>
+        <div class="flow-steps">
+            <div class="flow-step"><span class="file-pill">login.php</span><br>Form UI</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-step"><span class="file-pill">loginaction.php</span><br>POST Handler</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-step"><span class="file-pill">loginClass.php</span><br>Login_test()</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-step"><span class="file-pill">systemover.php</span><br>Dashboard</div>
+        </div>
+        <br>
+        <div class="flow-steps">
+            <div class="flow-step"><span class="file-pill">reset-password.php</span><br>Email Form</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-step"><span class="file-pill">reset-password-action.php</span><br>Token + Email</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-step"><span class="file-pill">confirmpass.php</span><br>New Password</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-step"><span class="file-pill">confirmaction.php</span><br>Save Password</div>
+        </div>
+    </div>
+
+    <!-- ═══════════ CRITICAL ═══════════ -->
+    <div class="section-title">&#128308; Critical &mdash; Broken Functionality</div>
+
+    <!-- Issue 1 -->
+    <div class="change-card broken">
+        <div class="change-header">
+            <span class="badge badge-broken">Critical</span>
+            <h3>Issue 1 &mdash; Missing session_start() in login.php — Error Banner Never Shows</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">login.php &mdash; line 42</span></p>
+            <p>
+                <code>login.php</code> checks <code>$_SESSION['login_error']</code> at line 42 to display a Google OAuth error banner.
+                However, there is <strong>no <code>session_start()</code> call anywhere in the file</strong>, so <code>$_SESSION</code>
+                is never populated. The error banner is dead code — it can never appear.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (missing session_start)</div>
+                <pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    ...
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;?php
+        require_once 'googleAuthConfig.php';
+        ...
+    ?&gt;
+    &lt;section class="container forms"&gt;
+        &lt;?php if (isset($_SESSION['login_error'])): ?&gt;   &lt;!-- NEVER TRUE --&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (add session_start at very top)</div>
+                <pre>&lt;?php session_start(); ?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    ...
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;?php
+        require_once 'googleAuthConfig.php';
+        ...
+    ?&gt;
+    &lt;section class="container forms"&gt;
+        &lt;?php if (isset($_SESSION['login_error'])): ?&gt;   &lt;!-- NOW WORKS --&gt;</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Google OAuth error messages set in <code>$_SESSION['login_error']</code> will now display correctly on the login page.
+        </div>
+    </div>
+
+    <!-- Issue 2 -->
+    <div class="change-card broken">
+        <div class="change-header">
+            <span class="badge badge-broken">Critical</span>
+            <h3>Issue 2 &mdash; Forgot Password Sends No Email (send_password_reset is empty)</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/login/loginClass.php &mdash; lines 41–43</span></p>
+            <p>
+                <code>loginClass.php</code> defines a <code>send_password_reset()</code> function inside <code>resetPassword()</code>
+                — but its body is <strong>completely empty</strong>. A token is written to the database but no email is ever sent.
+                The working email function exists in <code>reset-password-action.php</code> (which uses PHPMailer), but
+                the two are disconnected. Users who click "Forgot Password" get no email and cannot reset their password.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (empty function in loginClass.php)</div>
+                <pre>if($query_token)
+{
+    function send_password_reset($get_name, $get_email, $token){
+        // EMPTY — no email is sent
+    }
+}else{
+    return "ERROR CHECK ";
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (remove duplicate — rely solely on reset-password-action.php)</div>
+                <pre>/* The token is now written to the DB here.
+   reset-password-action.php handles the actual
+   PHPMailer email send independently. */
+if($query_token){
+    return "its available";
+}else{
+    return "ERROR CHECK ";
+}</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Removes the phantom empty function so there is no false impression that an email is being sent from inside <code>loginClass.php</code>. The live email path in <code>reset-password-action.php</code> is the one that should be maintained.
+        </div>
+    </div>
+
+    <!-- ═══════════ HIGH — SECURITY ═══════════ -->
+    <div class="section-title">&#128994; High &mdash; Security Issues</div>
+
+    <!-- Issue 3 -->
+    <div class="change-card security">
+        <div class="change-header">
+            <span class="badge badge-security">Security</span>
+            <h3>Issue 3 &mdash; XSS Vulnerability in confirmpass.php (Unsanitised GET Parameters)</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">confirmpass.php &mdash; lines 82, 86</span></p>
+            <p>
+                <code>$_GET["token"]</code> and <code>$_GET["email"]</code> are printed directly into HTML without
+                <code>htmlspecialchars()</code>. A crafted URL with a malicious value in either parameter will execute
+                arbitrary JavaScript in the user's browser (Cross-Site Scripting).
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (XSS vulnerable)</div>
+                <pre>&lt;input type="hidden" name="token"
+    value="&lt;?php if(isset($_GET["token"])){echo $_GET["token"];}?&gt;"&gt;
+
+&lt;input type="email" name="email"
+    value="&lt;?php if(isset($_GET["email"])){echo $_GET["email"];}?&gt;"
+    class="form-control form-control-xl" readonly&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (escaped output)</div>
+                <pre>&lt;input type="hidden" name="token"
+    value="&lt;?php if(isset($_GET["token"])){echo htmlspecialchars($_GET["token"], ENT_QUOTES, 'UTF-8');}?&gt;"&gt;
+
+&lt;input type="email" name="email"
+    value="&lt;?php if(isset($_GET["email"])){echo htmlspecialchars($_GET["email"], ENT_QUOTES, 'UTF-8');}?&gt;"
+    class="form-control form-control-xl" readonly&gt;</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Prevents script injection via the password reset link. <code>htmlspecialchars()</code> converts <code>&lt;</code>, <code>&gt;</code>, <code>"</code>, and <code>'</code> to safe HTML entities.
+        </div>
+    </div>
+
+    <!-- Issue 4 -->
+    <div class="change-card security">
+        <div class="change-header">
+            <span class="badge badge-security">Security</span>
+            <h3>Issue 4 &mdash; confirmaction.php Trusts Client-Submitted uid (Hidden Field)</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>Files:</strong> <span class="file-ref">confirmpass.php &mdash; line 93</span> &nbsp; <span class="file-ref">confirmaction.php &mdash; line 6</span></p>
+            <p>
+                The logged-in user's ID is read from <code>$_SESSION["uid"]</code> in <code>confirmpass.php</code>, then
+                written into a hidden <code>&lt;input&gt;</code> field and submitted back to <code>confirmaction.php</code>.
+                <code>confirmaction.php</code> reads <code>$_POST["uid"]</code> directly. Any user can change the hidden
+                field in browser developer tools and update another user's password.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before — confirmpass.php (uid in hidden field)</div>
+                <pre>&lt;input type="hidden" name="uid" value="&lt;?=$uid?&gt;"&gt;</pre>
+            </div>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before — confirmaction.php (trusts POST uid)</div>
+                <pre>$uid   = $_POST["uid"];
+$token = $_POST["token"];
+$email = $_POST["email"];
+$pass  = $_POST["pass"];
+$hpass = password_hash($pass, PASSWORD_DEFAULT);
+$alert = $loginclass->passupdate($uid, $hpass, $email, $token);</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After — confirmaction.php (uid from session only)</div>
+                <pre>session_start();
+$uid   = $_SESSION["uid"] ?? null;   // never trust POST for uid
+$token = $_POST["token"] ?? '';
+$email = $_POST["email"] ?? '';
+$pass  = $_POST["pass"]  ?? '';
+
+if(!$uid || !$token || !$email || !$pass){ echo "Missing data"; exit; }
+
+$hpass = password_hash($pass, PASSWORD_DEFAULT);
+$alert = $loginclass->passupdate($uid, $hpass, $email, $token);
+echo $alert;</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> The uid used to update the password is always taken from the server-side session, not from the form submission. A user cannot change another user's password by modifying the hidden field.
+        </div>
+    </div>
+
+    <!-- Issue 5 -->
+    <div class="change-card security">
+        <div class="change-header">
+            <span class="badge badge-security">Security</span>
+            <h3>Issue 5 &mdash; No Brute-Force / Lockout Protection in Login_test()</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/login/loginClass.php &mdash; lines 235–280</span></p>
+            <p>
+                The original <code>login()</code> method (now fully commented out) tracked failed login attempts
+                in a <code>login_attempt</code> table and used <code>$time_count</code> to enforce a lockout.
+                The replacement <code>Login_test()</code> has <strong>no rate limiting at all</strong>.
+                An attacker can try unlimited passwords without any throttle or lockout.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (no protection)</div>
+                <pre>public function Login_test($email, $pass, $ip_address){
+    // ... password check only
+    // no attempt counter, no lockout, no delay
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (recommended approach)</div>
+                <pre>public function Login_test(string $email, string $pass, string $ip_address){
+    // 1. Count failed attempts for this IP in the last 15 minutes
+    $window = time() - 900;
+    $count_sql = "SELECT COUNT(*) as attempts FROM login_attempt
+                  WHERE ip_address='$ip_address' AND time_count > $window";
+    $res = $this->query($count_sql);
+    $row_c = $res->fetch_assoc();
+    if((int)$row_c['attempts'] >= 5){
+        return 'locked'; // new return code → show lockout message on UI
+    }
+
+    // 2. Normal credential check ...
+    // 3. On failure, record the attempt:
+    $t = time();
+    $this->query("INSERT INTO login_attempt(ip_address,time_count)
+                  VALUES('$ip_address','$t')");
+    return 3;
+}</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> After 5 failed attempts from the same IP within 15 minutes, the login endpoint returns a <code>'locked'</code> response and the UI shows a lockout message instead of allowing further guesses.
+        </div>
+    </div>
+
+    <!-- Issue 6 -->
+    <div class="change-card security">
+        <div class="change-header">
+            <span class="badge badge-security">Security</span>
+            <h3>Issue 6 &mdash; real_escape_string Used Instead of Prepared Statements</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/login/loginClass.php &mdash; all query methods</span></p>
+            <p>
+                Every SQL query in <code>loginClass.php</code> is built by concatenating escaped strings.
+                While <code>real_escape_string</code> reduces risk, it is not foolproof under all character encodings
+                and is not the current PHP best practice. Parameterized queries with <code>bind_param()</code>
+                guarantee the data is never interpreted as SQL regardless of encoding.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (string concatenation)</div>
+                <pre>$email = $this->real_escape_string($email);
+$sql   = "SELECT * FROM users WHERE email = '$email'";</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (prepared statement)</div>
+                <pre>$stmt = $this->prepare("SELECT * FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Parameterized queries separate SQL logic from user data at the protocol level. SQL injection via <code>email</code> or <code>password</code> fields becomes impossible.
+        </div>
+    </div>
+
+    <!-- Issue 7 -->
+    <div class="change-card security">
+        <div class="change-header">
+            <span class="badge badge-security">Security</span>
+            <h3>Issue 7 &mdash; No isset() Guards on $_POST in loginaction.php</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">loginaction.php &mdash; lines 22–23</span></p>
+            <p>
+                <code>$email</code> and <code>$pass</code> are read directly from <code>$_POST</code> without checking
+                <code>isset()</code>. If the AJAX call is tampered with and those keys are missing, PHP throws an
+                <em>Undefined index</em> notice. The undefined variables are then passed to <code>Login_test()</code>
+                and compared against the database, which could produce unpredictable behaviour.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (no guard)</div>
+                <pre>$email = $_POST["email"];
+$pass  = $_POST["password"];</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (isset guard + early exit)</div>
+                <pre>if(!isset($_POST['email'], $_POST['password'])){
+    echo 3;
+    exit;
+}
+$email = $_POST["email"];
+$pass  = $_POST["password"];</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Malformed requests that omit either field return response code <code>3</code> (invalid credentials) and exit cleanly — no PHP warnings, no undefined variable passed to the database layer.
+        </div>
+    </div>
+
+    <!-- ═══════════ MEDIUM — UX / LOGIC ═══════════ -->
+    <div class="section-title">&#128993; Medium &mdash; UX &amp; Logic Issues</div>
+
+    <!-- Issue 8 -->
+    <div class="change-card ux">
+        <div class="change-header">
+            <span class="badge badge-ux">UX</span>
+            <h3>Issue 8 &mdash; Wrong Credentials Shows "login unsuccess" and Redirects Away</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">login.php &mdash; lines 129–137</span></p>
+            <p>
+                When the server returns <code>3</code> (wrong credentials), the page shows a SweetAlert with
+                the title <strong>"login unsuccess"</strong> (grammatically incorrect) then redirects the browser
+                back to <code>login.php</code>. This clears the email field, making the user re-type it.
+                The correct behaviour is to show the error <strong>inline on the same page</strong> without
+                any redirect so the user can correct only the password.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>}else if(response==3){
+    Swal.fire({
+        icon: "error",
+        title: "login unsuccess",   // bad grammar
+        timer: 3000
+    })
+    window.setTimeout(function(){
+        window.location.href="login.php"; // clears the form
+    }, 3000);
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (stay on page, clear message)</div>
+                <pre>} else if(response === '3') {
+    Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Invalid email or password. Please try again.',
+        confirmButtonText: 'Try Again'
+        // no redirect — user stays on login.php with form intact
+    });
+}</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Users see a clear, grammatically correct error message and can immediately retry without re-typing their email address.
+        </div>
+    </div>
+
+    <!-- Issue 9 -->
+    <div class="change-card ux">
+        <div class="change-header">
+            <span class="badge badge-ux">UX</span>
+            <h3>Issue 9 &mdash; reset-password.php Always Shows "Success" Regardless of Outcome</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">reset-password.php &mdash; lines 65–68</span></p>
+            <p>
+                The AJAX success callback uses <code>icon: "success"</code> unconditionally. If
+                <code>reset-password-action.php</code> returns <strong>"ERROR CHECK"</strong> (email not found),
+                the user still sees a green success message. They are misled into thinking an email was sent
+                when it was not.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (always success)</div>
+                <pre>success:function(response){
+    Swal.fire({
+        icon: "success",         // always green — even on error
+        title: response,
+        timer: 500              // too short to read
+    })
+    window.setTimeout(function(){
+        window.location.href="Login.php";
+    }, 500);
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (handle success vs error)</div>
+                <pre>success: function(response){
+    response = $.trim(response);
+    if(response === 'its available'){
+        Swal.fire({
+            icon: 'success',
+            title: 'Email Sent',
+            text: 'A password reset link has been sent to your inbox.',
+            timer: 4000
+        });
+        setTimeout(function(){ window.location.href='login.php'; }, 4000);
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Email Not Found',
+            text: 'No account found with that email address.',
+            confirmButtonText: 'Try Again'
+        });
+    }
+}</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Users who enter a wrong email address see a clear error. Only genuine success shows the green confirmation and redirects.
+        </div>
+    </div>
+
+    <!-- Issue 10 -->
+    <div class="change-card ux">
+        <div class="change-header">
+            <span class="badge badge-ux">UX</span>
+            <h3>Issue 10 &mdash; No Client-Side Validation on reset-password.php</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">reset-password.php &mdash; lines 57–76</span></p>
+            <p>
+                The "Send Reset Password" button fires the AJAX call immediately with no check for an empty or invalid email.
+                An empty field hits the server, which runs a DB query against an empty string.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before (no validation)</div>
+                <pre>$(document).on('click', '.reset-password-btn', function(e){
+    e.preventDefault();
+    $.ajax({
+        url: 'reset-password-action.php',
+        method: 'post',
+        data: $("#reset-password").serialize(),
+        ...</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After (validate before send)</div>
+                <pre>$(document).on('click', '.reset-password-btn', function(e){
+    e.preventDefault();
+    var email = $.trim($('input[name="email"]').val());
+    if(email === ''){
+        Swal.fire({ icon:'warning', title:'Enter your email address', timer:2500 });
+        return;
+    }
+    $.ajax({
+        url: 'reset-password-action.php',
+        ...</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Empty form submissions are blocked on the client side — no unnecessary server request is made.
+        </div>
+    </div>
+
+    <!-- Issue 11 -->
+    <div class="change-card ux">
+        <div class="change-header">
+            <span class="badge badge-ux">UX</span>
+            <h3>Issue 11 &mdash; No Show / Hide Password Toggle on Login Form</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">login.php &mdash; lines 59–64</span></p>
+            <p>
+                The password field has no eye icon to toggle visibility. Users who mistype their password
+                cannot verify what they entered, which increases failed login attempts.
+            </p>
+            <div class="diff-block diff-after">
+                <div class="diff-label">Change — add toggle icon + JS handler</div>
+                <pre>&lt;!-- HTML: add toggle span inside the password field wrapper --&gt;
+&lt;span id="togglePassword" title="Show/hide password"
+      style="position:absolute;right:15px;top:50%;transform:translateY(-50%);cursor:pointer;"&gt;
+    &lt;i class="bi bi-eye" id="eyeIcon"&gt;&lt;/i&gt;
+&lt;/span&gt;
+
+&lt;!-- JS --&gt;
+$('#togglePassword').on('click', function(){
+    var pwd  = $('#password');
+    var icon = $('#eyeIcon');
+    if(pwd.attr('type') === 'password'){
+        pwd.attr('type', 'text');
+        icon.removeClass('bi-eye').addClass('bi-eye-slash');
+    } else {
+        pwd.attr('type', 'password');
+        icon.removeClass('bi-eye-slash').addClass('bi-eye');
+    }
+});</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Users can reveal what they typed to confirm it before submitting, reducing failed logins caused by typos.
+        </div>
+    </div>
+
+    <!-- ═══════════ LOW ═══════════ -->
+    <div class="section-title">&#128309; Low &mdash; Code Cleanup</div>
+
+    <!-- Issue 12 -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-bug">Low</span>
+            <h3>Issue 12 &mdash; Login Method Named "Login_test" in Production Code</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>Files:</strong> <span class="file-ref">loginClass.php &mdash; line 235</span> &nbsp; <span class="file-ref">loginaction.php &mdash; line 26</span></p>
+            <p>
+                The production login method is named <code>Login_test</code> while the original <code>login()</code>
+                is fully commented out. The word "test" suggests it is temporary code, causes confusion,
+                and the original (with brute-force protection) should have been the active method.
+                Rename <code>Login_test</code> to <code>login</code> and remove the 45-line commented-out block.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>/* loginClass.php */
+public function Login_test($email, $pass, $ip_address){ ... }
+public function login($email, $pass, $ip_address, $time_count){
+    /*  ... 45 lines of dead commented code ... */
+}
+
+/* loginaction.php */
+$alert = $loginclass->login_test($email, $pass, $ip_address);</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>/* loginClass.php — rename and add type hints */
+public function login(string $email, string $pass, string $ip_address){ ... }
+// dead login() block removed
+
+/* loginaction.php */
+$alert = $loginclass->login($email, $pass, $ip_address);</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Cleaner codebase with one clearly named production login method. No dead commented code to confuse future developers.
+        </div>
+    </div>
+
+    <!-- Issue 13 -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-bug">Low</span>
+            <h3>Issue 13 &mdash; Typo + Broken Link in reset-password.php</h3>
+            <span class="badge badge-pending">Pending Fix</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">reset-password.php &mdash; lines 34, 37</span></p>
+            <p>Two small issues on the forgot password page:</p>
+            <ul style="margin-left:20px; margin-top:8px; margin-bottom:8px;">
+                <li><strong>Typo:</strong> Button reads <em>"Send Reset <strong>Passoword</strong>"</em> (double&nbsp;o).</li>
+                <li><strong>Broken link:</strong> The "Log in" link points to <code>auth-login.html</code> which does not exist. Should point to <code>login.php</code>.</li>
+            </ul>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>&lt;button ...&gt;Send Reset Passoword&lt;/button&gt;
+&lt;a href="auth-login.html" ...&gt;Log in&lt;/a&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>&lt;button ...&gt;Send Reset Password&lt;/button&gt;
+&lt;a href="login.php" ...&gt;Log in&lt;/a&gt;</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Professional button label and a working back-to-login link on the forgot password page.
+        </div>
+    </div>
+
+    <!-- ═══════════ SUMMARY TABLE ═══════════ -->
+    <div class="section-title">Summary &mdash; All Issues at a Glance</div>
+
+    <div style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+                <tr style="background:#1a1a2e;color:#fff;">
+                    <th style="padding:10px 16px;text-align:left;">#</th>
+                    <th style="padding:10px 16px;text-align:left;">Issue</th>
+                    <th style="padding:10px 16px;text-align:left;">File</th>
+                    <th style="padding:10px 16px;text-align:left;">Severity</th>
+                    <th style="padding:10px 16px;text-align:left;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom:1px solid #f4f4f4;">
+                    <td style="padding:10px 16px;color:#888;">1</td>
+                    <td style="padding:10px 16px;">Missing session_start() — error banner dead</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">login.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-broken">Critical</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;background:#fafafa;">
+                    <td style="padding:10px 16px;color:#888;">2</td>
+                    <td style="padding:10px 16px;">send_password_reset() is empty — no email sent</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">loginClass.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-broken">Critical</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;">
+                    <td style="padding:10px 16px;color:#888;">3</td>
+                    <td style="padding:10px 16px;">XSS — $_GET values printed without htmlspecialchars</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">confirmpass.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-security">High</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;background:#fafafa;">
+                    <td style="padding:10px 16px;color:#888;">4</td>
+                    <td style="padding:10px 16px;">Client-submitted uid trusted for password update</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">confirmaction.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-security">High</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;">
+                    <td style="padding:10px 16px;color:#888;">5</td>
+                    <td style="padding:10px 16px;">No brute-force / lockout protection</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">loginClass.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-security">High</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;background:#fafafa;">
+                    <td style="padding:10px 16px;color:#888;">6</td>
+                    <td style="padding:10px 16px;">real_escape_string instead of prepared statements</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">loginClass.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-security">High</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;">
+                    <td style="padding:10px 16px;color:#888;">7</td>
+                    <td style="padding:10px 16px;">No isset() guards on $_POST in loginaction.php</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">loginaction.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-security">High</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;background:#fafafa;">
+                    <td style="padding:10px 16px;color:#888;">8</td>
+                    <td style="padding:10px 16px;">"login unsuccess" message + unnecessary redirect</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">login.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-ux">Medium</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;">
+                    <td style="padding:10px 16px;color:#888;">9</td>
+                    <td style="padding:10px 16px;">Reset password always shows success — even on error</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">reset-password.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-ux">Medium</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;background:#fafafa;">
+                    <td style="padding:10px 16px;color:#888;">10</td>
+                    <td style="padding:10px 16px;">No client-side validation on reset-password form</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">reset-password.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-ux">Medium</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;">
+                    <td style="padding:10px 16px;color:#888;">11</td>
+                    <td style="padding:10px 16px;">No show/hide password toggle on login form</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">login.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-ux">Medium</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #f4f4f4;background:#fafafa;">
+                    <td style="padding:10px 16px;color:#888;">12</td>
+                    <td style="padding:10px 16px;">Production method named Login_test + dead login() block</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">loginClass.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-bug">Low</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr>
+                    <td style="padding:10px 16px;color:#888;">13</td>
+                    <td style="padding:10px 16px;">Typo "Passoword" + broken link to auth-login.html</td>
+                    <td style="padding:10px 16px;"><span class="file-pill">reset-password.php</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-bug">Low</span></td>
+                    <td style="padding:10px 16px;"><span class="badge badge-pending">Pending</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div><!-- .container -->
+</body>
+</html>

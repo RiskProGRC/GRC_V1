@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Day Study Schedule — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-dark  { background: #3a3a5c; }
+        .btn-print { background: #6a1b9a; }
+
+        .container {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #4a148c 0%, #1a0036 100%);
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+        .report-header .phase-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        .report-header h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        .report-header .subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 20px; }
+        .meta-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        .meta-item { font-size: 12px; opacity: 0.7; }
+        .meta-item strong { opacity: 1; font-weight: 600; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-top: 3px solid #6a1b9a;
+        }
+        .stat-card .number { font-size: 30px; font-weight: 700; color: #4a148c; line-height: 1; }
+        .stat-card .label  { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+        /* Day cards */
+        .day-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 28px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .day-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .day1 .day-number { background: #1565c0; }
+        .day2 .day-number { background: #1b5e20; }
+        .day3 .day-number { background: #4a148c; }
+        .day-header-text h3 { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+        .day-header-text p  { font-size: 12px; color: #888; margin-top: 2px; }
+
+        .day-body { padding: 0 28px 24px; }
+
+        .session {
+            padding: 16px 0;
+            border-bottom: 1px solid #f4f6f9;
+        }
+        .session:last-child { border-bottom: none; }
+
+        .session-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .session-time {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #aaa;
+            min-width: 90px;
+        }
+        .session-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .duration {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            background: #f4f6f9;
+            color: #888;
+            margin-left: auto;
+        }
+
+        .session-body { padding-left: 100px; }
+        @media (max-width: 600px) { .session-body { padding-left: 0; } }
+
+        .session-body p { color: #555; font-size: 13px; margin-bottom: 8px; }
+
+        .file-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .file-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            color: #444;
+        }
+        .file-list li::before {
+            content: '›';
+            color: #6a1b9a;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .file-list code {
+            background: #f0eeff;
+            color: #4a148c;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            margin: 28px 0 12px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+        .card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #4a148c;
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        th {
+            background: #f5eeff;
+            color: #4a148c;
+            font-weight: 700;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f4f6f9;
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+        .alert-info    { background: #e8f0fe; border-left: 4px solid #1565c0; }
+        .alert-success { background: #eafaf1; border-left: 4px solid #1e8449; }
+        .alert-tip     { background: #f5eeff; border-left: 4px solid #6a1b9a; }
+
+        .arch-diagram {
+            background: #1a1a2e;
+            color: #e8e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 2;
+            margin-top: 12px;
+            overflow-x: auto;
+        }
+        .arch-diagram .layer { color: #7eb3ff; font-weight: 700; }
+        .arch-diagram .note  { color: #a8d5a2; font-style: italic; }
+        .arch-diagram .arrow { color: #f0c070; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; 3-Day Study Schedule</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Back to Index</a>
+        <button class="btn btn-print" onclick="window.print()">Print / PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── Header ── -->
+    <div class="report-header">
+        <div class="phase-label">GRC V1 &mdash; Codebase Study Plan</div>
+        <h2>3-Day Schedule — Understanding the Refactored Codebase</h2>
+        <div class="subtitle">A structured walkthrough of every change made during the ARIA refactoring — from audit findings to working architecture</div>
+        <div class="meta-row">
+            <div class="meta-item"><strong>Duration:</strong> 3 days</div>
+            <div class="meta-item"><strong>Format:</strong> Read → Trace → Draw</div>
+            <div class="meta-item"><strong>Covers:</strong> Steps 1–5 + ARIA Phases 1–4</div>
+            <div class="meta-item"><strong>Goal:</strong> Full mental model of the new architecture</div>
+        </div>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="number">3</div>
+            <div class="label">Days</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">9</div>
+            <div class="label">Study sessions</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">9</div>
+            <div class="label">Reports to read</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">1</div>
+            <div class="label">Architecture to draw</div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════ DAY 1 ══ -->
+    <div class="section-title">Day 1 &mdash; Foundation &amp; Security Layer</div>
+    <p style="color:#888;font-size:12px;margin-bottom:16px;">Goal: understand <em>why</em> the old code was insecure and how the new core files fix it.</p>
+
+    <div class="day-card day1">
+        <div class="day-header">
+            <div class="day-number">1</div>
+            <div class="day-header-text">
+                <h3>Foundation &amp; Security Layer</h3>
+                <p>The audit, the core classes, and one handler traced end to end</p>
+            </div>
+        </div>
+        <div class="day-body">
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Morning</span>
+                    <span class="session-title">Read the audit report</span>
+                    <span class="duration">30 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Open <code>changes/grc_audit_report.html</code> and read findings 1–6. This is the "before" picture — what was broken, why it mattered, and what the plan was to fix it. Every subsequent change traces back to one of these findings.</p>
+                    <ul class="file-list">
+                        <li><code>changes/grc_audit_report.html</code> — read findings 1–6</li>
+                        <li><code>changes/step1_changes_report.html</code> through <code>step5_changes_report.html</code> — skim each (5 min each); these were the quick pre-ARIA fixes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Mid-morning</span>
+                    <span class="session-title">Read the three core files</span>
+                    <span class="duration">45 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Read these in order — each one depends on the previous. By the end you should be able to explain what every variable in <code>AuthGuard.php</code> is, where it comes from, and what the two response helpers output.</p>
+                    <ul class="file-list">
+                        <li><code>Project/connection/connectionClass.php</code> — the OOP mysqli connection; provides <code>$db</code></li>
+                        <li><code>Project/core/BaseRepository.php</code> — the prepared-statement wrapper; all entity classes extend this</li>
+                        <li><code>Project/core/AuthGuard.php</code> — 30 lines; sets <code>$uid</code>, <code>$sdid</code>, <code>$ip</code> from session; defines <code>respond_ok()</code> and <code>respond_error()</code></li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <strong>Key question to answer:</strong> Before Phase 3, where did <code>$uid</code> come from in a handler like <code>actionadd.php</code>? After Phase 3, where does it come from? Why does the difference matter?
+                    </div>
+                </div>
+            </div>
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Afternoon</span>
+                    <span class="session-title">Trace one entity class — before vs after</span>
+                    <span class="duration">45 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Pick <code>action/actionClass.php</code>. Read it alongside <code>changes/aria_phase2_report.html</code>. Focus on: where is the SQL now? Where does the audit log write happen? What does <code>$this->prepare()</code> resolve to?</p>
+                    <ul class="file-list">
+                        <li><code>changes/aria_phase2_report.html</code> — read the before/after section</li>
+                        <li><code>Project/action/actionClass.php</code> — read the full class</li>
+                        <li><code>Project/core/BaseRepository.php</code> — re-read <code>prepare()</code>, <code>fetchAll()</code>, <code>fetchOne()</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">End of day</span>
+                    <span class="session-title">Confirm one handler matches the pattern</span>
+                    <span class="duration">30 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Open the Phase 3 report and read the <code>actionadd.php</code> before/after example. Then open the real file and confirm it matches the "after" pattern. Check: is <code>$_POST["uid"]</code> gone? Is <code>respond_ok()</code> used? Does <code>AuthGuard</code> load first?</p>
+                    <ul class="file-list">
+                        <li><code>changes/aria_phase3_report.html</code> — read the before/after code example</li>
+                        <li><code>Project/actionadd.php</code> — verify against the report</li>
+                        <li><code>Project/core/AuthGuard.php</code> — re-read once more with context</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════ DAY 2 ══ -->
+    <div class="section-title">Day 2 &mdash; Trace a Full Request End to End</div>
+    <p style="color:#888;font-size:12px;margin-bottom:16px;">Goal: follow one user action from browser click all the way to the database and back.</p>
+
+    <div class="day-card day2">
+        <div class="day-header">
+            <div class="day-number">2</div>
+            <div class="day-header-text">
+                <h3>Full Request Trace</h3>
+                <p>Browser → app.js → handler → entity class → database → JSON → browser</p>
+            </div>
+        </div>
+        <div class="day-body">
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Morning</span>
+                    <span class="session-title">Trace: adding a KRI entry</span>
+                    <span class="duration">60 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Follow this exact sequence through the code. At each step, write down one sentence describing what that layer's job is.</p>
+                    <ul class="file-list">
+                        <li><code>assets/js/app.js</code> — find Section 13 (KRI). Read the <code>.addkri</code> click handler. Find <code>grcSwal</code> at the top of the file and read what it does with <code>r.status</code> and <code>r.message</code>.</li>
+                        <li><code>Project/kriaction.php</code> — confirm: no <code>$_POST["uid"]</code>. Trace where <code>$uid</code> comes from.</li>
+                        <li><code>Project/raf/kriClass.php</code> — find <code>addkrientry()</code>. What does <code>$this->prepare()</code> resolve to?</li>
+                        <li><code>Project/core/AuthGuard.php</code> — follow <code>respond_ok($msg)</code>. What JSON shape reaches the browser?</li>
+                    </ul>
+                    <div class="alert alert-success">
+                        <strong>Key question:</strong> What happens if the user's session has expired and they click "Add KRI"? Trace the code path — at which line does execution stop, and what does the browser receive?
+                    </div>
+                </div>
+            </div>
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Mid-morning</span>
+                    <span class="session-title">Trace: adding a company (settings flow)</span>
+                    <span class="duration">30 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Repeat the same trace for a simpler settings operation. This reinforces the same pattern from a different angle — notice how the structure is identical even though the domain is different.</p>
+                    <ul class="file-list">
+                        <li><code>assets/js/app.js</code> — find Section 1. Read the <code>.addcompany</code> click handler.</li>
+                        <li><code>Project/companyaction.php</code> — read the full handler.</li>
+                        <li><code>Project/company/companyClass.php</code> — find <code>addCompany()</code>.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Afternoon</span>
+                    <span class="session-title">Read Phase 3 and Phase 4 reports back to back</span>
+                    <span class="duration">60 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Now that you've traced real code, the "why" in each report will be concrete rather than abstract. Pay attention to how Phase 3 (JSON responses) and Phase 4 (app.js) were designed to work together — the handlers produce <code>{"status":"ok","message":"..."}</code> and <code>grcSwal(r)</code> consumes it.</p>
+                    <ul class="file-list">
+                        <li><code>changes/aria_phase3_report.html</code> — read in full, focusing on the request flow diagram</li>
+                        <li><code>changes/aria_phase4_report.html</code> — read in full, focusing on the before/after code example and the section structure table</li>
+                    </ul>
+                    <div class="alert alert-tip">
+                        <strong>Notice:</strong> Phase 4 was implemented before Phase 3 was complete. This is why the JS side (<code>grcSwal</code>, <code>dataType:'json'</code>) was already aligned — the frontend was written to expect the JSON format that Phase 3 then delivered on the backend.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════ DAY 3 ══ -->
+    <div class="section-title">Day 3 &mdash; Frontend &amp; The Big Picture</div>
+    <p style="color:#888;font-size:12px;margin-bottom:16px;">Goal: understand how app.js loads, how view files changed, and consolidate everything into one mental model.</p>
+
+    <div class="day-card day3">
+        <div class="day-header">
+            <div class="day-number">3</div>
+            <div class="day-header-text">
+                <h3>Frontend &amp; Big Picture</h3>
+                <p>How app.js loads, how view files changed, and drawing the architecture from memory</p>
+            </div>
+        </div>
+        <div class="day-body">
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Morning</span>
+                    <span class="session-title">How app.js loads on every page</span>
+                    <span class="duration">30 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Understand the two wires that connect the PHP session to the JavaScript layer. Every authenticated page runs through these two files.</p>
+                    <ul class="file-list">
+                        <li><code>layout/header.php</code> — find the <code>window.GRC = { uid, sdid, roles, ip }</code> block. This is where PHP session data becomes a JS global.</li>
+                        <li><code>layout/footer.php</code> — find the <code>app.js</code> script tag. This is the single load point for all 20 sections.</li>
+                        <li><code>assets/js/app.js</code> — read just the top ~30 lines: the <code>grcSwal()</code> and <code>grcToast()</code> helpers and the global datepicker init block.</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <strong>Key question:</strong> If you needed to add a new AJAX handler for a new feature, where exactly would you add it? What section number would it get?
+                    </div>
+                </div>
+            </div>
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Mid-morning</span>
+                    <span class="session-title">Before vs after a view file</span>
+                    <span class="duration">45 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Open a view file that was stripped in Phase 4. It now has no <code>&lt;script&gt;</code> block. Find its section in app.js and understand what was moved where.</p>
+                    <ul class="file-list">
+                        <li><code>Project/actions.php</code> — confirm: no inline <code>&lt;script&gt;</code> block at the bottom</li>
+                        <li><code>assets/js/app.js</code> — find Section 15 (Actions). Read each handler and match it to the buttons/links in <code>actions.php</code>.</li>
+                        <li><code>changes/aria_phase4_report.html</code> — read the "How PHP views change" before/after example (Section 5 of the report)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="session">
+                <div class="session-meta">
+                    <span class="session-time">Afternoon</span>
+                    <span class="session-title">Draw the architecture from memory</span>
+                    <span class="duration">45 min</span>
+                </div>
+                <div class="session-body">
+                    <p>Without looking at any file, sketch the full request path on paper. Then open the files to verify. If you can draw this and explain each layer's job, you understand the full refactor.</p>
+
+                    <div class="arch-diagram">
+<span class="layer">Browser click</span>
+    <span class="arrow">└──</span> <span class="layer">app.js handler</span> <span class="note">// Section N — delegated $(document).on()</span>
+            <span class="arrow">└──</span> <span class="layer">$.ajax POST</span>  <span class="note">// url: 'handler.php', dataType: 'json'</span>
+                    <span class="arrow">└──</span> <span class="layer">handler.php</span>
+                            <span class="arrow">└──</span> <span class="layer">require AuthGuard</span>  <span class="note">// session gate → $uid, $ip, $sdid</span>
+                                    <span class="arrow">└──</span> <span class="layer">EntityClass::method()</span>
+                                            <span class="arrow">└──</span> <span class="layer">BaseRepository::prepare()</span>
+                                                    <span class="arrow">└──</span> <span class="layer">MySQLi prepared statement</span>
+                                            <span class="arrow">└──</span> <span class="layer">ActivityLogger::log()</span>  <span class="note">// audit trail</span>
+                            <span class="arrow">└──</span> <span class="layer">respond_ok($msg)</span>  <span class="note">// {"status":"ok","message":"..."}</span>
+    <span class="arrow">└──</span> <span class="layer">grcSwal(r) / grcToast(r)</span>  <span class="note">// reads r.status + r.message</span>
+                    </div>
+
+                    <div class="alert alert-success" style="margin-top:16px;">
+                        <strong>You're done when you can answer:</strong> (1) Why can't a user forge their own <code>uid</code> anymore? (2) Why does a SQL injection on a handler input fail silently? (3) If a session expires mid-session, what does the user see and why?
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Quick Reference ── -->
+    <div class="section-title">Quick Reference</div>
+
+    <div class="card">
+        <h3>Where to look for what</h3>
+        <table>
+            <tr><th>Question</th><th>Where to look</th></tr>
+            <tr><td>Why was this file changed?</td><td><code>changes/</code> reports — each phase has a full inventory</td></tr>
+            <tr><td>What does a class method do?</td><td><code>Project/*/[name]Class.php</code> — all extend BaseRepository</td></tr>
+            <tr><td>Which AJAX call hits which handler?</td><td>Search <code>url:</code> in <code>assets/js/app.js</code></td></tr>
+            <tr><td>What session variables exist?</td><td><code>layout/header.php</code> — the <code>window.GRC</code> block</td></tr>
+            <tr><td>What DB connection is used?</td><td><code>Project/connection/connectionClass.php</code></td></tr>
+            <tr><td>What is the JSON response shape?</td><td><code>Project/core/AuthGuard.php</code> — <code>respond_ok()</code> / <code>respond_error()</code></td></tr>
+            <tr><td>How does a view page load its scripts?</td><td><code>layout/footer.php</code> — <code>app.js</code> script tag</td></tr>
+            <tr><td>What were the original security findings?</td><td><code>changes/grc_audit_report.html</code></td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>All reports in reading order</h3>
+        <table>
+            <tr><th>#</th><th>Report</th><th>What it covers</th><th>Day</th></tr>
+            <tr><td>—</td><td><a href="grc_audit_report.html">Full Code Audit</a></td><td>13 findings; the baseline for everything that followed</td><td>Day 1</td></tr>
+            <tr><td>S1</td><td><a href="step1_changes_report.html">Step 1 — Fix the Broken Things</a></td><td>3 immediate bug fixes</td><td>Day 1</td></tr>
+            <tr><td>S2</td><td><a href="step2_changes_report.html">Step 2 — SQL Injection Fixes</a></td><td>First prepared statements; started the Phase 2 conversation</td><td>Day 1</td></tr>
+            <tr><td>S3</td><td><a href="step3_changes_report.html">Step 3 — DB Configuration</a></td><td>config.php; single source of truth for credentials</td><td>Day 1</td></tr>
+            <tr><td>S4</td><td><a href="step4_changes_report.html">Step 4 — jQuery Double-Load</a></td><td>70 files cleaned; performance fix</td><td>Day 1</td></tr>
+            <tr><td>S5</td><td><a href="step5_changes_report.html">Step 5 — nav.php Cleanup</a></td><td>430 lines of dead Mazer template removed</td><td>Day 1</td></tr>
+            <tr><td>P1</td><td><a href="aria_phase1_report.html">Phase 1 — Foundation Layer</a></td><td>BaseRepository, ActivityLogger, Response — the 3 base classes</td><td>Day 1</td></tr>
+            <tr><td>P2</td><td><a href="aria_phase2_report.html">Phase 2 — Entity Class Migration</a></td><td>22 classes on prepared statements; audit logging centralised</td><td>Day 1</td></tr>
+            <tr><td>P3</td><td><a href="aria_phase3_report.html">Phase 3 — Handler Security Layer</a></td><td>32 handlers gated; uid/ip from session; JSON responses</td><td>Day 2</td></tr>
+            <tr><td>P4</td><td><a href="aria_phase4_report.html">Phase 4 — Frontend Consolidation</a></td><td>app.js; 50 PHP views stripped; mine.js absorbed</td><td>Day 2–3</td></tr>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Phase 1 Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-dark   { background: #3a3a5c; }
+        .btn-print  { background: #4f8ef7; }
+
+        .container {
+            max-width: 900px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #3b1f5e 100%);
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+
+        .report-header .aria-label {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            color: #d9b8ff;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header p  { color: #aab4cc; font-size: 13px; margin-bottom: 20px; }
+
+        .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+        .meta-item span   { display: block; font-size: 11px; color: #aab4cc; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+
+        .summary-bar {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 24px;
+            flex: 1;
+            min-width: 140px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border-top: 4px solid #ccc;
+            text-align: center;
+        }
+        .stat-card.purple { border-top-color: #8e44ad; }
+        .stat-card.green  { border-top-color: #28a745; }
+        .stat-card.blue   { border-top-color: #4f8ef7; }
+
+        .stat-card .number { font-size: 32px; font-weight: 700; color: #1a1a2e; }
+        .stat-card .label  { font-size: 12px; color: #888; margin-top: 2px; }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 28px 0 12px;
+        }
+
+        .change-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border-left: 5px solid #8e44ad;
+        }
+
+        .change-header {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .change-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .badge-new      { background: #f5eeff; color: #6c3483; }
+        .badge-security { background: #fef3e2; color: #d35400; }
+        .badge-pending  { background: #f4f6f9; color: #aaa; border: 1px solid #ddd; }
+
+        .change-body { padding: 16px 20px; color: #444; }
+        .change-body p { margin-bottom: 10px; }
+        .change-body p:last-child { margin-bottom: 0; }
+
+        .file-ref {
+            display: inline-block;
+            background: #eef2ff;
+            color: #3b5bdb;
+            border: 1px solid #c5d0fa;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-new {
+            display: inline-block;
+            background: #f5eeff;
+            color: #6c3483;
+            border: 1px solid #d7b8f5;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .code-block {
+            margin: 12px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .code-label {
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            background: #2a1a3e;
+            color: #d9b8ff;
+        }
+
+        .code-block pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 14px 16px;
+            overflow-x: auto;
+        }
+
+        .replaces-block {
+            background: #fdf6ff;
+            border: 1px solid #e8d5f5;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .replaces-block strong { color: #6c3483; }
+
+        .replaces-block ul {
+            padding-left: 18px;
+            margin-top: 6px;
+        }
+
+        .replaces-block ul li { margin-bottom: 3px; color: #555; }
+
+        .impact-row {
+            background: #f8f9fa;
+            border-top: 1px solid #f0f0f0;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        .impact-row strong { color: #444; }
+
+        .notice-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        @media print {
+            .toolbar { display: none; }
+            body { background: #fff; }
+            .container { margin: 0; padding: 20px; max-width: 100%; }
+            .change-card { break-inside: avoid; }
+            .report-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .stat-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>ARIA Phase 1 Report &mdash; GRC V1</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Back to Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128438; Download / Print PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="report-header">
+        <div class="aria-label">ARIA &mdash; Automated Refactoring &amp; Integration Architecture</div>
+        <h2>Phase 1 &mdash; Foundation Layer</h2>
+        <p>3 new reusable base classes created in <code style="color:#d9b8ff;">Project/core/</code> &mdash; zero existing files modified</p>
+        <div class="meta">
+            <div class="meta-item"><span>Date</span><strong>June 20, 2026</strong></div>
+            <div class="meta-item"><span>Part</span><strong>Part 2 &mdash; Phase 1 of 5</strong></div>
+            <div class="meta-item"><span>Files Created</span><strong>3 new files</strong></div>
+            <div class="meta-item"><span>Files Modified</span><strong>0</strong></div>
+            <div class="meta-item"><span>Status</span><strong>&#10003; Complete</strong></div>
+        </div>
+    </div>
+
+    <div class="summary-bar">
+        <div class="stat-card purple">
+            <div class="number">3</div>
+            <div class="label">New Classes</div>
+        </div>
+        <div class="stat-card green">
+            <div class="number">0</div>
+            <div class="label">Files Modified</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="number">0</div>
+            <div class="label">Breaking Changes</div>
+        </div>
+    </div>
+
+    <div class="section-title">What Phase 1 Does</div>
+
+    <div class="notice-card" style="border-left: 5px solid #8e44ad;">
+        <div class="change-body">
+            <p>Phase 1 is <strong>purely additive</strong>. It creates a new <span class="file-new">Project/core/</span> folder containing three reusable base classes. No existing entity class, page file, or wrapper file is touched. Your application continues to run exactly as it does today. These classes are the foundation that Phases 2&ndash;5 will build on.</p>
+        </div>
+    </div>
+
+    <div class="section-title">New Files Being Created</div>
+
+    <!-- BaseRepository -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-new">New File</span>
+            <h3>1 &mdash; BaseRepository.php &mdash; Generic Data Access Layer</h3>
+            <span class="badge badge-security">+ Security</span>
+        </div>
+        <div class="change-body">
+            <p><strong>Location:</strong> <span class="file-new">Project/core/BaseRepository.php</span></p>
+            <p>
+                Every entity class (<code>companyClass</code>, <code>processClass</code>, <code>recommendClass</code>, etc.)
+                contains the same fetch loop, the same single-row lookup, and the same delete pattern copy-pasted across
+                every method. <code>BaseRepository</code> extracts all of these into reusable methods so entity classes
+                never need to write them again.
+            </p>
+
+            <div class="replaces-block">
+                <strong>Replaces these duplicate patterns across all entity classes:</strong>
+                <ul>
+                    <li>The 10-line <code>while($row = fetch_assoc())</code> loop in every <code>showX()</code> method</li>
+                    <li>The single-row <code>SELECT * WHERE id=X</code> block in every <code>fetchedit()</code> / <code>editDetails()</code></li>
+                    <li>The filtered <code>SELECT * WHERE col=val</code> loop in every <code>showXdept()</code> method</li>
+                    <li>The <code>DELETE FROM table WHERE id=X</code> block in every <code>delete()</code> method</li>
+                    <li>The <code>SELECT COUNT(*)</code> pattern in every <code>dashboard()</code> method</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+                <div class="code-label">Project/core/BaseRepository.php</div>
+                <pre>&lt;?php
+require_once __DIR__ . '/../connection/connectionClass.php';
+
+class BaseRepository extends connectionClass {
+
+    protected function fetchAll(string $table): array {
+        $stmt = $this->prepare("SELECT * FROM `$table`");
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC) ?? [];
+    }
+
+    protected function fetchWhere(string $table, string $col, $val): array {
+        $stmt = $this->prepare("SELECT * FROM `$table` WHERE `$col` = ?");
+        $stmt->bind_param('s', $val);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC) ?? [];
+    }
+
+    protected function fetchOne(string $table, string $col, $val): ?array {
+        $stmt = $this->prepare("SELECT * FROM `$table` WHERE `$col` = ? LIMIT 1");
+        $stmt->bind_param('s', $val);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc() ?: null;
+    }
+
+    protected function deleteById(string $table, string $col, $val): bool {
+        $stmt = $this->prepare("DELETE FROM `$table` WHERE `$col` = ?");
+        $stmt->bind_param('s', $val);
+        $stmt->execute();
+        return $stmt->affected_rows > 0;
+    }
+
+    protected function countAll(string $table): int {
+        $result = $this->query("SELECT COUNT(*) FROM `$table`");
+        return (int) $result->fetch_row()[0];
+    }
+
+    protected function countWhere(string $table, string $col, $val): int {
+        $stmt = $this->prepare("SELECT COUNT(*) FROM `$table` WHERE `$col` = ?");
+        $stmt->bind_param('s', $val);
+        $stmt->execute();
+        return (int) $stmt->get_result()->fetch_row()[0];
+    }
+}
+?&gt;</pre>
+            </div>
+
+            <p>
+                Uses <strong>prepared statements</strong> throughout instead of <code>real_escape_string</code>.
+                This is a free security upgrade &mdash; the existing entity classes use string interpolation
+                which carries SQL injection risk even with escaping applied.
+            </p>
+        </div>
+        <div class="impact-row">
+            <strong>Used in Phase 2:</strong> Each entity class will change <code>extends connectionClass</code> to <code>extends BaseRepository</code>, then replace their duplicate methods with single calls like <code>return $this->fetchAll('process');</code>
+        </div>
+    </div>
+
+    <!-- ActivityLogger -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-new">New File</span>
+            <h3>2 &mdash; ActivityLogger.php &mdash; Centralised Audit Logging</h3>
+        </div>
+        <div class="change-body">
+            <p><strong>Location:</strong> <span class="file-new">Project/core/ActivityLogger.php</span></p>
+            <p>
+                Every write method in every entity class contains an identical 3-line block that inserts a row
+                into <code>system_logs</code>. The only things that change are the entity name and action text.
+                <code>ActivityLogger</code> is a static class that reduces this to a single readable line.
+            </p>
+
+            <div class="replaces-block">
+                <strong>Replaces this block (copy-pasted ~40+ times across all entity classes):</strong>
+                <ul>
+                    <li><code>companyClass</code> &mdash; after every insert/update</li>
+                    <li><code>processClass</code> &mdash; after every insert/update</li>
+                    <li><code>recommendClass</code> &mdash; after every insert/update/approve/amend</li>
+                    <li><code>incidentClass</code>, <code>actionClass</code>, <code>keyindicatorClass</code>, and all others</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+                <div class="code-label">Before &mdash; repeated in every write method</div>
+                <pre>$insert = "INSERT INTO `system_logs`(`user_id`, `entity`, `action`, `ip_address`)
+           VALUES ('$uid','Process','Added Process','$ipaddress')";
+$query = $this->query($insert) or die($this->error);</pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-label">Project/core/ActivityLogger.php</div>
+                <pre>&lt;?php
+class ActivityLogger {
+
+    public static function log(mysqli $conn, $uid, string $entity, string $action, string $ip): void {
+        $stmt = $conn->prepare(
+            "INSERT INTO `system_logs` (`user_id`, `entity`, `action`, `ip_address`) VALUES (?, ?, ?, ?)"
+        );
+        $stmt->bind_param('ssss', $uid, $entity, $action, $ip);
+        $stmt->execute();
+    }
+}
+?&gt;</pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-label">After &mdash; one line in any method that needs to log</div>
+                <pre>ActivityLogger::log($this, $uid, 'Process', 'Added Process', $ipaddress);</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Used in Phase 2:</strong> Every write method in every entity class replaces its 3-line logging block with the single <code>ActivityLogger::log()</code> call.
+        </div>
+    </div>
+
+    <!-- Response -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-new">New File</span>
+            <h3>3 &mdash; Response.php &mdash; Standardised Output Utility</h3>
+        </div>
+        <div class="change-body">
+            <p><strong>Location:</strong> <span class="file-new">Project/core/Response.php</span></p>
+            <p>
+                Wrapper PHP files (e.g. <code>processdelete.php</code>, <code>recommenddelete.php</code>)
+                all call a class method and <code>echo</code> a raw string back to AJAX.
+                These strings are inconsistent &mdash; <em>"DATA NOT INSERTED"</em>, <em>"Record Deleted"</em>,
+                <em>"Process Deleted Sucessfully"</em> (typo included). The JS side has no reliable way to
+                tell success from failure. <code>Response</code> standardises every reply to a consistent
+                JSON structure.
+            </p>
+
+            <div class="code-block">
+                <div class="code-label">Project/core/Response.php</div>
+                <pre>&lt;?php
+class Response {
+
+    public static function success(string $message): void {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'success', 'message' => $message]);
+        exit;
+    }
+
+    public static function error(string $message): void {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => $message]);
+        exit;
+    }
+
+    public static function redirect(string $url): void {
+        header("Location: $url");
+        exit;
+    }
+}
+?&gt;</pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-label">Example &mdash; wrapper file before</div>
+                <pre>$alert = $processclass->delete($pid);
+echo $alert; // could be anything — "Process Deleted Sucessfully", "DATA NOT DELETED", etc.</pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-label">Example &mdash; wrapper file after (Phase 4)</div>
+                <pre>$ok = $processclass->deleteById('process', 'process_id', $pid);
+$ok ? Response::success('Process deleted') : Response::error('Could not delete process');</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Used in Phase 4:</strong> All AJAX wrapper files are standardised to use <code>Response::success()</code> / <code>Response::error()</code>, giving the JS side a reliable <code>data.status</code> to check.
+        </div>
+    </div>
+
+    <div class="section-title">What Has Not Changed</div>
+    <div class="notice-card" style="border-left: 5px solid #4f8ef7;">
+        <div class="change-body">
+            <p>
+                <strong>Zero existing files are modified in Phase 1.</strong> All entity classes
+                (<code>companyClass</code>, <code>processClass</code>, <code>recommendClass</code>, etc.),
+                all page files, all AJAX wrapper files, <code>connectionClass.php</code>, and
+                <code>connect.php</code> remain exactly as they are. The application runs identically
+                to before. The three new files in <code>Project/core/</code> are completely isolated
+                until Phase 2 begins wiring entity classes to use them.
+            </p>
+        </div>
+    </div>
+
+    <div class="section-title">Next Step</div>
+    <div class="notice-card" style="border-left: 5px solid #b7950b;">
+        <div class="change-body">
+            <p>
+                <strong>Phase 2 &mdash; Entity Class Refactoring:</strong> Each entity class is updated
+                one at a time to <code>extend BaseRepository</code> instead of <code>connectionClass</code>,
+                replace duplicate fetch loops with <code>fetchAll()</code> / <code>fetchWhere()</code> /
+                <code>fetchOne()</code>, replace delete methods with <code>deleteById()</code>, and replace
+                all logging blocks with <code>ActivityLogger::log()</code>. Each class is tested independently
+                before moving to the next.
+            </p>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Validation — Changes Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.7; }
+
+        .toolbar { background: #1a1a2e; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .toolbar h1 { font-size: 16px; font-weight: 600; }
+        .toolbar a  { color: #aab4d0; text-decoration: none; font-size: 13px; }
+        .toolbar a:hover { color: #fff; }
+
+        .container { max-width: 900px; margin: 40px auto; padding: 0 24px 80px; }
+
+        h2  { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+        h3  { font-size: 14px; font-weight: 700; color: #283593; margin: 28px 0 10px; text-transform: uppercase; letter-spacing: .5px; }
+        h4  { font-size: 13px; font-weight: 700; color: #444; margin: 18px 0 6px; }
+        p   { margin-bottom: 10px; color: #444; }
+        ul  { padding-left: 20px; margin-bottom: 10px; }
+        li  { margin-bottom: 4px; color: #444; }
+
+        .subtitle { color: #888; font-size: 13px; margin-bottom: 32px; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 24px 0 36px; }
+        .stat { background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+        .stat .num  { font-size: 26px; font-weight: 700; color: #283593; }
+        .stat .label { font-size: 11px; color: #888; margin-top: 2px; }
+
+        .section { background: #fff; border-radius: 8px; padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+
+        code { background: #f0f2f8; padding: 2px 6px; border-radius: 4px; font-size: 12.5px; font-family: 'Cascadia Code', 'Consolas', monospace; color: #c0392b; }
+
+        pre  { background: #1a1a2e; color: #e8eaf6; padding: 18px 20px; border-radius: 8px; font-size: 12.5px; font-family: 'Cascadia Code', 'Consolas', monospace; overflow-x: auto; line-height: 1.6; margin: 10px 0 18px; }
+        .kw  { color: #80cbc4; }
+        .cm  { color: #78909c; font-style: italic; }
+        .st  { color: #ce9178; }
+        .fn  { color: #dcdcaa; }
+        .re  { color: #9cdcfe; }
+
+        .diff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 18px; }
+        .diff-old { background: #fff5f5; border: 1px solid #fcc; border-radius: 6px; padding: 14px 16px; font-family: monospace; font-size: 12px; line-height: 1.6; color: #333; }
+        .diff-new { background: #f0fff4; border: 1px solid #9be9a8; border-radius: 6px; padding: 14px 16px; font-family: monospace; font-size: 12px; line-height: 1.6; color: #333; }
+        .diff-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .diff-old .diff-label { color: #c0392b; }
+        .diff-new .diff-label { color: #27ae60; }
+
+        .tag  { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-right: 6px; }
+        .tag-new    { background: #e8f5e9; color: #2e7d32; }
+        .tag-changed { background: #fff3e0; color: #e65100; }
+        .tag-file   { background: #e3f2fd; color: #1565c0; }
+
+        .file-list { display: flex; flex-direction: column; gap: 8px; }
+        .file-item { display: flex; align-items: flex-start; gap: 12px; background: #f8f9ff; border-radius: 6px; padding: 12px 14px; }
+        .file-item code { background: none; color: #1565c0; padding: 0; font-size: 12px; }
+        .file-desc { font-size: 12px; color: #666; margin-top: 2px; }
+
+        .rule-table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 13px; }
+        .rule-table th { background: #283593; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+        .rule-table td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        .rule-table tr:last-child td { border-bottom: none; }
+        .rule-table tr:nth-child(even) td { background: #f8f9ff; }
+
+        .note { background: #e8f0fe; border-left: 4px solid #1a73e8; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 14px 0; font-size: 13px; color: #1a1a2e; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; Form Validation Changes Report</h1>
+    <a href="index.html">&#8592; Back to Index</a>
+</div>
+
+<div class="container">
+
+    <h2>Centralised Form Validation</h2>
+    <p class="subtitle">Client-side validation system for usersadd.php with a shared utility reusable across all forms &mdash; 2026-06-25</p>
+
+    <!-- Summary -->
+    <div class="summary-grid">
+        <div class="stat"><div class="num">1</div><div class="label">New utility file</div></div>
+        <div class="stat"><div class="num">3</div><div class="label">Files modified</div></div>
+        <div class="stat"><div class="num">6</div><div class="label">Fields validated</div></div>
+        <div class="stat"><div class="num">0</div><div class="label">Server-side changes</div></div>
+    </div>
+
+    <!-- Problem -->
+    <div class="section">
+        <h3>Problem</h3>
+        <p>The Add User form could be submitted with all fields empty. The old <code>validateAddForm()</code> function inside <code>usermanagement.js</code> only added <code>is-invalid</code> to blank fields — it had no inline feedback messages and was not reusable. Any future form would need its own copy of the same logic.</p>
+    </div>
+
+    <!-- Files changed -->
+    <div class="section">
+        <h3>Files Changed</h3>
+        <div class="file-list">
+            <div class="file-item">
+                <span class="tag tag-new">NEW</span>
+                <div>
+                    <code>assets/js/formvalidation.js</code>
+                    <div class="file-desc">Shared validation utility — exposes <code>GRC.validate(formId, rules)</code></div>
+                </div>
+            </div>
+            <div class="file-item">
+                <span class="tag tag-changed">CHANGED</span>
+                <div>
+                    <code>assets/js/usermanagement.js</code>
+                    <div class="file-desc">Replaced <code>validateAddForm()</code> with a <code>addUserRules</code> array + <code>GRC.validate()</code> call; username live-check now updates feedback text via <code>nextAll('.invalid-feedback')</code></div>
+                </div>
+            </div>
+            <div class="file-item">
+                <span class="tag tag-changed">CHANGED</span>
+                <div>
+                    <code>Project/usersadd.php</code>
+                    <div class="file-desc">Added <code>.invalid-feedback</code> divs after every required input; added <code>has-validation</code> to password <code>.input-group</code>; loads <code>formvalidation.js</code> before <code>usermanagement.js</code></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The utility -->
+    <div class="section">
+        <h3>formvalidation.js — How It Works</h3>
+        <p>The utility attaches to the global <code>window.GRC</code> object (same namespace used by the rest of the project). It exposes one function:</p>
+
+<pre><span class="cm">// signature</span>
+<span class="re">GRC</span>.<span class="fn">validate</span>(<span class="re">formId</span>, <span class="re">rules</span>) <span class="cm">// returns true | false</span>
+
+<span class="cm">// minimal rule</span>
+{ <span class="re">field</span>: <span class="st">'fname'</span>, <span class="re">message</span>: <span class="st">'First name is required.'</span> }
+
+<span class="cm">// rule with custom format check</span>
+{ <span class="re">field</span>: <span class="st">'email'</span>, <span class="re">message</span>: <span class="st">'Enter a valid email address.'</span>,
+  <span class="re">validator</span>: <span class="kw">function</span>(v) { <span class="kw">return</span> /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); } }</pre>
+
+        <h4>Validation sequence</h4>
+        <ol style="padding-left:20px; margin-bottom:10px;">
+            <li>Clears all <code>is-invalid</code> / <code>is-valid</code> / feedback text from the previous run.</li>
+            <li>For each rule: trims the value and checks it is not empty.</li>
+            <li>If a <code>validator</code> function is provided and the field is non-empty, runs it for format checking.</li>
+            <li>On failure: adds <code>is-invalid</code>, writes <code>rule.message</code> into the nearest <code>.invalid-feedback</code> element, adds <code>d-block</code> to force display.</li>
+            <li>On success: adds <code>is-valid</code>.</li>
+            <li>Returns <code>false</code> if any rule failed — the calling code must abort submission.</li>
+        </ol>
+
+        <h4>Finding the feedback element</h4>
+        <p>The utility handles both plain inputs and inputs wrapped in <code>.input-group</code>:</p>
+        <ul>
+            <li>Tries <code>$el.nextAll('.invalid-feedback').first()</code> (direct sibling — all plain inputs).</li>
+            <li>Falls back to <code>$el.closest('.input-group').nextAll('.invalid-feedback').first()</code> (password field).</li>
+        </ul>
+    </div>
+
+    <!-- Validation rules table -->
+    <div class="section">
+        <h3>Add User Form — Validation Rules</h3>
+        <table class="rule-table">
+            <thead>
+                <tr><th>Field</th><th>ID</th><th>Empty check</th><th>Format check</th><th>Message shown</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>First Name</td><td><code>fname</code></td><td>&#10003;</td><td>&mdash;</td><td>First name is required.</td></tr>
+                <tr><td>Last Name</td><td><code>sname</code></td><td>&#10003;</td><td>&mdash;</td><td>Last name is required.</td></tr>
+                <tr><td>Username</td><td><code>uname</code></td><td>&#10003;</td><td>&mdash;</td><td>Username is required. / Username already taken.*</td></tr>
+                <tr><td>Mobile Number</td><td><code>phone</code></td><td>&#10003;</td><td>&mdash;</td><td>Mobile number is required.</td></tr>
+                <tr><td>Email</td><td><code>email</code></td><td>&#10003;</td><td>Regex <code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code></td><td>Enter a valid email address.</td></tr>
+                <tr><td>Password</td><td><code>password</code></td><td>&#10003;</td><td><code>length &ge; 8</code></td><td>Password must be at least 8 characters.</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:12px; color:#888;">* Username feedback text is overwritten by the live availability check on <code>blur</code>.</p>
+    </div>
+
+    <!-- Before / after -->
+    <div class="section">
+        <h3>Before / After — usermanagement.js</h3>
+        <div class="diff">
+            <div class="diff-old">
+                <div class="diff-label">Before</div>
+function validateAddForm() {<br>
+&nbsp;&nbsp;var valid = true;<br>
+&nbsp;&nbsp;['fname','sname','uname',<br>
+&nbsp;&nbsp; 'email','phone','password']<br>
+&nbsp;&nbsp;.forEach(function (id) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var $el = $('#' + id);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (!$el.val().trim()) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$el.addClass('is-invalid');<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valid = false;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$el.removeClass('is-invalid');<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;});<br>
+&nbsp;&nbsp;return valid;<br>
+}<br><br>
+// called with:<br>
+if (!validateAddForm()) { ... }
+            </div>
+            <div class="diff-new">
+                <div class="diff-label">After</div>
+var addUserRules = [<br>
+&nbsp;&nbsp;{ field:'fname', message:'First name is required.' },<br>
+&nbsp;&nbsp;{ field:'sname', message:'Last name is required.' },<br>
+&nbsp;&nbsp;{ field:'uname', message:'Username is required.' },<br>
+&nbsp;&nbsp;{ field:'phone', message:'Mobile number is required.' },<br>
+&nbsp;&nbsp;{ field:'email', message:'Enter a valid email address.',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;validator: function(v) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} },<br>
+&nbsp;&nbsp;{ field:'password', message:'Password must be at least 8 characters.',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;validator: function(v) { return v.length >= 8; } }<br>
+];<br><br>
+// called with:<br>
+if (!GRC.validate('profileform', addUserRules)) { ... }
+            </div>
+        </div>
+    </div>
+
+    <!-- How to use on a new form -->
+    <div class="section">
+        <h3>Using GRC.validate() on Any Future Form</h3>
+        <p>Include <code>formvalidation.js</code> on the page (before any script that calls it), then define a rules array and call <code>GRC.validate()</code> in your submit handler.</p>
+
+<pre><span class="cm">&lt;!-- 1. Load the utility before your feature JS --&gt;</span>
+&lt;script src=<span class="st">"../assets/js/formvalidation.js"</span>&gt;&lt;/script&gt;
+&lt;script src=<span class="st">"../assets/js/yourfeature.js"</span>&gt;&lt;/script&gt;</pre>
+
+<pre><span class="cm">/* 2. Define rules for your form */</span>
+<span class="kw">var</span> <span class="re">myRules</span> = [
+  { <span class="re">field</span>: <span class="st">'title'</span>,  <span class="re">message</span>: <span class="st">'Title is required.'</span> },
+  { <span class="re">field</span>: <span class="st">'amount'</span>, <span class="re">message</span>: <span class="st">'Enter a positive amount.'</span>,
+    <span class="re">validator</span>: <span class="kw">function</span>(v) { <span class="kw">return</span> !<span class="fn">isNaN</span>(v) &amp;&amp; <span class="fn">parseFloat</span>(v) &gt; 0; } }
+];
+
+<span class="cm">/* 3. Call in your submit handler */</span>
+$(<span class="st">'#my-submit-btn'</span>).<span class="fn">on</span>(<span class="st">'click'</span>, <span class="kw">function</span>() {
+  <span class="kw">if</span> (!<span class="re">GRC</span>.<span class="fn">validate</span>(<span class="st">'my-form-id'</span>, <span class="re">myRules</span>)) <span class="kw">return</span>;
+  <span class="cm">// ... AJAX submission</span>
+});</pre>
+
+<pre><span class="cm">&lt;!-- 4. Add .invalid-feedback after each required input --&gt;</span>
+&lt;input type=<span class="st">"text"</span> id=<span class="st">"title"</span> class=<span class="st">"form-control"</span>&gt;
+&lt;div class=<span class="st">"invalid-feedback"</span>&gt;Title is required.&lt;/div&gt;
+
+<span class="cm">&lt;!-- For input-group fields (e.g. password with eye button): --&gt;</span>
+&lt;div class=<span class="st">"input-group has-validation"</span>&gt;
+  &lt;input type=<span class="st">"password"</span> id=<span class="st">"amount"</span> class=<span class="st">"form-control"</span>&gt;
+  &lt;span class=<span class="st">"input-group-text"</span>&gt;$&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=<span class="st">"invalid-feedback"</span>&gt;Enter a positive amount.&lt;/div&gt;</pre>
+
+        <div class="note">
+            <strong>Server-side validation is untouched.</strong> <code>usersaction.php</code> still validates all fields independently. Client-side validation is a convenience layer only — it prevents pointless round-trips but is not a security control.
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

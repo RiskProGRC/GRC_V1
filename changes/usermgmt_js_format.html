@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>usermanagement.js — Format Alignment Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.7; }
+
+        .toolbar { background: #1a1a2e; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .toolbar h1 { font-size: 16px; font-weight: 600; }
+        .toolbar a  { color: #aab4d0; text-decoration: none; font-size: 13px; }
+        .toolbar a:hover { color: #fff; }
+
+        .container { max-width: 920px; margin: 40px auto; padding: 0 24px 80px; }
+
+        h2  { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+        h3  { font-size: 13px; font-weight: 700; color: #283593; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .5px; }
+        p   { margin-bottom: 10px; color: #444; }
+        ul  { padding-left: 20px; margin-bottom: 10px; }
+        li  { margin-bottom: 4px; color: #444; }
+
+        .subtitle { color: #888; font-size: 13px; margin-bottom: 32px; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 24px 0 36px; }
+        .stat { background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+        .stat .num   { font-size: 26px; font-weight: 700; color: #2980b9; }
+        .stat .label { font-size: 11px; color: #888; margin-top: 2px; }
+
+        .fix {
+            background: #fff;
+            border-radius: 8px;
+            padding: 22px 26px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+            border-left: 5px solid #ccc;
+        }
+        .fix.format  { border-left-color: #2980b9; }
+        .fix.cleanup { border-left-color: #27ae60; }
+
+        .fix-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .fix-title  { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+        .fix-file   { font-size: 11px; color: #888; margin-top: 3px; font-family: monospace; }
+
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .tag-format  { background: #e8f0fd; color: #2980b9; }
+        .tag-cleanup { background: #eafaf1; color: #27ae60; }
+
+        code { background: #f0f2f8; padding: 2px 6px; border-radius: 4px; font-size: 12.5px; font-family: 'Cascadia Code', 'Consolas', monospace; color: #c0392b; }
+
+        pre  { background: #1a1a2e; color: #e8eaf6; padding: 16px 18px; border-radius: 8px; font-size: 12px; font-family: 'Cascadia Code', 'Consolas', monospace; overflow-x: auto; line-height: 1.7; margin: 10px 0; }
+        .kw  { color: #80cbc4; }
+        .cm  { color: #78909c; font-style: italic; }
+        .st  { color: #ce9178; }
+        .fn  { color: #dcdcaa; }
+        .re  { color: #9cdcfe; }
+
+        .diff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+        .diff-old { background: #fff5f5; border: 1px solid #fcc; border-radius: 6px; padding: 14px 16px; font-family: monospace; font-size: 12px; line-height: 1.6; }
+        .diff-new { background: #f0fff4; border: 1px solid #9be9a8; border-radius: 6px; padding: 14px 16px; font-family: monospace; font-size: 12px; line-height: 1.6; }
+        .diff-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .diff-old .diff-label { color: #c0392b; }
+        .diff-new .diff-label { color: #27ae60; }
+
+        .note { background: #e8f0fe; border-left: 4px solid #1a73e8; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 12px 0; font-size: 13px; color: #1a1a2e; }
+
+        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin: 32px 0 12px; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; usermanagement.js Format Alignment Report</h1>
+    <a href="index.html">&#8592; Back to Index</a>
+</div>
+
+<div class="container">
+
+    <h2>usermanagement.js &mdash; Format Alignment with login.js</h2>
+    <p class="subtitle">4 format changes applied to <code>assets/js/usermanagement.js</code> to match the established login.js coding style &mdash; 2026-06-25</p>
+
+    <div class="summary-grid">
+        <div class="stat"><div class="num">4</div><div class="label">Changes applied</div></div>
+        <div class="stat"><div class="num">1</div><div class="label">File changed</div></div>
+        <div class="stat"><div class="num">0</div><div class="label">Logic changes</div></div>
+        <div class="stat"><div class="num">7</div><div class="label">Swal calls updated</div></div>
+    </div>
+
+    <!-- ── Change 1 ── -->
+    <div class="section-label">Change 1 &mdash; AJAX: Remove redundant beforeSend</div>
+    <div class="fix format">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Removed redundant <code>beforeSend</code> callback</div>
+                <div class="fix-file">assets/js/usermanagement.js &mdash; .adduser-button click handler</div>
+            </div>
+            <span class="tag tag-format">Format</span>
+        </div>
+        <p>The <code>beforeSend</code> callback re-ran field emptiness checks after <code>GRC.validate()</code> had already validated the form before <code>$.ajax</code> was called. login.js does all validation inline before calling <code>$.ajax</code> &mdash; no <code>beforeSend</code> is needed.</p>
+        <div class="diff">
+            <div class="diff-old">
+                <div class="diff-label">Before</div>
+                beforeSend: function () {<br>
+                &nbsp;&nbsp;var empty = addUserRules.some(...);<br>
+                &nbsp;&nbsp;if (empty) {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;$btn.prop('disabled', false);<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;showFeedback('...', 'warning');<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;return false;<br>
+                &nbsp;&nbsp;}<br>
+                },
+            </div>
+            <div class="diff-new">
+                <div class="diff-label">After</div>
+                <em style="color:#888">// removed entirely —</em><br>
+                <em style="color:#888">// GRC.validate() already</em><br>
+                <em style="color:#888">// guards this path</em>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Change 2 ── -->
+    <div class="section-label">Change 2 &mdash; AJAX: Centralise button re-enable in complete:</div>
+    <div class="fix format">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Moved button re-enable from success/error into a single <code>complete:</code></div>
+                <div class="fix-file">assets/js/usermanagement.js &mdash; .adduser-button click handler</div>
+            </div>
+            <span class="tag tag-format">Format</span>
+        </div>
+        <p>login.js uses one <code>complete:</code> callback to re-enable the submit button, guaranteeing it fires regardless of success or failure. The old code repeated <code>$btn.prop('disabled', false)</code> inside both <code>success</code> and <code>error</code>.</p>
+        <div class="diff">
+            <div class="diff-old">
+                <div class="diff-label">Before</div>
+                success: function (res) {<br>
+                &nbsp;&nbsp;...<br>
+                &nbsp;&nbsp;$btn.prop('disabled', false).text('ADD USER');<br>
+                },<br>
+                error: function () {<br>
+                &nbsp;&nbsp;...<br>
+                &nbsp;&nbsp;$btn.prop('disabled', false).text('ADD USER');<br>
+                }
+            </div>
+            <div class="diff-new">
+                <div class="diff-label">After</div>
+                complete: function () {<br>
+                &nbsp;&nbsp;$btn.prop('disabled', false).text('ADD USER');<br>
+                },<br>
+                success: function (res) { ... },<br>
+                error:   function () { ... }
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Change 3 ── -->
+    <div class="section-label">Change 3 &mdash; AJAX: method casing</div>
+    <div class="fix format">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Normalised <code>method:</code> to lowercase <code>'post'</code> on all four AJAX calls</div>
+                <div class="fix-file">assets/js/usermanagement.js &mdash; all $.ajax calls</div>
+            </div>
+            <span class="tag tag-format">Format</span>
+        </div>
+        <p>login.js uses <code>'post'</code> (lowercase) throughout. jQuery normalises both forms, but the inconsistency across files was unnecessary. Changed on <code>usersaction.php</code>, <code>useraccessaction.php</code>, <code>userdeleteaction.php</code>, and <code>userresetpwaction.php</code> calls.</p>
+        <div class="diff">
+            <div class="diff-old"><div class="diff-label">Before</div>method: 'POST'</div>
+            <div class="diff-new"><div class="diff-label">After</div>method: 'post'</div>
+        </div>
+    </div>
+
+    <!-- ── Change 4 ── -->
+    <div class="section-label">Change 4 &mdash; Swal: shorthand replaced with object syntax</div>
+    <div class="fix format">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Converted all <code>Swal.fire(title, text, icon)</code> shorthand to named-property object syntax</div>
+                <div class="fix-file">assets/js/usermanagement.js &mdash; access-toggle, delete, reset-pw handlers</div>
+            </div>
+            <span class="tag tag-format">Format</span>
+        </div>
+        <p>login.js always uses the object form <code>Swal.fire({ icon, title, text })</code>. usermanagement.js was using the 3-argument positional shorthand in 7 places, which is less readable and harder to extend with additional options (e.g. <code>timer</code>, <code>confirmButtonText</code>).</p>
+        <p>7 calls updated across the access-toggle, delete-user, and reset-password handlers:</p>
+        <div class="diff">
+            <div class="diff-old">
+                <div class="diff-label">Before (shorthand)</div>
+                Swal.fire('Error', res.message, 'error');<br><br>
+                Swal.fire('Deleted', name + '...', 'success');<br><br>
+                Swal.fire(<br>
+                &nbsp;&nbsp;ok ? 'Done' : 'Error',<br>
+                &nbsp;&nbsp;res.message,<br>
+                &nbsp;&nbsp;ok ? 'success' : 'error'<br>
+                );
+            </div>
+            <div class="diff-new">
+                <div class="diff-label">After (object syntax)</div>
+                Swal.fire({ icon: 'error', title: 'Error', text: res.message });<br><br>
+                Swal.fire({ icon: 'success', title: 'Deleted', text: name + '...' });<br><br>
+                Swal.fire({<br>
+                &nbsp;&nbsp;icon:  ok ? 'success' : 'error',<br>
+                &nbsp;&nbsp;title: ok ? 'Done' : 'Error',<br>
+                &nbsp;&nbsp;text:  res.message<br>
+                });
+            </div>
+        </div>
+        <div class="note">No visual change to the user &mdash; SweetAlert2 renders identically from either form. This is a code-consistency change only.</div>
+    </div>
+
+    <!-- ── Summary ── -->
+    <div class="section-label">Summary</div>
+    <div class="fix cleanup">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">What was not changed</div>
+            </div>
+            <span class="tag tag-cleanup">Note</span>
+        </div>
+        <ul>
+            <li><code>showFeedback()</code> on the add-user call was left in place &mdash; it targets a <code>#form-feedback</code> div in the HTML and replacing it with <code>Swal.fire()</code> requires a separate HTML-side decision.</li>
+            <li>The <code>timer:</code> property was not added to delete/reset-pw success Swals because neither is followed by a page redirect &mdash; a timer would dismiss the confirmation before the user reads it.</li>
+            <li>The <code>response</code> vs <code>res</code> parameter name difference was left &mdash; it is local to each callback and has no cross-file impact.</li>
+            <li>No backend endpoints or PHP files were touched.</li>
+        </ul>
+    </div>
+
+</div>
+</body>
+</html>

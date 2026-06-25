@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — New Findings — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+
+        .toolbar {
+            background: #1a1a2e; color: #fff; padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .toolbar h1 { font-size: 16px; font-weight: 600; }
+        .btn { padding: 8px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; text-decoration: none; display: inline-block; }
+        .btn-back  { background: #3a3a5c; }
+        .btn-print { background: #6c3483; }
+
+        .container { max-width: 920px; margin: 32px auto; padding: 0 20px 60px; }
+
+        .report-header {
+            background: linear-gradient(135deg, #4a1080 0%, #1a1a2e 100%);
+            color: #fff; border-radius: 10px; padding: 36px 42px; margin-bottom: 26px;
+        }
+        .author-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.65; margin-bottom: 8px; }
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header .sub { font-size: 13px; opacity: 0.8; margin-bottom: 22px; }
+        .meta-row { display: flex; gap: 28px; flex-wrap: wrap; }
+        .meta-item span { display: block; font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+
+        .callout {
+            background: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 26px;
+            border-left: 5px solid #6c3483; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            font-size: 13px; color: #444; line-height: 1.7;
+        }
+        .callout strong { color: #6c3483; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+        @media(max-width:600px){ .stats-row { grid-template-columns: repeat(2,1fr); } }
+        .stat-card { background:#fff; border-radius:8px; padding:16px 18px; box-shadow:0 1px 4px rgba(0,0,0,0.07); text-align:center; border-top:3px solid #ccc; }
+        .stat-card.s-crit   { border-top-color:#c0392b; }
+        .stat-card.s-sec    { border-top-color:#d35400; }
+        .stat-card.s-ux     { border-top-color:#0d47a1; }
+        .stat-card.s-code   { border-top-color:#1b5e20; }
+        .stat-card .number  { font-size:30px; font-weight:700; color:#1a1a2e; line-height:1; }
+        .stat-card .label   { font-size:11px; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+
+        .section-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; color: #aaa; margin: 30px 0 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-label::after { content:''; flex:1; height:1px; background:#e0e0e0; }
+
+        .card {
+            background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 20px; overflow: hidden; border-left: 5px solid #8e44ad;
+        }
+        .card.crit { border-left-color: #c0392b; }
+        .card.sec  { border-left-color: #d35400; }
+        .card.ux   { border-left-color: #0d47a1; }
+        .card.code { border-left-color: #1b5e20; }
+
+        .card-header {
+            padding: 13px 20px; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid #f4f4f4; flex-wrap: wrap;
+        }
+        .card-header h3 { font-size: 14px; font-weight: 600; flex: 1; min-width: 180px; }
+        .card-body  { padding: 16px 20px; color: #444; font-size: 13px; }
+        .card-body p { margin-bottom: 10px; }
+        .card-body p:last-child { margin-bottom: 0; }
+        .card-body ul { padding-left: 20px; margin-bottom: 10px; }
+        .card-body ul li { margin-bottom: 4px; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+        }
+        .badge-crit    { background: #fde8e8; color: #c0392b; }
+        .badge-sec     { background: #fef3e2; color: #d35400; }
+        .badge-ux      { background: #e3f2fd; color: #0d47a1; }
+        .badge-code    { background: #e8f5e9; color: #1b5e20; }
+        .badge-new     { background: #f5eeff; color: #6c3483; }
+        .badge-pending { background: #f4f6f9; color: #888; border: 1px solid #ddd; }
+
+        code {
+            background: #f4f6f9; border: 1px solid #e0e0e0; border-radius: 3px;
+            padding: 1px 5px; font-size: 12px; font-family: 'Courier New', monospace; color: #b5451b;
+        }
+        .file-ref {
+            display: inline-block; background: #eef2ff; color: #3b5bdb; border: 1px solid #c5d0fa;
+            border-radius: 4px; padding: 2px 8px; font-size: 12px; font-family: 'Courier New', monospace;
+        }
+
+        .diff-block { margin: 12px 0; border-radius: 6px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.65; }
+        .diff-label { padding: 5px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+        .diff-before .diff-label { background: #2a1a1a; color: #f5a0a0; }
+        .diff-before pre  { background: #1e1212; color: #f5a5a5; padding: 12px 16px; overflow-x: auto; }
+        .diff-after  .diff-label { background: #1a2a1a; color: #90f0a0; }
+        .diff-after  pre  { background: #121e12; color: #a5f5a5; padding: 12px 16px; overflow-x: auto; }
+        .diff-rec    .diff-label { background: #16162a; color: #a0c4ff; }
+        .diff-rec    pre  { background: #10101e; color: #c8d8f8; padding: 12px 16px; overflow-x: auto; }
+
+        .impact { background: #f8f9fa; border-top: 1px solid #f0f0f0; padding: 9px 20px; font-size: 12px; color: #666; }
+        .impact strong { color: #444; }
+
+        .risk-box {
+            background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px;
+            padding: 9px 14px; font-size: 12px; margin: 10px 0; color: #555;
+        }
+        .risk-box strong { color: #e65100; }
+
+        .why-box {
+            background: #f3e5f5; border: 1px solid #ce93d8; border-radius: 6px;
+            padding: 9px 14px; font-size: 12px; margin: 10px 0; color: #555;
+        }
+        .why-box strong { color: #6c3483; }
+
+        .summary-table { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.07); overflow:hidden; margin-top:10px; }
+        .summary-table table { width:100%; border-collapse:collapse; font-size:13px; }
+        .summary-table thead tr { background:#1a1a2e; color:#fff; }
+        .summary-table th { padding:10px 14px; text-align:left; font-size:12px; }
+        .summary-table td { padding:9px 14px; border-bottom:1px solid #f4f4f4; vertical-align:middle; }
+        .summary-table tr:nth-child(even) td { background:#fafafa; }
+        .file-pill {
+            display:inline-block; background:#eef2ff; color:#3b5bdb; border:1px solid #c5d0fa;
+            border-radius:4px; padding:1px 7px; font-size:11px; font-family:'Courier New',monospace; font-weight:600;
+        }
+
+        @media print {
+            .toolbar { display:none; }
+            body { background:#fff; }
+            .container { margin:0; padding:20px; max-width:100%; }
+            .card { break-inside:avoid; }
+            .report-header { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>Login &mdash; New Findings Only &mdash; GRC V1</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-back">&#8592; Back to Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128438; Print / PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="report-header">
+        <div class="author-label">New Findings &mdash; Not in Previous Reports</div>
+        <h2>Login System &mdash; 8 Issues Missed by Audit &amp; ARIA Reports</h2>
+        <div class="sub">These issues were not identified in <em>login.html</em> (audit) or <em>aria_login.html</em> (ARIA plan). Each one was found by reading the code independently.</div>
+        <div class="meta-row">
+            <div class="meta-item"><span>Date</span><strong>June 23, 2026</strong></div>
+            <div class="meta-item"><span>New Issues</span><strong>8</strong></div>
+            <div class="meta-item"><span>Critical</span><strong>3</strong></div>
+            <div class="meta-item"><span>Source</span><strong>Independent review</strong></div>
+        </div>
+    </div>
+
+    <!-- CONTEXT NOTE -->
+    <div class="callout">
+        <strong>Context:</strong> The audit report (<em>login.html</em>) and the ARIA plan (<em>aria_login.html</em>) together covered 13 issues. This report contains only the <strong>8 additional issues</strong> not mentioned in either. Use this alongside those two documents &mdash; not as a replacement.
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card s-crit"><div class="number">3</div><div class="label">Critical</div></div>
+        <div class="stat-card s-sec"><div class="number">2</div><div class="label">Security</div></div>
+        <div class="stat-card s-ux"><div class="number">2</div><div class="label">UX</div></div>
+        <div class="stat-card s-code"><div class="number">1</div><div class="label">Code Bug</div></div>
+    </div>
+
+    <!-- CRITICAL -->
+    <div class="section-label">Critical &mdash; Fix These First</div>
+
+    <!-- FINDING 1 -->
+    <div class="card crit">
+        <div class="card-header">
+            <span class="badge badge-crit">Critical</span>
+            <span class="badge badge-new">New</span>
+            <h3>1 &mdash; No Session Regeneration After Login (Session Fixation)</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/login/loginClass.php &mdash; Login_test() lines 250&ndash;253</span></p>
+            <div class="risk-box">
+                <strong>Attack scenario:</strong> An attacker tricks a victim into loading <code>login.php?PHPSESSID=abc123</code>. The victim logs in. Because the session ID is never rotated, the attacker &mdash; who already knows the ID <code>abc123</code> &mdash; now has full authenticated access to the victim's account.
+            </div>
+            <p>After a successful password check, four <code>$_SESSION</code> keys are set but <code>session_regenerate_id()</code> is never called. The same session ID that existed before the user logged in remains in use after they are authenticated. This is the textbook definition of a session fixation vulnerability.</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before &mdash; session ID unchanged at login</div>
+                <pre>if (password_verify($pass, $row['upassword']) && $row["user_type"] == 1) {
+    $_SESSION["uid"]     = $row["id"];
+    $_SESSION["user"]    = $row["username"];
+    $_SESSION["dept_id"] = $row["dept_id"];
+    $_SESSION["roles"]   = $row["roles"];
+    // ← session ID is still the pre-login ID</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After &mdash; one line eliminates session fixation</div>
+                <pre>if (password_verify($pass, $row['upassword']) && $row["user_type"] == 1) {
+    session_regenerate_id(true); // ← issues a new session ID, destroys the old one
+    $_SESSION["uid"]     = $row["id"];
+    $_SESSION["user"]    = $row["username"];
+    $_SESSION["dept_id"] = $row["dept_id"];
+    $_SESSION["roles"]   = $row["roles"];</pre>
+            </div>
+            <div class="why-box">
+                <strong>Why previous reports missed this:</strong> Both reports focused on what was in the session (correct keys, correct values). Neither asked whether the session ID itself was being rotated at the authentication boundary.
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Any session ID an attacker knew before login becomes invalid the moment the user authenticates. Session fixation is fully closed.</div>
+    </div>
+
+    <!-- FINDING 2 -->
+    <div class="card crit">
+        <div class="card-header">
+            <span class="badge badge-crit">Critical</span>
+            <span class="badge badge-new">New</span>
+            <h3>2 &mdash; Debug Log Writes SQL + Emails to a Public File on Every Google Login</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/login/loginClass.php &mdash; googlesignup() lines 58&ndash;163</span></p>
+            <div class="risk-box">
+                <strong>Risk:</strong> The file <code>googlesignup_debug.log</code> is created in the web root and is publicly readable at <code>http://&lt;your-domain&gt;/GRC_V1/googlesignup_debug.log</code>. It contains every Google user's email address, the full INSERT SQL including the hashed password, and session data. This is a live data breach.
+            </div>
+            <p>The method opens a log file on line 59, then writes to it at least 5 times per call &mdash; every time a user signs in with Google. This was debugging code that was never cleaned up before going to production.</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before &mdash; 15+ lines writing private data to a public file</div>
+                <pre>$debug_file = fopen("googlesignup_debug.log", "a");
+fwrite($debug_file, "googlesignup called ... for email: $email\n"); // PII
+fwrite($debug_file, "Checking if user exists with email: $email\n"); // PII
+// ... inside the INSERT branch:
+fwrite($debug_file, "SQL Query: $insert\n");    // raw SQL + hashed password
+fwrite($debug_file, "Session set: uid=...\n"); // session data
+fwrite($debug_file, "Redirecting to: ...\n");
+fclose($debug_file);</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After &mdash; all debug lines removed</div>
+                <pre>public function googlesignup(string $name, string $email, string $password): void {
+    // No file logging. Use php error_log() (server-side only) if temporary
+    // debugging is ever needed again — never write to the web root.
+    ...</pre>
+            </div>
+            <div class="why-box">
+                <strong>Why previous reports missed this:</strong> The audit report scanned login.php, loginaction.php, and the reset flow. The googlesignup() method is a separate code path only triggered by the Google OAuth callback — it was not reviewed as part of the main login audit.
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> User emails, SQL, and session data are no longer written to a publicly accessible file. The method is safe to call in production.</div>
+    </div>
+
+    <!-- FINDING 3 -->
+    <div class="card crit">
+        <div class="card-header">
+            <span class="badge badge-crit">Critical</span>
+            <span class="badge badge-new">New</span>
+            <h3>3 &mdash; Password Reset Tokens Have No Expiry &mdash; Old Links Work Forever</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Files:</strong> <span class="file-ref">reset-password-action.php</span> &nbsp; <span class="file-ref">Project/login/loginClass.php &mdash; passupdate()</span></p>
+            <div class="risk-box">
+                <strong>Attack scenario:</strong> A user requests a reset in January, doesn't use the link, and deletes the email. In June, the email is accessed by someone else (shared inbox, phishing, data breach). The January reset link still works. The attacker resets the password and takes over the account.
+            </div>
+            <p>
+                <code>reset-password-action.php</code> saves a token with no timestamp. <code>passupdate()</code> only checks <code>WHERE verify_token='$token'</code> &mdash; no time check. Tokens are valid indefinitely. After a successful reset the old token is replaced with <code>md5(rand())."funda"</code> (also weak) but old tokens from abandoned reset requests are never cleared.
+            </p>
+            <div class="diff-block diff-rec">
+                <div class="diff-label">Recommended schema change</div>
+                <pre>ALTER TABLE users
+    ADD COLUMN token_expires_at DATETIME NULL AFTER verify_token;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">reset-password-action.php &mdash; save token with expiry + use secure token</div>
+                <pre>$token   = bin2hex(random_bytes(16));               // replaces md5(rand())
+$expires = date('Y-m-d H:i:s', strtotime('+1 hour')); // 1-hour window
+
+$stmt = $conn->prepare(
+    "UPDATE users SET verify_token=?, token_expires_at=? WHERE email=? LIMIT 1"
+);
+$stmt->bind_param('sss', $token, $expires, $email);
+$stmt->execute();</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">loginClass passupdate() &mdash; check expiry before accepting token</div>
+                <pre>$row = $this->fetchOne('users', 'verify_token', $token);
+
+if (!$row) {
+    return 'Invalid token';
+}
+if (strtotime($row['token_expires_at']) < time()) {
+    return 'This reset link has expired. Please request a new one.';
+}
+// only reach here if token exists AND has not expired</pre>
+            </div>
+            <div class="why-box">
+                <strong>Why previous reports missed this:</strong> Both reports noted the weak <code>md5(rand())</code> token generation but neither checked whether a timestamp was stored or validated. The token flow was reviewed for correctness, not for time-bounding.
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Reset links expire after 1 hour. Old links from previous requests (abandoned, leaked, or stolen) are rejected automatically.</div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="section-label">Security</div>
+
+    <!-- FINDING 4 -->
+    <div class="card sec">
+        <div class="card-header">
+            <span class="badge badge-sec">Security</span>
+            <span class="badge badge-new">New</span>
+            <h3>4 &mdash; No CSRF Tokens on Login or Password Reset Forms</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Files:</strong> <span class="file-ref">login.php</span> &nbsp; <span class="file-ref">reset-password.php</span> &nbsp; <span class="file-ref">loginaction.php</span> &nbsp; <span class="file-ref">reset-password-action.php</span></p>
+            <p>Neither the login form nor the reset form include a CSRF token. A malicious page on any other domain can construct a hidden form that POSTs to these endpoints and auto-submit it when a user visits. Without a token, the server cannot tell whether the request came from the real form or an attacker's page.</p>
+            <div class="diff-block diff-after">
+                <div class="diff-label">login.php &mdash; generate token in session + embed in form</div>
+                <pre>session_start();
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+...
+&lt;form id="loginform"&gt;
+    &lt;input type="hidden" name="_token" value="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">loginaction.php &mdash; verify token before any other processing</div>
+                <pre>session_start();
+if (
+    !isset($_POST['_token']) ||
+    !hash_equals($_SESSION['csrf_token'], $_POST['_token'])
+) {
+    Response::error('Invalid request. Please refresh and try again.');
+}</pre>
+            </div>
+            <div class="why-box">
+                <strong>Why previous reports missed this:</strong> The audit report checked what happens after submission (SQL injection, session handling). The ARIA plan focused on prepared statements and the Response class. Neither checked whether the request origin was validated before processing started.
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Cross-site form submissions are rejected. <code>hash_equals()</code> prevents timing-based token comparison attacks.</div>
+    </div>
+
+    <!-- FINDING 5 -->
+    <div class="card sec">
+        <div class="card-header">
+            <span class="badge badge-sec">Security</span>
+            <span class="badge badge-new">New</span>
+            <h3>5 &mdash; Reset Form Reveals Whether an Email Address Has an Account</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">reset-password-action.php &mdash; lines 76&ndash;80</span></p>
+            <p>The reset endpoint returns two visibly different responses: <code>"ERROR CHECK"</code> when the email has no account, and <code>"its available"</code> when it does. An attacker can submit any email address and immediately know whether that person has a GRC account. This is called email enumeration and allows targeted phishing of confirmed users.</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before &mdash; different responses leak account existence</div>
+                <pre>if (mysqli_num_rows($query_check) > 0) {
+    // ... send email ...
+    echo "its available";   // account exists
+} else {
+    echo "ERROR CHECK ";    // no account — reveals this
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After &mdash; identical response either way</div>
+                <pre>// Send the email only if the account exists (silently skip if not).
+// The client always receives the same response — attacker learns nothing.
+Response::success('If that email is registered, a reset link has been sent.');</pre>
+            </div>
+            <div class="why-box">
+                <strong>Why previous reports missed this:</strong> Both reports noted the inconsistent response text as a grammar/UX issue (<code>"its available"</code> lacks an apostrophe) but neither flagged the security implication of using different response values for found vs. not-found.
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> An attacker cannot determine from the response whether an email address is registered. The message is truthful either way.</div>
+    </div>
+
+    <!-- UX -->
+    <div class="section-label">UX</div>
+
+    <!-- FINDING 6 -->
+    <div class="card ux">
+        <div class="card-header">
+            <span class="badge badge-ux">UX</span>
+            <span class="badge badge-new">New</span>
+            <h3>6 &mdash; Submit Button Has No Loading State &mdash; Double-Click Sends Two Requests</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">login.php &mdash; AJAX block</span></p>
+            <p>The login button is not disabled during the AJAX call. A user who double-clicks, or clicks once and then clicks again because nothing appeared to happen, fires two simultaneous <code>POST</code> requests to <code>loginaction.php</code>. Both will create a system_logs entry and the second may arrive while the first is still setting session variables. The button also gives no visual feedback that the click was received.</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before &mdash; button stays active during request</div>
+                <pre>$("#loginform").submit(function(e) {
+    e.preventDefault();
+    $.ajax({
+        url: "loginaction.php",
+        ...
+        // button is never disabled — user can click multiple times
+    });
+});</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After &mdash; disable on click, re-enable on completion</div>
+                <pre>$("#loginform").submit(function(e) {
+    e.preventDefault();
+    var $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true).text('Logging in...');
+
+    $.ajax({
+        url: "loginaction.php",
+        ...
+        complete: function() {
+            $btn.prop('disabled', false).text('Log In'); // always re-enable
+        }
+    });
+});</pre>
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Exactly one request per click. User sees instant confirmation their click registered. Duplicate system_log entries from double-clicks are prevented.</div>
+    </div>
+
+    <!-- FINDING 7 -->
+    <div class="card ux">
+        <div class="card-header">
+            <span class="badge badge-ux">UX</span>
+            <span class="badge badge-new">New</span>
+            <h3>7 &mdash; Login Fields Have No autocomplete Attributes</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">login.php &mdash; lines 54 and 60</span></p>
+            <p>The email field uses <code>type="text"</code> (not <code>type="email"</code>) and neither field has an <code>autocomplete</code> attribute. As a result:</p>
+            <ul>
+                <li>Password managers may fail to fill in credentials correctly or not recognise the fields at all</li>
+                <li>Mobile browsers show a plain keyboard instead of an email-optimised one for the email field</li>
+                <li>Browser autofill may guess wrong and fill the username into the email field</li>
+            </ul>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>&lt;input type="text"     name="email"    placeholder="Email"    class="..."&gt;
+&lt;input type="password" name="password" placeholder="Password" class="..."&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>&lt;input type="email"    name="email"    placeholder="Email"    autocomplete="email"            class="..."&gt;
+&lt;input type="password" name="password" placeholder="Password" autocomplete="current-password"  class="..."&gt;</pre>
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Password managers work correctly. Mobile shows the right keyboard. Browsers fill the right fields. <code>type="email"</code> adds client-side format checking for free.</div>
+    </div>
+
+    <!-- CODE BUG -->
+    <div class="section-label">Code Bug</div>
+
+    <!-- FINDING 8 -->
+    <div class="card code">
+        <div class="card-header">
+            <span class="badge badge-code">Code Bug</span>
+            <span class="badge badge-new">New</span>
+            <h3>8 &mdash; systemlog() Has a Dead Branch: <code>count &lt; 0</code> Can Never Be True</h3>
+            <span class="badge badge-pending">Pending</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/login/loginClass.php &mdash; systemlog() lines 340&ndash;357</span></p>
+            <p><code>mysqli_result::num_rows</code> returns an integer that is always &ge; 0. The condition <code>if ($count &lt; 0)</code> can never evaluate to true. The <code>return "NULL VALUES"</code> path is permanently dead code. The method also uses a <code>while</code> loop + <code>$rows[]</code> to build an array when a single <code>fetchAll()</code> call achieves the same result in one line (after ARIA Phase 2).</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before &mdash; unreachable branch + manual array building</div>
+                <pre>Public function systemlog(){
+    $select = "SELECT * FROM system_logs";
+    $query  = $this->query($select) or die($this->error);
+    $count  = $query->num_rows;
+
+    if ($count &lt; 0) {              // ← NEVER TRUE
+        return "NULL VALUES";      // ← dead code
+    } else {
+        while ($row = $query->fetch_assoc()) {
+            $rows[] = $row;        // manual array building
+        }
+        if (!empty($rows)) {
+            return $rows;
+        } else {
+            return array();
+        }
+    }
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After &mdash; clean one-liner using BaseRepository</div>
+                <pre>public function systemlog(): array {
+    return $this->fetchAll('system_logs'); // returns [] when empty, never null
+}</pre>
+            </div>
+            <div class="why-box">
+                <strong>Why previous reports missed this:</strong> The audit report listed <code>systemlog()</code> as using a raw query (correct) but did not analyse the logic of the conditional. The ARIA plan recommended converting the method to <code>fetchAll()</code> without noting that the existing conditional was already broken.
+            </div>
+        </div>
+        <div class="impact"><strong>Effect:</strong> Dead code removed. Return type is predictable — always an array, never <code>"NULL VALUES"</code> string. Consistent with all other list methods in the system.</div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="section-label">Summary</div>
+
+    <div class="summary-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Finding</th>
+                    <th>File(s)</th>
+                    <th>Category</th>
+                    <th>Why Missed</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Session fixation &mdash; no <code>session_regenerate_id()</code></td>
+                    <td><span class="file-pill">loginClass.php</span></td>
+                    <td><span class="badge badge-crit">Critical</span></td>
+                    <td>Session values reviewed, not session ID rotation</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Debug log writes SQL + emails to public file</td>
+                    <td><span class="file-pill">loginClass.php</span></td>
+                    <td><span class="badge badge-crit">Critical</span></td>
+                    <td>googlesignup() not part of main login audit path</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Reset tokens have no expiry &mdash; work forever</td>
+                    <td><span class="file-pill">loginClass.php</span> <span class="file-pill">reset-password-action.php</span></td>
+                    <td><span class="badge badge-crit">Critical</span></td>
+                    <td>Token generation reviewed, not time-bounding</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>No CSRF tokens on login or reset forms</td>
+                    <td><span class="file-pill">login.php</span> <span class="file-pill">reset-password.php</span></td>
+                    <td><span class="badge badge-sec">Security</span></td>
+                    <td>Post-submission handling reviewed, not request origin</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>Reset form reveals account existence (email enumeration)</td>
+                    <td><span class="file-pill">reset-password-action.php</span></td>
+                    <td><span class="badge badge-sec">Security</span></td>
+                    <td>Text noted as UX issue, security implication missed</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>Submit button has no loading/disabled state</td>
+                    <td><span class="file-pill">login.php</span></td>
+                    <td><span class="badge badge-ux">UX</span></td>
+                    <td>Button appearance not checked, only form behavior</td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td>Missing <code>autocomplete</code> attributes on login fields</td>
+                    <td><span class="file-pill">login.php</span></td>
+                    <td><span class="badge badge-ux">UX</span></td>
+                    <td>Field values checked, HTML attributes not inspected</td>
+                </tr>
+                <tr>
+                    <td>8</td>
+                    <td><code>systemlog()</code> &mdash; <code>count &lt; 0</code> dead branch</td>
+                    <td><span class="file-pill">loginClass.php</span></td>
+                    <td><span class="badge badge-code">Code Bug</span></td>
+                    <td>Raw query noted but conditional logic not tested</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

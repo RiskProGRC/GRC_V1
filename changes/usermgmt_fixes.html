@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management — Bug Fixes Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.7; }
+
+        .toolbar { background: #1a1a2e; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .toolbar h1 { font-size: 16px; font-weight: 600; }
+        .toolbar a  { color: #aab4d0; text-decoration: none; font-size: 13px; }
+        .toolbar a:hover { color: #fff; }
+
+        .container { max-width: 920px; margin: 40px auto; padding: 0 24px 80px; }
+
+        h2  { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+        h3  { font-size: 13px; font-weight: 700; color: #283593; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .5px; }
+        p   { margin-bottom: 10px; color: #444; }
+        ul  { padding-left: 20px; margin-bottom: 10px; }
+        li  { margin-bottom: 4px; color: #444; }
+
+        .subtitle { color: #888; font-size: 13px; margin-bottom: 32px; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 24px 0 36px; }
+        .stat { background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+        .stat .num   { font-size: 26px; font-weight: 700; color: #c0392b; }
+        .stat .label { font-size: 11px; color: #888; margin-top: 2px; }
+
+        .fix {
+            background: #fff;
+            border-radius: 8px;
+            padding: 22px 26px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+            border-left: 5px solid #ccc;
+        }
+        .fix.critical { border-left-color: #c0392b; }
+        .fix.bug      { border-left-color: #e67e22; }
+        .fix.ux       { border-left-color: #2980b9; }
+        .fix.security { border-left-color: #8e44ad; }
+
+        .fix-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .fix-title  { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+        .fix-file   { font-size: 11px; color: #888; margin-top: 3px; font-family: monospace; }
+
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .tag-critical { background: #fde8e8; color: #c0392b; }
+        .tag-bug      { background: #fef3e2; color: #e67e22; }
+        .tag-ux       { background: #e8f0fd; color: #2980b9; }
+        .tag-security { background: #f5eeff; color: #8e44ad; }
+
+        code { background: #f0f2f8; padding: 2px 6px; border-radius: 4px; font-size: 12.5px; font-family: 'Cascadia Code', 'Consolas', monospace; color: #c0392b; }
+
+        pre  { background: #1a1a2e; color: #e8eaf6; padding: 16px 18px; border-radius: 8px; font-size: 12px; font-family: 'Cascadia Code', 'Consolas', monospace; overflow-x: auto; line-height: 1.7; margin: 10px 0; }
+        .kw  { color: #80cbc4; }
+        .cm  { color: #78909c; font-style: italic; }
+        .st  { color: #ce9178; }
+        .fn  { color: #dcdcaa; }
+        .re  { color: #9cdcfe; }
+        .num { color: #b5cea8; }
+
+        .diff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+        .diff-old { background: #fff5f5; border: 1px solid #fcc; border-radius: 6px; padding: 14px 16px; font-family: monospace; font-size: 12px; line-height: 1.6; }
+        .diff-new { background: #f0fff4; border: 1px solid #9be9a8; border-radius: 6px; padding: 14px 16px; font-family: monospace; font-size: 12px; line-height: 1.6; }
+        .diff-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .diff-old .diff-label { color: #c0392b; }
+        .diff-new .diff-label { color: #27ae60; }
+
+        .note { background: #e8f0fe; border-left: 4px solid #1a73e8; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 12px 0; font-size: 13px; color: #1a1a2e; }
+        .warn { background: #fff8e1; border-left: 4px solid #f9a825; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 12px 0; font-size: 13px; color: #5d4037; }
+
+        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin: 32px 0 12px; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; User Management Bug Fixes Report</h1>
+    <a href="index.html">&#8592; Back to Index</a>
+</div>
+
+<div class="container">
+
+    <h2>User Management — Post-Build Bug Fixes</h2>
+    <p class="subtitle">6 fixes across 5 files discovered during testing of the User Management Module &mdash; 2026-06-25</p>
+
+    <div class="summary-grid">
+        <div class="stat"><div class="num">6</div><div class="label">Fixes applied</div></div>
+        <div class="stat"><div class="num">5</div><div class="label">Files changed</div></div>
+        <div class="stat"><div class="num">1</div><div class="label">Critical (session)</div></div>
+        <div class="stat"><div class="num">2</div><div class="label">Data bugs</div></div>
+        <div class="stat"><div class="num">3</div><div class="label">UX / form bugs</div></div>
+    </div>
+
+    <!-- ── Fix 1 ── -->
+    <div class="section-label">Fix 1 — Session</div>
+
+    <div class="fix critical">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Duplicate session_start() notice on every page</div>
+                <div class="fix-file">layout/header.php &mdash; line 2</div>
+            </div>
+            <span class="tag tag-critical">Critical</span>
+        </div>
+        <p><strong>Symptom:</strong> Clicking "User Management" in the nav produced a PHP notice: <em>"session_start(): Ignoring session_start() because a session is already active in layout/header.php on line 2"</em>.</p>
+        <p><strong>Root cause:</strong> The new User Management pages (<code>userslist.php</code>, <code>usersadd.php</code>, <code>profile.php</code>) start the session early (so the CSRF token can be generated before <code>header.php</code> is included). <code>header.php</code> then unconditionally called <code>session_start()</code> a second time, which PHP rejects.</p>
+        <div class="diff">
+            <div class="diff-old"><div class="diff-label">Before</div>&lt;?php<br>session_start();</div>
+            <div class="diff-new"><div class="diff-label">After</div>&lt;?php<br>if (session_status() === PHP_SESSION_NONE) {<br>&nbsp;&nbsp;&nbsp;&nbsp;session_start();<br>}</div>
+        </div>
+        <div class="note">This single change fixes the notice on every page in the project, because <code>header.php</code> is included by all authenticated views.</div>
+    </div>
+
+    <!-- ── Fix 2 ── -->
+    <div class="section-label">Fix 2 — Data Bug</div>
+
+    <div class="fix bug">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Suspended count always showed 0 on the stats dashboard</div>
+                <div class="fix-file">Project/users/usersClass.php &mdash; getStats() + addusers()</div>
+            </div>
+            <span class="tag tag-bug">Data Bug</span>
+        </div>
+        <p><strong>Symptom:</strong> The "Suspended" stat card on <code>userslist.php</code> always displayed 0 even when suspended users existed.</p>
+        <p><strong>Root cause:</strong> Two compounding problems:</p>
+        <ul>
+            <li>The <code>addusers()</code> INSERT did not include the <code>access</code> column, so every new user was stored with <code>access = NULL</code>.</li>
+            <li>The <code>getStats()</code> query used <code>SUM(access = 0)</code> which returns 0 for <code>NULL</code> rows — MySQL treats <code>NULL = 0</code> as <code>NULL</code>, not <code>true</code>.</li>
+            <li>The user list view showed <code>NULL</code> access users as "Suspended" (because the condition was <code>access == 1 ? 'Active' : 'Suspended'</code>), so the list and the count were inconsistent.</li>
+        </ul>
+
+        <p><strong>Fix 1 — addusers() INSERT:</strong></p>
+<pre><span class="cm">/* Before */</span>
+<span class="st">"INSERT INTO users(fname,sname,gender,dept_id,email,phone,username,upassword,roles,user_type)
+ VALUES(?,?,?,?,?,?,?,?,?,?)"</span>
+
+<span class="cm">/* After — access defaults to 1 (Active) for every new user */</span>
+<span class="st">"INSERT INTO users(fname,sname,gender,dept_id,email,phone,username,upassword,roles,user_type,access)
+ VALUES(?,?,?,?,?,?,?,?,?,?,1)"</span></pre>
+
+        <p><strong>Fix 2 — getStats() query:</strong></p>
+<pre><span class="cm">/* Before */</span>
+SUM(access = <span class="num">1</span>) AS active,
+SUM(access = <span class="num">0</span>) AS suspended,   <span class="cm">-- misses NULL rows</span>
+
+<span class="cm">/* After — suspended = everyone who is not explicitly active */</span>
+COALESCE(SUM(access = <span class="num">1</span>), <span class="num">0</span>)                       AS active,
+COUNT(*) - COALESCE(SUM(access = <span class="num">1</span>), <span class="num">0</span>)          AS suspended,</pre>
+
+        <div class="warn">Existing users in the database with <code>access = NULL</code> will now be counted as Suspended, matching what the list view already showed. Run a one-time update if you want to mark them all Active: <code>UPDATE users SET access = 1 WHERE access IS NULL AND deleted_at IS NULL;</code></div>
+    </div>
+
+    <!-- ── Fix 3 ── -->
+    <div class="section-label">Fix 3 — UX</div>
+
+    <div class="fix ux">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Delete button removed from user list</div>
+                <div class="fix-file">Project/userslist.php &mdash; actions column</div>
+            </div>
+            <span class="tag tag-ux">UX</span>
+        </div>
+        <p>The trash-can delete button was removed from the actions column and replaced with a visually disabled "Delete" button. The soft-delete handler (<code>userdeleteaction.php</code>) remains available for future use but is not exposed in the UI.</p>
+        <div class="diff">
+            <div class="diff-old">
+                <div class="diff-label">Before</div>
+                &lt;button class="btn btn-sm btn-outline-danger user-delete"<br>
+                &nbsp;&nbsp;data-uid="..." data-name="..." data-csrf="..."&gt;<br>
+                &nbsp;&nbsp;&#128465;<br>
+                &lt;/button&gt;
+            </div>
+            <div class="diff-new">
+                <div class="diff-label">After</div>
+                &lt;button class="btn btn-sm btn-outline-secondary"<br>
+                &nbsp;&nbsp;disabled&gt;<br>
+                &nbsp;&nbsp;Delete<br>
+                &lt;/button&gt;
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Fix 4 ── -->
+    <div class="section-label">Fix 4 — Form Bug</div>
+
+    <div class="fix critical">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">SweetAlert error popped up on every Add User button click</div>
+                <div class="fix-file">assets/js/app.js &mdash; line 452</div>
+            </div>
+            <span class="tag tag-critical">Critical</span>
+        </div>
+        <p><strong>Symptom:</strong> Clicking ADD USER (even with empty fields) showed a SweetAlert error dialog saying "FORM ERROR", then the page navigated to <code>userslist.php</code>.</p>
+        <p><strong>Root cause:</strong> <code>app.js</code> (loaded globally via <code>footer.php</code>) still contained an old <code>.adduser-button</code> click handler with no validation. When the button was clicked:</p>
+        <ul>
+            <li>Our new handler in <code>usermanagement.js</code> ran first → validation failed → <code>return</code>.</li>
+            <li><code>app.js</code>'s handler ALSO fired (event delegation runs all matching handlers) → sent the empty form to <code>usersaction.php</code> → received <code>{"status":"error","message":"FORM ERROR"}</code> → called <code>grcSwal(r, 2500, 'userslist.php')</code> → showed SweetAlert and redirected.</li>
+        </ul>
+<pre><span class="cm">/* app.js — removed */</span>
+<span class="cm">// usersadd.php — add user (standalone)</span>
+$(document).<span class="fn">on</span>(<span class="st">'click'</span>, <span class="st">'.adduser-button'</span>, <span class="kw">function</span> (e) {
+    e.<span class="fn">preventDefault</span>();
+    $.<span class="fn">ajax</span>({ url: <span class="st">'usersaction.php'</span>, method: <span class="st">'post'</span>,
+              data: $(<span class="st">'#profileform'</span>).<span class="fn">serialize</span>(), dataType: <span class="st">'json'</span>,
+              success: <span class="kw">function</span> (r) { <span class="fn">grcSwal</span>(r, <span class="num">2500</span>, <span class="st">'userslist.php'</span>); } });
+});
+
+<span class="cm">/* replaced with */</span>
+<span class="cm">// usersadd.php — handled by assets/js/usermanagement.js (includes validation)</span></pre>
+    </div>
+
+    <!-- ── Fix 5 ── -->
+    <div class="section-label">Fix 5 — Form Bug</div>
+
+    <div class="fix bug">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Pressing Enter in any field navigated away from the page</div>
+                <div class="fix-file">Project/usersadd.php + assets/js/usermanagement.js</div>
+            </div>
+            <span class="tag tag-bug">Form Bug</span>
+        </div>
+        <p><strong>Symptom:</strong> Pressing Enter inside any text input submitted the form natively, reloading the page and discarding any entered data.</p>
+        <p><strong>Root cause:</strong> The <code>&lt;form&gt;</code> tag had no <code>onsubmit</code> handler. Browsers submit any form on Enter by default, regardless of button <code>type="button"</code> attributes.</p>
+        <p><strong>Fix 1 — HTML (inline guard, runs before JS):</strong></p>
+<pre>&lt;form id=<span class="st">"profileform"</span> onsubmit=<span class="st">"return false;"</span>&gt;</pre>
+        <p><strong>Fix 2 — JS (belt-and-suspenders):</strong></p>
+<pre>$(<span class="st">'#profileform'</span>).<span class="fn">on</span>(<span class="st">'submit'</span>, <span class="kw">function</span> (e) { e.<span class="fn">preventDefault</span>(); });</pre>
+    </div>
+
+    <!-- ── Fix 6 ── -->
+    <div class="section-label">Fix 6 — Form Bug</div>
+
+    <div class="fix ux">
+        <div class="fix-header">
+            <div>
+                <div class="fix-title">Empty form could still POST if GRC.validate was unavailable + correct success/error navigation</div>
+                <div class="fix-file">assets/js/usermanagement.js &mdash; AJAX block</div>
+            </div>
+            <span class="tag tag-ux">Form Bug</span>
+        </div>
+        <p>Two improvements were applied to the AJAX submit block:</p>
+
+        <p><strong>1 — beforeSend guard (belt-and-suspenders POST prevention):</strong><br>
+        jQuery cancels the request entirely if <code>beforeSend</code> returns <code>false</code>. Even if <code>GRC.validate</code> somehow returns <code>true</code> incorrectly, the request cannot fire with empty required fields.</p>
+<pre>beforeSend: <span class="kw">function</span> () {
+    <span class="kw">var</span> empty = addUserRules.<span class="fn">some</span>(<span class="kw">function</span> (r) {
+        <span class="kw">return</span> !$(<span class="st">'#'</span> + r.field).<span class="fn">val</span>().<span class="fn">trim</span>();
+    });
+    <span class="kw">if</span> (empty) {
+        $btn.<span class="fn">prop</span>(<span class="st">'disabled'</span>, <span class="kw">false</span>).<span class="fn">text</span>(<span class="st">'ADD USER'</span>);
+        <span class="fn">showFeedback</span>(<span class="st">'Please fill in all required fields.'</span>, <span class="st">'warning'</span>);
+        <span class="kw">return false</span>; <span class="cm">// cancels the jQuery AJAX request</span>
+    }
+},</pre>
+
+        <p><strong>2 — Correct post-submit navigation:</strong></p>
+        <ul>
+            <li><strong>Success</strong> → show green message for 1.5 s, then redirect to <code>userslist.php</code>.</li>
+            <li><strong>Server error</strong> (e.g. duplicate email, FORM ERROR) → show red inline message, re-enable button, <strong>stay on <code>usersadd.php</code></strong> so the user can correct and resubmit.</li>
+        </ul>
+<pre>success: <span class="kw">function</span> (res) {
+    <span class="kw">if</span> (res.status === <span class="st">'ok'</span>) {
+        <span class="fn">showFeedback</span>(res.message, <span class="st">'success'</span>);
+        <span class="fn">setTimeout</span>(<span class="kw">function</span> () {
+            window.location.href = base + <span class="st">'Project/userslist.php'</span>; <span class="cm">// redirect on success</span>
+        }, <span class="num">1500</span>);
+    } <span class="kw">else</span> {
+        <span class="fn">showFeedback</span>(res.message, <span class="st">'danger'</span>);
+        $btn.<span class="fn">prop</span>(<span class="st">'disabled'</span>, <span class="kw">false</span>).<span class="fn">text</span>(<span class="st">'ADD USER'</span>); <span class="cm">// stay on page on error</span>
+    }
+},</pre>
+    </div>
+
+    <!-- Summary table -->
+    <div class="section-label">Summary</div>
+
+    <div style="background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.07);">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+                <tr style="background:#1a1a2e; color:#fff;">
+                    <th style="padding:10px 14px; text-align:left;">#</th>
+                    <th style="padding:10px 14px; text-align:left;">File</th>
+                    <th style="padding:10px 14px; text-align:left;">What changed</th>
+                    <th style="padding:10px 14px; text-align:left;">Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px 14px;">1</td>
+                    <td style="padding:10px 14px;"><code>layout/header.php</code></td>
+                    <td style="padding:10px 14px;">Guarded <code>session_start()</code> with <code>PHP_SESSION_NONE</code> check</td>
+                    <td style="padding:10px 14px;"><span class="tag tag-critical">Critical</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #eee; background:#f9f9f9;">
+                    <td style="padding:10px 14px;">2</td>
+                    <td style="padding:10px 14px;"><code>Project/users/usersClass.php</code></td>
+                    <td style="padding:10px 14px;"><code>addusers()</code> now inserts <code>access=1</code>; <code>getStats()</code> suspended uses <code>COUNT(*) - SUM(active)</code></td>
+                    <td style="padding:10px 14px;"><span class="tag tag-bug">Data Bug</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px 14px;">3</td>
+                    <td style="padding:10px 14px;"><code>Project/userslist.php</code></td>
+                    <td style="padding:10px 14px;">Delete button disabled, trash icon removed</td>
+                    <td style="padding:10px 14px;"><span class="tag tag-ux">UX</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #eee; background:#f9f9f9;">
+                    <td style="padding:10px 14px;">4</td>
+                    <td style="padding:10px 14px;"><code>assets/js/app.js</code></td>
+                    <td style="padding:10px 14px;">Removed duplicate <code>.adduser-button</code> handler that bypassed validation and showed SweetAlert</td>
+                    <td style="padding:10px 14px;"><span class="tag tag-critical">Critical</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px 14px;">5</td>
+                    <td style="padding:10px 14px;"><code>Project/usersadd.php</code></td>
+                    <td style="padding:10px 14px;"><code>onsubmit="return false;"</code> prevents Enter-key page navigation</td>
+                    <td style="padding:10px 14px;"><span class="tag tag-bug">Form Bug</span></td>
+                </tr>
+                <tr>
+                    <td style="padding:10px 14px;">6</td>
+                    <td style="padding:10px 14px;"><code>assets/js/usermanagement.js</code></td>
+                    <td style="padding:10px 14px;"><code>beforeSend</code> guard + submit event block + success redirect / error stay-on-page</td>
+                    <td style="padding:10px 14px;"><span class="tag tag-ux">UX</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

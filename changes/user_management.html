@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management Module — Master Guide</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            background: #1a1a2e; color: #fff;
+            padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 200;
+        }
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: .5px; }
+        .btn { padding: 8px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; transition: opacity .2s; text-decoration: none; display: inline-block; }
+        .btn:hover { opacity: .85; }
+        .btn-dark  { background: #3a3a5c; }
+        .btn-print { background: #283593; }
+
+        /* ── Sticky phase nav ── */
+        .phase-nav {
+            background: #fff;
+            border-bottom: 2px solid #e8e8e8;
+            position: sticky; top: 48px; z-index: 100;
+            overflow-x: auto; white-space: nowrap;
+            padding: 0 32px;
+        }
+        .phase-nav a {
+            display: inline-block;
+            padding: 12px 18px;
+            font-size: 12px; font-weight: 700;
+            color: #666; text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: color .15s, border-color .15s;
+        }
+        .phase-nav a:hover { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+
+        /* ── Container ── */
+        .container { max-width: 980px; margin: 32px auto; padding: 0 20px 80px; }
+
+        /* ── Report header ── */
+        .report-header {
+            background: linear-gradient(135deg, #283593 0%, #0d1642 100%);
+            color: #fff; border-radius: 10px; padding: 36px 40px; margin-bottom: 28px;
+        }
+        .report-header .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: .7; margin-bottom: 8px; }
+        .report-header h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .report-header p  { opacity: .85; max-width: 640px; }
+        .meta-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .meta-pill { background: rgba(255,255,255,.15); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600; }
+
+        /* ── Phase header ── */
+        .phase-header {
+            border-radius: 8px;
+            padding: 22px 28px;
+            margin: 36px 0 16px;
+            color: #fff;
+        }
+        .phase-header h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .phase-header p  { opacity: .85; font-size: 13px; }
+        .ph-1 { background: linear-gradient(90deg, #00695c, #004d40); }
+        .ph-2 { background: linear-gradient(90deg, #1565c0, #0d47a1); }
+        .ph-3 { background: linear-gradient(90deg, #6a1b9a, #4a148c); }
+        .ph-4 { background: linear-gradient(90deg, #e65100, #bf360c); }
+        .ph-5 { background: linear-gradient(90deg, #2e7d32, #1b5e20); }
+        .ph-6 { background: linear-gradient(90deg, #37474f, #263238); }
+        .ph-7 { background: linear-gradient(90deg, #880e4f, #560027); }
+
+        .section-anchor { display: block; margin-top: -130px; padding-top: 130px; }
+        .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #aaa; margin: 24px 0 12px; }
+
+        /* ── Cards ── */
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.07); margin-bottom: 14px; overflow: hidden; }
+        .card-header { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid #f0f0f0; }
+        .card-header .num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+        .card-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+        .card-body { padding: 16px 20px; }
+        .card-body p { margin-bottom: 10px; color: #444; }
+        .card-body p:last-child { margin-bottom: 0; }
+
+        /* ── Badge / tag ── */
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .b-style   { background: #e3f2fd; color: #1565c0; }
+        .b-ux      { background: #f3e5f5; color: #6a1b9a; }
+        .b-resp    { background: #e8f5e9; color: #2e7d32; }
+        .b-bug     { background: #fde8e8; color: #c0392b; }
+        .b-new     { background: #fff3e0; color: #e65100; }
+        .b-method  { background: #e8f0ff; color: #283593; }
+        .b-db      { background: #fce4ec; color: #880e4f; }
+        .b-done    { background: #eafaf1; color: #1e8449; }
+        .b-pending { background: #f4f6f9; color: #aaa; border: 1px solid #ddd; }
+
+        .tag { display: inline-block; background: #eef; color: #333; border-radius: 4px; padding: 1px 7px; font-size: 11px; font-family: monospace; font-weight: 600; }
+
+        /* ── num colours ── */
+        .n-style  { background: #e3f2fd; color: #1565c0; }
+        .n-ux     { background: #f3e5f5; color: #6a1b9a; }
+        .n-resp   { background: #e8f5e9; color: #2e7d32; }
+        .n-bug    { background: #fde8e8; color: #c0392b; }
+        .n-new    { background: #fff3e0; color: #e65100; }
+        .n-method { background: #e8f0ff; color: #283593; }
+        .n-db     { background: #fce4ec; color: #880e4f; }
+
+        /* ── Code ── */
+        pre {
+            background: #1e1e2e; color: #cdd6f4;
+            border-radius: 6px; padding: 16px 18px;
+            font-size: 12px; overflow-x: auto; margin-top: 10px; line-height: 1.75;
+        }
+        .del     { color: #f38ba8; }
+        .add     { color: #a6e3a1; }
+        .comment { color: #6c7086; font-style: italic; }
+        .hl      { color: #fab387; }
+        .str     { color: #a6e3a1; }
+        .key     { color: #89b4fa; }
+
+        .dlabel { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 12px 0 4px; }
+        .dlabel.before { color: #c0392b; }
+        .dlabel.after  { color: #1e8449; }
+
+        /* ── Tables ── */
+        .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .tbl th { background: #f4f6f9; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; border-bottom: 2px solid #e8e8e8; }
+        .tbl td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+        .tbl tr:last-child td { border-bottom: none; }
+
+        /* ── Info boxes ── */
+        .info  { background: #e8f5e9; border-left: 4px solid #2e7d32; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 13px; margin-top: 12px; color: #1b5e20; }
+        .warn  { background: #fff3cd; border-left: 4px solid #856404; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 13px; margin-top: 12px; color: #533f03; }
+        .note  { background: #e3f2fd; border-left: 4px solid #1565c0; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 13px; margin-top: 12px; color: #0d47a1; }
+        .alert-box { background: #fde8e8; border-left: 4px solid #c0392b; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 13px; margin-top: 12px; color: #922b21; }
+
+        /* ── Checklist ── */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist .ico { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+
+        /* ── File tree ── */
+        .file-tree { background: #1e1e2e; color: #cdd6f4; border-radius: 6px; padding: 16px 18px; font-size: 12px; font-family: monospace; line-height: 2; margin-top: 10px; }
+        .file-tree .dir  { color: #89b4fa; font-weight: 700; }
+        .file-tree .new  { color: #a6e3a1; }
+        .file-tree .enh  { color: #fab387; }
+        .file-tree .note { color: #6c7086; }
+
+        /* ── Two-column grid ── */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+        .two-col .card { margin-bottom: 0; }
+
+        @media (max-width: 640px) {
+            .two-col { grid-template-columns: 1fr; }
+            .report-header { padding: 24px 20px; }
+            .container { padding: 0 12px 60px; }
+            .phase-nav a { padding: 10px 12px; font-size: 11px; }
+        }
+        @media print { .toolbar .btn, .phase-nav { display: none; } }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; User Management Module &mdash; Master Guide</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Index</a>
+        <button class="btn btn-print" onclick="window.print()">&#128424; Print</button>
+    </div>
+</div>
+
+<!-- Sticky phase nav -->
+<nav class="phase-nav">
+    <a href="#phase1">1 · Registration Form</a>
+    <a href="#phase2">2 · usersClass Methods</a>
+    <a href="#phase3">3 · Handler Files</a>
+    <a href="#phase4">4 · userslist.php</a>
+    <a href="#phase5">5 · profile.php</a>
+    <a href="#phase6">6 · usermanagement.js</a>
+    <a href="#phase7">7 · DB Migration</a>
+    <a href="#phase8">8 · nav.php</a>
+    <a href="#checklist">&#10003; Checklist</a>
+</nav>
+
+<div class="container">
+
+    <!-- Report header -->
+    <div class="report-header">
+        <div class="label">User Management Module &mdash; Master Guide</div>
+        <h2>Complete Build Plan</h2>
+        <p>End-to-end guide covering every file, method, SQL statement, and JS handler needed to turn the scattered user-related pages into a fully integrated, ARIA-compliant User Management Module.</p>
+        <div class="meta-row">
+            <span class="meta-pill">&#128197; June 24, 2026</span>
+            <span class="meta-pill">&#128196; 6 existing files</span>
+            <span class="meta-pill">&#128196; 7 new files</span>
+            <span class="meta-pill">&#128200; 5 new DB columns</span>
+            <span class="meta-pill">&#9965; ARIA-compliant</span>
+            <span class="meta-pill">&#128101; All user roles</span>
+        </div>
+    </div>
+
+    <!-- Overview table -->
+    <div class="section-title">What exists vs what changes</div>
+    <div class="card">
+        <div class="card-body" style="padding:0;">
+            <table class="tbl">
+                <thead><tr><th>File</th><th>Status</th><th>Phase</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="tag">Project/usersadd.php</span></td><td><span class="badge b-bug">Fix</span></td><td>Phase 1</td></tr>
+                    <tr><td><span class="tag">Project/usersaction.php</span></td><td><span class="badge b-bug">Fix — CSRF + validation</span></td><td>Phase 1</td></tr>
+                    <tr><td><span class="tag">Project/users/usersClass.php</span></td><td><span class="badge b-new">+5 methods</span></td><td>Phase 2</td></tr>
+                    <tr><td><span class="tag">Project/usernamecheck.php</span></td><td><span class="badge b-new">New</span></td><td>Phase 3</td></tr>
+                    <tr><td><span class="tag">Project/useraccessaction.php</span></td><td><span class="badge b-new">New</span></td><td>Phase 3</td></tr>
+                    <tr><td><span class="tag">Project/userdeleteaction.php</span></td><td><span class="badge b-new">New</span></td><td>Phase 3</td></tr>
+                    <tr><td><span class="tag">Project/userresetpwaction.php</span></td><td><span class="badge b-new">New</span></td><td>Phase 3</td></tr>
+                    <tr><td><span class="tag">Project/userexport.php</span></td><td><span class="badge b-new">New</span></td><td>Phase 3</td></tr>
+                    <tr><td><span class="tag">Project/userslist.php</span></td><td><span class="badge b-ux">Enhance</span></td><td>Phase 4</td></tr>
+                    <tr><td><span class="tag">Project/profile.php</span></td><td><span class="badge b-ux">Enhance</span></td><td>Phase 5</td></tr>
+                    <tr><td><span class="tag">assets/js/usermanagement.js</span></td><td><span class="badge b-new">New</span></td><td>Phase 6</td></tr>
+                    <tr><td><span class="tag">DB: users table</span></td><td><span class="badge b-db">+3 columns, 2 indexes</span></td><td>Phase 7</td></tr>
+                    <tr><td><span class="tag">layout/nav.php</span></td><td><span class="badge b-ux">Add nav link (admin only)</span></td><td>Phase 8</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 1 ═══════════════════ -->
+    <span class="section-anchor" id="phase1"></span>
+    <div class="phase-header ph-1">
+        <h3>Phase 1 — Registration Form (usersadd.php)</h3>
+        <p>Fix 10 existing issues: accessibility, bugs, styling, responsiveness, and UX features</p>
+    </div>
+
+    <!-- ARIA fixes -->
+    <div class="section-title">Accessibility &amp; ARIA</div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num n-bug">A1</div>
+            <h3>Link all labels to inputs — add <code>for</code> / <code>id</code> pairs on all 9 fields</h3>
+            <span class="badge b-bug">Critical</span>
+        </div>
+        <div class="card-body">
+            <dlabel class="dlabel after">Full corrected field set</dlabel>
+            <pre><span class="comment">// All 9 fields — id, for, type, autocomplete, aria-required</span>
+<span class="add">&lt;label class="labels" for="fname"&gt;First Name &lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span>
+<span class="add">&lt;input type="text"     id="fname"    name="fname"    autocomplete="given-name"   aria-required="true" class="form-control"&gt;</span>
+
+<span class="add">&lt;label class="labels" for="sname"&gt;Last Name  &lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span>
+<span class="add">&lt;input type="text"     id="sname"    name="sname"    autocomplete="family-name"  aria-required="true" class="form-control"&gt;</span>
+
+<span class="add">&lt;label class="labels" for="uname"&gt;Username   &lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span>
+<span class="add">&lt;input type="text"     id="uname"    name="uname"    autocomplete="username"     aria-required="true" class="form-control"&gt;</span>
+<span class="add">&lt;div id="uname-feedback" class="invalid-feedback"&gt;&lt;/div&gt;</span>
+
+<span class="add">&lt;label class="labels" for="phone"&gt;Mobile     &lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span>
+<span class="add">&lt;input type="tel"      id="phone"    name="phone"    autocomplete="tel"          aria-required="true" class="form-control"&gt;</span>
+
+<span class="add">&lt;label class="labels" for="gender"&gt;Gender&lt;/label&gt;</span>
+<span class="add">&lt;select id="gender" name="gender" class="form-select"&gt;</span>
+<span class="add">    &lt;option value="male"&gt;Male&lt;/option&gt;</span>
+<span class="add">    &lt;option value="female"&gt;Female&lt;/option&gt;</span>
+<span class="add">&lt;/select&gt;</span>
+
+<span class="add">&lt;label class="labels" for="email"&gt;Email      &lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span>
+<span class="add">&lt;input type="email"    id="email"    name="email"    autocomplete="email"        aria-required="true" class="form-control"&gt;</span>
+
+<span class="add">&lt;label class="labels" for="roles"&gt;User Role&lt;/label&gt;</span>
+<span class="add">&lt;select id="roles" name="roles" class="form-select"&gt;</span>
+<span class="add">    &lt;option value="1"&gt;Administrator&lt;/option&gt;</span>
+<span class="add">    &lt;option value="2" selected&gt;User&lt;/option&gt;</span>
+<span class="add">&lt;/select&gt;</span>
+
+<span class="add">&lt;label class="labels" for="dept"&gt;Department&lt;/label&gt;</span>
+<span class="add">&lt;select id="dept" name="dept" class="form-select"&gt;...&lt;/select&gt;</span>
+
+<span class="add">&lt;label class="labels fw-bold text-danger" for="password"&gt;Password &lt;span aria-hidden="true"&gt;*&lt;/span&gt;&lt;/label&gt;</span>
+<span class="add">&lt;div class="input-group"&gt;</span>
+<span class="add">    &lt;input type="password" id="password" name="password" autocomplete="new-password" aria-required="true" class="form-control"&gt;</span>
+<span class="add">    &lt;button type="button" class="btn btn-outline-secondary toggle-pw" aria-label="Show password"&gt;&#128065;&lt;/button&gt;</span>
+<span class="add">&lt;/div&gt;</span>
+<span class="add">&lt;div class="progress mt-1" style="height:5px;"&gt;&lt;div id="pw-bar" class="progress-bar"&gt;&lt;/div&gt;&lt;/div&gt;</span>
+<span class="add">&lt;small id="pw-label" class="text-muted"&gt;&lt;/small&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="num n-bug">A2</div>
+            <h3>Add live-region for submission feedback</h3>
+            <span class="badge b-bug">Critical</span>
+        </div>
+        <div class="card-body">
+            <p>Place this div inside <span class="tag">&lt;form id="profileform"&gt;</span> just above the submit button. Screen readers announce its content the moment it changes.</p>
+            <pre><span class="add">&lt;div id="form-feedback" role="alert" aria-live="polite" class="mt-3"&gt;&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- Bugs -->
+    <div class="section-title">Bugs to Fix</div>
+    <div class="two-col">
+        <div class="card">
+            <div class="card-header"><div class="num n-bug">B1</div><h3>Stray <code>';</code> on lines 104 &amp; 129</h3><span class="badge b-bug">Bug</span></div>
+            <div class="card-body">
+                <p>PHP echo remnants render as visible text. Remove <span class="tag">';</span> after both closing <span class="tag">&lt;/option&gt;</span> tags.</p>
+                <pre><span class="del">&lt;option value="female"&gt;Female&lt;/option&gt;';</span>
+<span class="add">&lt;option value="female"&gt;Female&lt;/option&gt;</span></pre>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><div class="num n-bug">B2</div><h3><code>$showdept</code> never fetched</h3><span class="badge b-bug">Bug</span></div>
+            <div class="card-body">
+                <p>Add at top of file. No <span class="tag">getDepartments()</span> exists in usersClass — use <span class="tag">departmentClass->showDept()</span>.</p>
+                <pre><span class="add">include_once './department/departmentClass.php';</span>
+<span class="add">$deptClass = new departmentClass();</span>
+<span class="add">$showdept  = $deptClass->showDept();</span>
+<span class="add">$profile   = [];  // no pre-selection on add form</span></pre>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><div class="num n-bug">B3</div><h3>Orphan datatable script</h3><span class="badge b-bug">Bug</span></div>
+            <div class="card-body">
+                <p>The page initialises a datatable on <span class="tag">#table1</span> which does not exist. Remove the entire script block.</p>
+                <pre><span class="del">&lt;script src=".../simple-datatables.js"&gt;&lt;/script&gt;</span>
+<span class="del">&lt;script&gt;let table1 = document.querySelector('#table1');...&lt;/script&gt;</span></pre>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><div class="num n-bug">B4</div><h3>Button has no AJAX handler</h3><span class="badge b-bug">Bug</span></div>
+            <div class="card-body">
+                <p><span class="tag">type="button"</span> prevents native submit and no JS is attached. Handler goes in <span class="tag">usermanagement.js</span> (Phase 6).</p>
+                <pre><span class="del">&lt;button class="btn btn-primary adduser-button" type="button"&gt;ADD USERS&lt;/button&gt;</span>
+<span class="add">&lt;div class="d-grid d-md-block"&gt;</span>
+<span class="add">    &lt;button class="btn btn-primary adduser-button" type="button"&gt;ADD USER&lt;/button&gt;</span>
+<span class="add">&lt;/div&gt;</span></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Styling / Responsive -->
+    <div class="section-title">Styling &amp; Responsiveness</div>
+    <div class="card">
+        <div class="card-header"><div class="num n-style">S1</div><h3>Column order + mobile visibility</h3><span class="badge b-resp">Responsive</span></div>
+        <div class="card-body">
+            <pre><span class="comment">&lt;!-- Avatar column: hidden on mobile, last on md+ --&gt;</span>
+<span class="add">&lt;div class="col-md-3 border-right order-md-1 d-none d-md-block"&gt;</span>
+<span class="comment">&lt;!-- Fields: always visible, first on mobile --&gt;</span>
+<span class="add">&lt;div class="col-12 col-md-5 border-right order-md-2"&gt;</span>
+<span class="comment">&lt;!-- Roles: third --&gt;</span>
+<span class="add">&lt;div class="col-12 col-md-4 order-md-3"&gt;</span></pre>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><div class="num n-style">S2</div><h3>Required field indicators &amp; uniform spacing</h3><span class="badge b-style">Styling</span></div>
+        <div class="card-body">
+            <p>Add <span class="tag">&lt;span class="text-danger" aria-hidden="true"&gt;*&lt;/span&gt;</span> to each required label. Add a note above the form: <em>"Fields marked * are required."</em> Replace mixed <span class="tag">mt-2/mt-3</span> with consistent <span class="tag">mb-3</span> on each field wrapper.</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><div class="num n-style">S3</div><h3>Extract inline <code>&lt;style&gt;</code> block</h3><span class="badge b-style">Styling</span></div>
+        <div class="card-body">
+            <p>Move the 56-line <span class="tag">&lt;style&gt;</span> block to <span class="tag">assets/css/user-form.css</span>. Identical styles exist in <span class="tag">profile.php</span> — one shared file eliminates both duplicates.</p>
+        </div>
+    </div>
+
+    <!-- Also fix usersaction.php -->
+    <div class="section-title">Also fix usersaction.php — add CSRF validation</div>
+    <div class="card">
+        <div class="card-header"><div class="num n-bug">B5</div><h3>No CSRF token on the create-user handler</h3><span class="badge b-bug">Security</span></div>
+        <div class="card-body">
+            <div class="dlabel after">Add to usersadd.php form (generate token)</div>
+            <pre><span class="add">&lt;?php if (empty($_SESSION['csrf_token'])) {</span>
+<span class="add">    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));</span>
+<span class="add">} ?&gt;</span>
+<span class="add">&lt;input type="hidden" name="csrf_token" value="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;</span></pre>
+            <div class="dlabel after">Add to usersaction.php (validate token)</div>
+            <pre><span class="add">if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {</span>
+<span class="add">    respond_error('Invalid request token.');</span>
+<span class="add">}</span></pre>
+            <div class="note">Note: existing handlers use <span class="tag">respond_ok()</span> / <span class="tag">respond_error()</span> defined in <span class="tag">AuthGuard.php</span>. Keep this pattern for all user management handlers — do NOT switch to the <span class="tag">Response</span> class mid-module.</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 2 ═══════════════════ -->
+    <span class="section-anchor" id="phase2"></span>
+    <div class="phase-header ph-2">
+        <h3>Phase 2 — usersClass.php — New Methods</h3>
+        <p>5 new methods to support the module features. Add below the existing methods in <code>Project/users/usersClass.php</code>.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-method">M1</div><h3><code>toggleAccess()</code> — suspend / activate a user</h3><span class="badge b-method">New Method</span></div>
+        <div class="card-body">
+            <pre><span class="comment">// Flip access: 0→1 (activate) or 1→0 (suspend). Returns new state label.</span>
+<span class="key">public function</span> <span class="hl">toggleAccess</span>(<span class="key">string</span> $uid, <span class="key">string</span> $adminUid, <span class="key">string</span> $ip): <span class="key">string</span> {
+    $stmt = $this->prepare(<span class="str">"UPDATE users SET access = 1 - access WHERE id = ?"</span>);
+    $stmt->bind_param(<span class="str">'s'</span>, $uid);
+    $stmt->execute();
+    <span class="key">if</span> ($stmt->affected_rows &lt; 1) <span class="key">return</span> <span class="str">'No change'</span>;
+    $row = $this->fetchOne(<span class="str">'users'</span>, <span class="str">'id'</span>, $uid);
+    $state = ($row[<span class="str">'access'</span>] == 1) ? <span class="str">'activated'</span> : <span class="str">'suspended'</span>;
+    ActivityLogger::log($this, $adminUid, <span class="str">'Users'</span>, <span class="str">"$state user id=$uid"</span>, $ip);
+    <span class="key">return</span> $state;
+}</pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-method">M2</div><h3><code>deleteUser()</code> — soft delete</h3><span class="badge b-method">New Method</span></div>
+        <div class="card-body">
+            <pre><span class="comment">// Soft-delete: sets deleted_at. Requires Phase 7 DB migration first.</span>
+<span class="key">public function</span> <span class="hl">deleteUser</span>(<span class="key">string</span> $uid, <span class="key">string</span> $adminUid, <span class="key">string</span> $ip): <span class="key">bool</span> {
+    $stmt = $this->prepare(<span class="str">"UPDATE users SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL"</span>);
+    $stmt->bind_param(<span class="str">'s'</span>, $uid);
+    $stmt->execute();
+    <span class="key">if</span> ($stmt->affected_rows &lt; 1) <span class="key">return false</span>;
+    ActivityLogger::log($this, $adminUid, <span class="str">'Users'</span>, <span class="str">"deleted user id=$uid"</span>, $ip);
+    <span class="key">return true</span>;
+}</pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-method">M3</div><h3><code>adminResetPassword()</code> — force password reset</h3><span class="badge b-method">New Method</span></div>
+        <div class="card-body">
+            <pre><span class="comment">// Sets a temp password and flags first_login=1 so the user must change it.</span>
+<span class="key">public function</span> <span class="hl">adminResetPassword</span>(<span class="key">string</span> $uid, <span class="key">string</span> $tempPass, <span class="key">string</span> $adminUid, <span class="key">string</span> $ip): <span class="key">string</span> {
+    $hash = password_hash($tempPass, PASSWORD_DEFAULT);
+    $stmt = $this->prepare(<span class="str">"UPDATE users SET upassword = ?, first_login = 1 WHERE id = ?"</span>);
+    $stmt->bind_param(<span class="str">'ss'</span>, $hash, $uid);
+    $stmt->execute();
+    <span class="key">if</span> ($stmt->affected_rows &lt; 1) <span class="key">return</span> <span class="str">'Reset failed'</span>;
+    ActivityLogger::log($this, $adminUid, <span class="str">'Users'</span>, <span class="str">"force-reset password for user id=$uid"</span>, $ip);
+    <span class="key">return</span> <span class="str">'Password reset. User must change on next login.'</span>;
+}</pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-method">M4</div><h3><code>usernameExists()</code> — duplicate check</h3><span class="badge b-method">New Method</span></div>
+        <div class="card-body">
+            <pre><span class="comment">// Returns true if username already taken (used by the live-check endpoint).</span>
+<span class="key">public function</span> <span class="hl">usernameExists</span>(<span class="key">string</span> $uname): <span class="key">bool</span> {
+    <span class="key">return</span> $this->fetchOne(<span class="str">'users'</span>, <span class="str">'username'</span>, $uname) !== <span class="key">null</span>;
+}</pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-method">M5</div><h3><code>getStats()</code> — dashboard aggregate</h3><span class="badge b-method">New Method</span></div>
+        <div class="card-body">
+            <pre><span class="comment">// Returns totals for the stats cards on userslist.php.</span>
+<span class="key">public function</span> <span class="hl">getStats</span>(): <span class="key">array</span> {
+    $stmt = $this->prepare(
+        <span class="str">"SELECT COUNT(*) AS total,
+                SUM(access = 1) AS active,
+                SUM(access = 0) AS suspended,
+                SUM(roles  = 1) AS admins,
+                SUM(roles  = 2) AS users
+         FROM users
+         WHERE deleted_at IS NULL"</span>
+    );
+    $stmt->execute();
+    <span class="key">return</span> $stmt->get_result()->fetch_assoc() ?? [];
+}</pre>
+            <div class="warn">Requires <span class="tag">deleted_at</span> column from Phase 7. If you run this before migration, remove the WHERE clause temporarily.</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 3 ═══════════════════ -->
+    <span class="section-anchor" id="phase3"></span>
+    <div class="phase-header ph-3">
+        <h3>Phase 3 — New Handler Files</h3>
+        <p>5 new PHP endpoints. All follow the same pattern: <code>AuthGuard.php</code> → CSRF check → action → <code>respond_ok / respond_error</code>.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">H1</div><h3><code>Project/usernamecheck.php</code> — username availability</h3><span class="badge b-new">New File</span></div>
+        <div class="card-body">
+            <pre><span class="add">&lt;?php</span>
+<span class="add">require_once __DIR__ . '/core/AuthGuard.php';</span>
+<span class="add">require_once __DIR__ . '/users/usersClass.php';</span>
+<span class="add">$uname = trim($_GET['uname'] ?? '');</span>
+<span class="add">if ($uname === '') { respond_error('Missing username'); }</span>
+<span class="add">$taken = (new usersClass())->usernameExists($uname);</span>
+<span class="add">header('Content-Type: application/json');</span>
+<span class="add">echo json_encode(['taken' => $taken]);</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">H2</div><h3><code>Project/useraccessaction.php</code> — toggle suspend/activate</h3><span class="badge b-new">New File</span></div>
+        <div class="card-body">
+            <pre><span class="add">&lt;?php</span>
+<span class="add">require_once __DIR__ . '/core/AuthGuard.php';</span>
+<span class="add">require_once __DIR__ . '/users/usersClass.php';</span>
+<span class="add">if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {</span>
+<span class="add">    respond_error('Invalid request token.');</span>
+<span class="add">}</span>
+<span class="add">$target_uid = $_POST['uid'] ?? '';</span>
+<span class="add">if ($target_uid === '') { respond_error('Missing user ID'); }</span>
+<span class="add">$uc    = new usersClass();</span>
+<span class="add">$state = $uc->toggleAccess($target_uid, $uid, $ip);   // $uid, $ip from AuthGuard</span>
+<span class="add">respond_ok($state);</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">H3</div><h3><code>Project/userdeleteaction.php</code> — soft delete</h3><span class="badge b-new">New File</span></div>
+        <div class="card-body">
+            <pre><span class="add">&lt;?php</span>
+<span class="add">require_once __DIR__ . '/core/AuthGuard.php';</span>
+<span class="add">require_once __DIR__ . '/users/usersClass.php';</span>
+<span class="add">if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {</span>
+<span class="add">    respond_error('Invalid request token.');</span>
+<span class="add">}</span>
+<span class="add">$target_uid = $_POST['uid'] ?? '';</span>
+<span class="add">if ($target_uid === '') { respond_error('Missing user ID'); }</span>
+<span class="add">if ($target_uid === $uid) { respond_error('You cannot delete your own account.'); }</span>
+<span class="add">$ok = (new usersClass())->deleteUser($target_uid, $uid, $ip);</span>
+<span class="add">$ok ? respond_ok('User deleted.') : respond_error('Delete failed.');</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">H4</div><h3><code>Project/userresetpwaction.php</code> — admin force-reset</h3><span class="badge b-new">New File</span></div>
+        <div class="card-body">
+            <pre><span class="add">&lt;?php</span>
+<span class="add">require_once __DIR__ . '/core/AuthGuard.php';</span>
+<span class="add">require_once __DIR__ . '/users/usersClass.php';</span>
+<span class="add">if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {</span>
+<span class="add">    respond_error('Invalid request token.');</span>
+<span class="add">}</span>
+<span class="add">$target_uid = $_POST['uid']      ?? '';</span>
+<span class="add">$temp_pass  = $_POST['new_pass'] ?? '';</span>
+<span class="add">if ($target_uid === '' || $temp_pass === '') { respond_error('FORM ERROR'); }</span>
+<span class="add">if (strlen($temp_pass) &lt; 8) { respond_error('Password must be at least 8 characters.'); }</span>
+<span class="add">$msg = (new usersClass())->adminResetPassword($target_uid, $temp_pass, $uid, $ip);</span>
+<span class="add">respond_ok($msg);</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">H5</div><h3><code>Project/userexport.php</code> — CSV export</h3><span class="badge b-new">New File</span></div>
+        <div class="card-body">
+            <pre><span class="add">&lt;?php</span>
+<span class="add">require_once __DIR__ . '/core/AuthGuard.php';</span>
+<span class="add">require_once __DIR__ . '/users/usersClass.php';</span>
+<span class="add">$users = (new usersClass())->fetchusers();</span>
+<span class="add">header('Content-Type: text/csv');</span>
+<span class="add">header('Content-Disposition: attachment; filename="users_' . date('Y-m-d') . '.csv"');</span>
+<span class="add">$out = fopen('php://output', 'w');</span>
+<span class="add">fputcsv($out, ['User ID', 'First Name', 'Last Name', 'Username', 'Email', 'Phone', 'Gender', 'Department', 'Role', 'Status']);</span>
+<span class="add">foreach ($users as $u) {</span>
+<span class="add">    fputcsv($out, [</span>
+<span class="add">        'UID00' . $u['id'], $u['fname'], $u['sname'], $u['username'],</span>
+<span class="add">        $u['email'], $u['phone'], $u['gender'], $u['dept_id'],</span>
+<span class="add">        ($u['roles'] == 1 ? 'Administrator' : 'User'),</span>
+<span class="add">        ($u['access'] == 1 ? 'Active' : 'Suspended')</span>
+<span class="add">    ]);</span>
+<span class="add">}</span>
+<span class="add">fclose($out);</span></pre>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 4 ═══════════════════ -->
+    <span class="section-anchor" id="phase4"></span>
+    <div class="phase-header ph-4">
+        <h3>Phase 4 — userslist.php Enhancements</h3>
+        <p>Add stats cards, clickable access toggle, department filter, delete button, and CSV export button</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">L1</div><h3>Stats cards row at top of page</h3><span class="badge b-new">New UI</span></div>
+        <div class="card-body">
+            <p>Fetch stats at the top of the PHP file, then render a Bootstrap card row before the table.</p>
+            <pre><span class="add">&lt;?php</span>
+<span class="add">$stats = $usersclass->getStats();</span>
+<span class="add">?&gt;</span>
+<span class="add">&lt;div class="row mb-4"&gt;</span>
+<span class="add">    &lt;div class="col-6 col-md-3"&gt;</span>
+<span class="add">        &lt;div class="card text-center p-3"&gt;</span>
+<span class="add">            &lt;h2 class="fw-bold text-primary"&gt;&lt;?= $stats['total'] ?&gt;&lt;/h2&gt;</span>
+<span class="add">            &lt;small class="text-muted"&gt;Total Users&lt;/small&gt;</span>
+<span class="add">        &lt;/div&gt;</span>
+<span class="add">    &lt;/div&gt;</span>
+<span class="add">    &lt;div class="col-6 col-md-3"&gt;</span>
+<span class="add">        &lt;div class="card text-center p-3"&gt;</span>
+<span class="add">            &lt;h2 class="fw-bold text-success"&gt;&lt;?= $stats['active'] ?&gt;&lt;/h2&gt;</span>
+<span class="add">            &lt;small class="text-muted"&gt;Active&lt;/small&gt;</span>
+<span class="add">        &lt;/div&gt;</span>
+<span class="add">    &lt;/div&gt;</span>
+<span class="add">    &lt;div class="col-6 col-md-3"&gt;</span>
+<span class="add">        &lt;div class="card text-center p-3"&gt;</span>
+<span class="add">            &lt;h2 class="fw-bold text-danger"&gt;&lt;?= $stats['suspended'] ?&gt;&lt;/h2&gt;</span>
+<span class="add">            &lt;small class="text-muted"&gt;Suspended&lt;/small&gt;</span>
+<span class="add">        &lt;/div&gt;</span>
+<span class="add">    &lt;/div&gt;</span>
+<span class="add">    &lt;div class="col-6 col-md-3"&gt;</span>
+<span class="add">        &lt;div class="card text-center p-3"&gt;</span>
+<span class="add">            &lt;h2 class="fw-bold text-warning"&gt;&lt;?= $stats['admins'] ?&gt;&lt;/h2&gt;</span>
+<span class="add">            &lt;small class="text-muted"&gt;Administrators&lt;/small&gt;</span>
+<span class="add">        &lt;/div&gt;</span>
+<span class="add">    &lt;/div&gt;</span>
+<span class="add">&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">L2</div><h3>Card header toolbar — dept filter + export button</h3><span class="badge b-new">New UI</span></div>
+        <div class="card-body">
+            <pre><span class="add">&lt;div class="card-header d-flex align-items-center gap-3 flex-wrap"&gt;</span>
+<span class="add">    &lt;select id="dept-filter" class="form-select form-select-sm" style="max-width:200px;"</span>
+<span class="add">            aria-label="Filter by department"&gt;</span>
+<span class="add">        &lt;option value=""&gt;All Departments&lt;/option&gt;</span>
+<span class="add">        &lt;?php foreach ($showdept as $d): ?&gt;</span>
+<span class="add">        &lt;option value="&lt;?= $d['dept_id'] ?&gt;"&gt;&lt;?= htmlspecialchars($d['dept_name']) ?&gt;&lt;/option&gt;</span>
+<span class="add">        &lt;?php endforeach; ?&gt;</span>
+<span class="add">    &lt;/select&gt;</span>
+<span class="add">    &lt;a href="../Project/userexport.php" class="btn btn-sm btn-outline-success ms-auto"&gt;</span>
+<span class="add">        &#128190; Export CSV</span>
+<span class="add">    &lt;/a&gt;</span>
+<span class="add">    &lt;button onclick="location.href='../Project/usersadd.php'" class="btn btn-sm btn-primary"&gt;</span>
+<span class="add">        &#43; Add User</span>
+<span class="add">    &lt;/button&gt;</span>
+<span class="add">&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">L3</div><h3>Replace static access badges with clickable AJAX buttons</h3><span class="badge b-new">New UI</span></div>
+        <div class="card-body">
+            <p>The <span class="tag">$action</span> variable in the PHP loop currently builds non-functional buttons. Add <span class="tag">data-uid</span> and the <span class="tag">access-toggle</span> class so JS can wire them up.</p>
+            <pre><span class="del">$action="&lt;button class='btn btn-success btn-sm'&gt;Active&lt;/button&gt;";</span>
+<span class="add">$accessLabel = $users["access"]==1 ? 'Active'    : 'Suspended';</span>
+<span class="add">$accessClass = $users["access"]==1 ? 'btn-success' : 'btn-danger';</span>
+<span class="add">$action = "&lt;button class='btn btn-sm {$accessClass} access-toggle'"</span>
+<span class="add">        . " data-uid='{$users[\"id\"]}' data-csrf='&lt;?= $_SESSION[\"csrf_token\"] ?&gt;'&gt;"</span>
+<span class="add">        . "{$accessLabel}&lt;/button&gt;";</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">L4</div><h3>Add Delete button to the action column</h3><span class="badge b-new">New UI</span></div>
+        <div class="card-body">
+            <pre><span class="add">$delBtn = "&lt;button class='btn btn-sm btn-outline-danger user-delete ms-1'"</span>
+<span class="add">        . " data-uid='{$users[\"id\"]}' data-name='{$users[\"fname\"]} {$users[\"sname\"]}'"</span>
+<span class="add">        . " data-csrf='&lt;?= $_SESSION[\"csrf_token\"] ?&gt;'&gt;"</span>
+<span class="add">        . "&#128465;&lt;/button&gt;";</span></pre>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 5 ═══════════════════ -->
+    <span class="section-anchor" id="phase5"></span>
+    <div class="phase-header ph-5">
+        <h3>Phase 5 — profile.php Enhancements</h3>
+        <p>Add an activity log tab and a Reset Password button. Also note an existing bug in <code>profileaction.php</code>.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-bug">P1</div><h3>Bug: profileaction.php uses <code>loginClass→Update()</code> instead of <code>usersClass</code></h3><span class="badge b-bug">Existing Bug</span></div>
+        <div class="card-body">
+            <p><span class="tag">profileaction.php</span> currently imports <span class="tag">loginClass.php</span> and calls <span class="tag">loginClass->Update()</span> to save profile edits. This is inconsistent — user data is owned by usersClass, not loginClass. Any update to the users table schema may break this silently.</p>
+            <div class="warn">When you build the profile edit feature, make sure the <span class="tag">Update()</span> method is moved to <span class="tag">usersClass</span> and <span class="tag">profileaction.php</span> imports <span class="tag">usersClass.php</span> instead.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">P2</div><h3>Add "Reset Password" button to profile page</h3><span class="badge b-new">New UI</span></div>
+        <div class="card-body">
+            <p>Show only if the logged-in session user is an Administrator (<span class="tag">$_SESSION['roles'] == 1</span>) and the target is not themselves.</p>
+            <pre><span class="add">&lt;?php if ($_SESSION['roles'] == 1 &amp;&amp; $_SESSION['uid'] != $upid): ?&gt;</span>
+<span class="add">&lt;button class="btn btn-warning btn-sm reset-pw-btn mt-2"</span>
+<span class="add">        data-uid="&lt;?= $upid ?&gt;"</span>
+<span class="add">        data-csrf="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;</span>
+<span class="add">    &#128274; Reset Password</span>
+<span class="add">&lt;/button&gt;</span>
+<span class="add">&lt;?php endif; ?&gt;</span></pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="num n-new">P3</div><h3>Activity log tab on profile</h3><span class="badge b-new">New UI</span></div>
+        <div class="card-body">
+            <p>Add a Bootstrap tab to the profile page that loads the user's last 50 activity log entries.</p>
+            <pre><span class="comment">&lt;!-- Tab nav --&gt;</span>
+<span class="add">&lt;ul class="nav nav-tabs mt-4"&gt;</span>
+<span class="add">    &lt;li class="nav-item"&gt;&lt;a class="nav-link active" data-bs-toggle="tab" href="#tab-profile"&gt;Profile&lt;/a&gt;&lt;/li&gt;</span>
+<span class="add">    &lt;li class="nav-item"&gt;&lt;a class="nav-link"        data-bs-toggle="tab" href="#tab-activity"&gt;Activity Log&lt;/a&gt;&lt;/li&gt;</span>
+<span class="add">&lt;/ul&gt;</span>
+<span class="comment">&lt;!-- Activity tab content --&gt;</span>
+<span class="add">&lt;div class="tab-pane" id="tab-activity"&gt;</span>
+<span class="add">    &lt;table class="table table-sm mt-3"&gt;</span>
+<span class="add">        &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Module&lt;/th&gt;&lt;th&gt;Action&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;</span>
+<span class="add">        &lt;tbody&gt;</span>
+<span class="add">        &lt;?php</span>
+<span class="add">        // Fetch from activity_log WHERE uid = $upid ORDER BY created_at DESC LIMIT 50</span>
+<span class="add">        // via a new ActivityLogger::fetchForUser($db, $upid) method</span>
+<span class="add">        ?&gt;</span>
+<span class="add">        &lt;/tbody&gt;</span>
+<span class="add">    &lt;/table&gt;</span>
+<span class="add">&lt;/div&gt;</span></pre>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 6 ═══════════════════ -->
+    <span class="section-anchor" id="phase6"></span>
+    <div class="phase-header ph-6">
+        <h3>Phase 6 — assets/js/usermanagement.js</h3>
+        <p>New JS file. Include it only on user management pages. Covers all AJAX handlers for the module.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <pre><span class="comment">/* assets/js/usermanagement.js */</span>
+<span class="hl">$(function () {</span>
+
+    <span class="comment">/* ── Add User form submit ── */</span>
+    <span class="key">function</span> validateForm() {
+        <span class="key">var</span> valid = <span class="key">true</span>;
+        [<span class="str">'fname'</span>,<span class="str">'sname'</span>,<span class="str">'uname'</span>,<span class="str">'email'</span>,<span class="str">'phone'</span>,<span class="str">'password'</span>].forEach(<span class="key">function</span>(id) {
+            <span class="key">var</span> $el = $(<span class="str">'#'</span> + id);
+            <span class="key">if</span> (!$el.val().trim()) { $el.addClass(<span class="str">'is-invalid'</span>); valid = <span class="key">false</span>; }
+            <span class="key">else</span>                   { $el.removeClass(<span class="str">'is-invalid'</span>); }
+        });
+        <span class="key">return</span> valid;
+    }
+
+    $(<span class="str">'.adduser-button'</span>).on(<span class="str">'click'</span>, <span class="key">function</span>() {
+        <span class="key">if</span> (!validateForm()) { $(<span class="str">'#form-feedback'</span>).html(<span class="str">'&lt;div class="alert alert-warning"&gt;Please fill all required fields.&lt;/div&gt;'</span>); <span class="key">return</span>; }
+        <span class="key">var</span> $btn = $(<span class="key">this</span>).prop(<span class="str">'disabled'</span>, <span class="key">true</span>).text(<span class="str">'Adding…'</span>);
+        $.ajax({
+            url: window.GRC.base + <span class="str">'Project/usersaction.php'</span>,
+            method: <span class="str">'POST'</span>, dataType: <span class="str">'json'</span>,
+            data: $(<span class="str">'#profileform'</span>).serialize(),
+            success: <span class="key">function</span>(res) {
+                <span class="key">var</span> cls = res.status === <span class="str">'ok'</span> ? <span class="str">'success'</span> : <span class="str">'danger'</span>;
+                $(<span class="str">'#form-feedback'</span>).html(<span class="str">'&lt;div class="alert alert-'</span>+cls+<span class="str">'"&gt;'</span>+res.message+<span class="str">'&lt;/div&gt;'</span>);
+                <span class="key">if</span> (res.status === <span class="str">'ok'</span>) $(<span class="str">'#profileform'</span>)[0].reset();
+            },
+            error: <span class="key">function</span>() { $(<span class="str">'#form-feedback'</span>).html(<span class="str">'&lt;div class="alert alert-danger"&gt;Server error.&lt;/div&gt;'</span>); },
+            complete: <span class="key">function</span>() { $btn.prop(<span class="str">'disabled'</span>, <span class="key">false</span>).text(<span class="str">'ADD USER'</span>); }
+        });
+    });
+
+    <span class="comment">/* ── Username live check ── */</span>
+    $(<span class="str">'#uname'</span>).on(<span class="str">'blur'</span>, <span class="key">function</span>() {
+        <span class="key">var</span> val = $(<span class="key">this</span>).val().trim(); <span class="key">if</span> (!val) <span class="key">return</span>;
+        $.getJSON(window.GRC.base + <span class="str">'Project/usernamecheck.php'</span>, { uname: val }, <span class="key">function</span>(res) {
+            $(<span class="str">'#uname'</span>).toggleClass(<span class="str">'is-invalid'</span>, res.taken).toggleClass(<span class="str">'is-valid'</span>, !res.taken);
+            $(<span class="str">'#uname-feedback'</span>).text(res.taken ? <span class="str">'Username already taken.'</span> : <span class="str">''</span>);
+        });
+    });
+
+    <span class="comment">/* ── Show / hide password ── */</span>
+    $(<span class="str">'.toggle-pw'</span>).on(<span class="str">'click'</span>, <span class="key">function</span>() {
+        <span class="key">var</span> $inp = $(<span class="str">'#password'</span>);
+        <span class="key">var</span> shown = $inp.attr(<span class="str">'type'</span>) === <span class="str">'text'</span>;
+        $inp.attr(<span class="str">'type'</span>, shown ? <span class="str">'password'</span> : <span class="str">'text'</span>);
+        $(<span class="key">this</span>).attr(<span class="str">'aria-label'</span>, shown ? <span class="str">'Show password'</span> : <span class="str">'Hide password'</span>);
+    });
+
+    <span class="comment">/* ── Password strength ── */</span>
+    $(<span class="str">'#password'</span>).on(<span class="str">'keyup'</span>, <span class="key">function</span>() {
+        <span class="key">var</span> v = $(<span class="key">this</span>).val(), s = 0;
+        <span class="key">if</span> (v.length >= 8) s++; <span class="key">if</span> (/[A-Z]/.test(v)) s++; <span class="key">if</span> (/\d/.test(v)) s++; <span class="key">if</span> (/\W/.test(v)) s++;
+        <span class="key">var</span> c = [<span class="str">''</span>,<span class="str">'bg-danger'</span>,<span class="str">'bg-warning'</span>,<span class="str">'bg-info'</span>,<span class="str">'bg-success'</span>][s];
+        <span class="key">var</span> l = [<span class="str">''</span>,<span class="str">'Weak'</span>,<span class="str">'Fair'</span>,<span class="str">'Good'</span>,<span class="str">'Strong'</span>][s];
+        $(<span class="str">'#pw-bar'</span>).css(<span class="str">'width'</span>, (s*25)+<span class="str">'%'</span>).removeClass().addClass(<span class="str">'progress-bar '</span>+c);
+        $(<span class="str">'#pw-label'</span>).text(l);
+    });
+
+    <span class="comment">/* ── Access toggle (userslist.php) ── */</span>
+    $(document).on(<span class="str">'click'</span>, <span class="str">'.access-toggle'</span>, <span class="key">function</span>() {
+        <span class="key">var</span> $btn = $(<span class="key">this</span>), tUid = $btn.data(<span class="str">'uid'</span>), csrf = $btn.data(<span class="str">'csrf'</span>);
+        $.ajax({
+            url: window.GRC.base + <span class="str">'Project/useraccessaction.php'</span>,
+            method: <span class="str">'POST'</span>, dataType: <span class="str">'json'</span>,
+            data: { uid: tUid, csrf_token: csrf },
+            success: <span class="key">function</span>(res) {
+                <span class="key">if</span> (res.status === <span class="str">'ok'</span>) {
+                    <span class="key">var</span> active = res.message === <span class="str">'activated'</span>;
+                    $btn.text(active ? <span class="str">'Active'</span> : <span class="str">'Suspended'</span>)
+                        .removeClass(<span class="str">'btn-success btn-danger'</span>)
+                        .addClass(active ? <span class="str">'btn-success'</span> : <span class="str">'btn-danger'</span>);
+                } <span class="key">else</span> { Swal.fire(<span class="str">'Error'</span>, res.message, <span class="str">'error'</span>); }
+            }
+        });
+    });
+
+    <span class="comment">/* ── Delete user (userslist.php) ── */</span>
+    $(document).on(<span class="str">'click'</span>, <span class="str">'.user-delete'</span>, <span class="key">function</span>() {
+        <span class="key">var</span> $btn = $(<span class="key">this</span>), tUid = $btn.data(<span class="str">'uid'</span>), name = $btn.data(<span class="str">'name'</span>), csrf = $btn.data(<span class="str">'csrf'</span>);
+        Swal.fire({ title: <span class="str">'Delete '</span>+name+<span class="str">'?'</span>, text: <span class="str">'This cannot be undone.'</span>, icon: <span class="str">'warning'</span>,
+            showCancelButton: <span class="key">true</span>, confirmButtonColor: <span class="str">'#d33'</span>, confirmButtonText: <span class="str">'Yes, delete'</span>
+        }).then(<span class="key">function</span>(r) {
+            <span class="key">if</span> (!r.isConfirmed) <span class="key">return</span>;
+            $.ajax({
+                url: window.GRC.base + <span class="str">'Project/userdeleteaction.php'</span>,
+                method: <span class="str">'POST'</span>, dataType: <span class="str">'json'</span>,
+                data: { uid: tUid, csrf_token: csrf },
+                success: <span class="key">function</span>(res) {
+                    <span class="key">if</span> (res.status === <span class="str">'ok'</span>) { $btn.closest(<span class="str">'tr'</span>).fadeOut(<span class="key">function</span>(){ $(<span class="key">this</span>).remove(); }); }
+                    <span class="key">else</span> { Swal.fire(<span class="str">'Error'</span>, res.message, <span class="str">'error'</span>); }
+                }
+            });
+        });
+    });
+
+    <span class="comment">/* ── Reset password (profile.php) ── */</span>
+    $(document).on(<span class="str">'click'</span>, <span class="str">'.reset-pw-btn'</span>, <span class="key">function</span>() {
+        <span class="key">var</span> tUid = $(<span class="key">this</span>).data(<span class="str">'uid'</span>), csrf = $(<span class="key">this</span>).data(<span class="str">'csrf'</span>);
+        Swal.fire({ title: <span class="str">'Set temporary password'</span>, input: <span class="str">'password'</span>,
+            inputAttributes: { autocomplete: <span class="str">'new-password'</span>, minlength: 8 },
+            showCancelButton: <span class="key">true</span>, confirmButtonText: <span class="str">'Reset'</span>
+        }).then(<span class="key">function</span>(r) {
+            <span class="key">if</span> (!r.isConfirmed || !r.value) <span class="key">return</span>;
+            $.ajax({
+                url: window.GRC.base + <span class="str">'Project/userresetpwaction.php'</span>,
+                method: <span class="str">'POST'</span>, dataType: <span class="str">'json'</span>,
+                data: { uid: tUid, new_pass: r.value, csrf_token: csrf },
+                success: <span class="key">function</span>(res) { Swal.fire(res.status === <span class="str">'ok'</span> ? <span class="str">'Done'</span> : <span class="str">'Error'</span>, res.message, res.status === <span class="str">'ok'</span> ? <span class="str">'success'</span> : <span class="str">'error'</span>); }
+            });
+        });
+    });
+
+    <span class="comment">/* ── Dept filter (userslist.php) ── */</span>
+    $(<span class="str">'#dept-filter'</span>).on(<span class="str">'change'</span>, <span class="key">function</span>() {
+        <span class="key">var</span> val = $(<span class="key">this</span>).val();
+        $(<span class="str">'#table1 tbody tr'</span>).show();
+        <span class="key">if</span> (val) { $(<span class="str">'#table1 tbody tr'</span>).filter(<span class="key">function</span>() { <span class="key">return</span> $(<span class="key">this</span>).data(<span class="str">'dept'</span>) !== val; }).hide(); }
+    });
+
+<span class="hl">});</span></pre>
+            <div class="note">Include this file on <span class="tag">usersadd.php</span>, <span class="tag">userslist.php</span>, and <span class="tag">profile.php</span> — only the relevant handlers will fire based on which elements exist on the page.</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 7 ═══════════════════ -->
+    <span class="section-anchor" id="phase7"></span>
+    <div class="phase-header ph-7">
+        <h3>Phase 7 — Database Migration</h3>
+        <p>Run these SQL statements in phpMyAdmin or via CLI before enabling the new features. Also update <code>db/grc.sql</code>.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <pre><span class="comment">-- 1. Soft-delete support</span>
+<span class="add">ALTER TABLE users ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL;</span>
+
+<span class="comment">-- 2. Unique constraints — prevent duplicate email/username at DB level</span>
+<span class="add">ALTER TABLE users ADD UNIQUE KEY uq_email    (email);</span>
+<span class="add">ALTER TABLE users ADD UNIQUE KEY uq_username (username);</span>
+
+<span class="comment">-- 3. Profile photo path (optional — for avatar upload feature)</span>
+<span class="add">ALTER TABLE users ADD COLUMN avatar VARCHAR(255) NULL DEFAULT NULL;</span>
+
+<span class="comment">-- 4. Update fetchusers() to exclude soft-deleted rows</span>
+<span class="comment">--    (Code change in usersClass — fetchAll does not support WHERE yet)</span>
+<span class="comment">--    Replace fetchAll('users') with a prepared query:</span>
+<span class="add">-- SELECT * FROM users WHERE deleted_at IS NULL ORDER BY id ASC</span>
+
+<span class="comment">-- 5. Verify first_login column exists (used by adminResetPassword)</span>
+<span class="add">SHOW COLUMNS FROM users LIKE 'first_login';</span>
+<span class="comment">-- If missing:</span>
+<span class="add">ALTER TABLE users ADD COLUMN first_login TINYINT(1) NOT NULL DEFAULT 0;</span></pre>
+            <div class="warn"><strong>Run migration before enabling Phase 2 methods.</strong> <span class="tag">getStats()</span> and <span class="tag">deleteUser()</span> both reference <span class="tag">deleted_at</span>.</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 8 ═══════════════════ -->
+    <span class="section-anchor" id="phase8"></span>
+    <div class="phase-header ph-6">
+        <h3>Phase 8 — nav.php Integration</h3>
+        <p>Add a "User Management" menu item visible only to Administrators (roles = 1).</p>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <pre><span class="comment">&lt;!-- In layout/nav.php — add inside the relevant &lt;ul&gt; menu list --&gt;</span>
+<span class="add">&lt;?php if (isset($_SESSION['roles']) &amp;&amp; $_SESSION['roles'] == 1): ?&gt;</span>
+<span class="add">&lt;li class="sidebar-item"&gt;</span>
+<span class="add">    &lt;a href="../Project/userslist.php" class="sidebar-link"&gt;</span>
+<span class="add">        &lt;i class="bi bi-people-fill"&gt;&lt;/i&gt;</span>
+<span class="add">        &lt;span&gt;User Management&lt;/span&gt;</span>
+<span class="add">    &lt;/a&gt;</span>
+<span class="add">&lt;/li&gt;</span>
+<span class="add">&lt;?php endif; ?&gt;</span></pre>
+            <div class="info">This uses <span class="tag">$_SESSION['roles']</span> which is already set during login. No extra query needed.</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ FILE TREE ═══════════════════ -->
+    <div class="section-title">Complete file structure after all phases</div>
+    <div class="card">
+        <div class="card-body" style="padding:4px 0;">
+            <div class="file-tree">
+<span class="dir">Project/</span>
+├── <span class="enh">usersadd.php</span>           <span class="note">← Phase 1: fixed (ARIA, bugs, styling, CSRF)</span>
+├── <span class="enh">usersaction.php</span>        <span class="note">← Phase 1: +CSRF validation</span>
+├── <span class="new">usernamecheck.php</span>      <span class="note">← Phase 3 H1: username availability endpoint</span>
+├── <span class="new">useraccessaction.php</span>   <span class="note">← Phase 3 H2: toggle suspend/activate</span>
+├── <span class="new">userdeleteaction.php</span>   <span class="note">← Phase 3 H3: soft-delete user</span>
+├── <span class="new">userresetpwaction.php</span>  <span class="note">← Phase 3 H4: admin force-reset password</span>
+├── <span class="new">userexport.php</span>         <span class="note">← Phase 3 H5: CSV export</span>
+├── <span class="enh">userslist.php</span>          <span class="note">← Phase 4: stats cards, filter, delete/access btns</span>
+├── <span class="enh">profile.php</span>            <span class="note">← Phase 5: reset-pw btn, activity log tab</span>
+├── <span class="enh">profileaction.php</span>      <span class="note">← Phase 5: fix loginClass→usersClass</span>
+│
+<span class="dir">Project/users/</span>
+│   └── <span class="enh">usersClass.php</span>      <span class="note">← Phase 2: +5 methods (toggleAccess, deleteUser, adminResetPassword, usernameExists, getStats)</span>
+│
+<span class="dir">assets/js/</span>
+│   └── <span class="new">usermanagement.js</span>   <span class="note">← Phase 6: all AJAX handlers for the module</span>
+│
+<span class="dir">assets/css/</span>
+│   └── <span class="new">user-form.css</span>       <span class="note">← Phase 1 S3: extracted inline styles from usersadd + profile</span>
+│
+<span class="dir">layout/</span>
+│   └── <span class="enh">nav.php</span>             <span class="note">← Phase 8: User Management link (admin only)</span>
+│
+<span class="dir">db/</span>
+│   └── <span class="enh">grc.sql</span>             <span class="note">← Phase 7: reflect 3 ALTER TABLE statements</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ MASTER CHECKLIST ═══════════════════ -->
+    <span class="section-anchor" id="checklist"></span>
+    <div class="section-title">Master Checklist</div>
+    <div class="card">
+        <div class="card-body">
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:10px;">Phase 1 — Registration Form</p>
+            <ul class="checklist">
+                <li><span class="ico">&#9744;</span> [A1] Add <span class="tag">id</span> / <span class="tag">for</span> to all 9 fields; fix input types (email, tel, password)</li>
+                <li><span class="ico">&#9744;</span> [A1] Add <span class="tag">autocomplete</span> and <span class="tag">aria-required="true"</span> to all mandatory fields</li>
+                <li><span class="ico">&#9744;</span> [A2] Add <span class="tag">&lt;div id="form-feedback" role="alert" aria-live="polite"&gt;</span> inside form</li>
+                <li><span class="ico">&#9744;</span> [B1] Remove stray <span class="tag">';</span> from lines 104 and 129</li>
+                <li><span class="ico">&#9744;</span> [B2] Fetch <span class="tag">$showdept</span> via <span class="tag">$deptClass->showDept()</span> at top of file</li>
+                <li><span class="ico">&#9744;</span> [B3] Remove orphan datatable script block</li>
+                <li><span class="ico">&#9744;</span> [B4] Wrap button in <span class="tag">d-grid d-md-block</span></li>
+                <li><span class="ico">&#9744;</span> [B5] Add CSRF token to form; validate in <span class="tag">usersaction.php</span></li>
+                <li><span class="ico">&#9744;</span> [S1] Add <span class="tag">order-md-*</span> classes; hide avatar on mobile</li>
+                <li><span class="ico">&#9744;</span> [S2] Add <span class="tag">*</span> required indicators; uniform <span class="tag">mb-3</span> spacing</li>
+                <li><span class="ico">&#9744;</span> [S3] Extract inline <span class="tag">&lt;style&gt;</span> to <span class="tag">assets/css/user-form.css</span></li>
+            </ul>
+
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:18px 0 10px;">Phase 2 — usersClass.php</p>
+            <ul class="checklist">
+                <li><span class="ico">&#9744;</span> Add <span class="tag">toggleAccess()</span></li>
+                <li><span class="ico">&#9744;</span> Add <span class="tag">deleteUser()</span></li>
+                <li><span class="ico">&#9744;</span> Add <span class="tag">adminResetPassword()</span></li>
+                <li><span class="ico">&#9744;</span> Add <span class="tag">usernameExists()</span></li>
+                <li><span class="ico">&#9744;</span> Add <span class="tag">getStats()</span></li>
+            </ul>
+
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:18px 0 10px;">Phase 3 — New Handler Files</p>
+            <ul class="checklist">
+                <li><span class="ico">&#9744;</span> Create <span class="tag">Project/usernamecheck.php</span></li>
+                <li><span class="ico">&#9744;</span> Create <span class="tag">Project/useraccessaction.php</span></li>
+                <li><span class="ico">&#9744;</span> Create <span class="tag">Project/userdeleteaction.php</span></li>
+                <li><span class="ico">&#9744;</span> Create <span class="tag">Project/userresetpwaction.php</span></li>
+                <li><span class="ico">&#9744;</span> Create <span class="tag">Project/userexport.php</span></li>
+            </ul>
+
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:18px 0 10px;">Phase 4–5 — UI Enhancements</p>
+            <ul class="checklist">
+                <li><span class="ico">&#9744;</span> <span class="tag">userslist.php</span>: stats cards row</li>
+                <li><span class="ico">&#9744;</span> <span class="tag">userslist.php</span>: dept filter select + export button</li>
+                <li><span class="ico">&#9744;</span> <span class="tag">userslist.php</span>: clickable access-toggle buttons with <span class="tag">data-uid</span></li>
+                <li><span class="ico">&#9744;</span> <span class="tag">userslist.php</span>: delete button with <span class="tag">data-uid</span> + <span class="tag">data-name</span></li>
+                <li><span class="ico">&#9744;</span> <span class="tag">userslist.php</span>: add <span class="tag">data-dept</span> attribute to each table row</li>
+                <li><span class="ico">&#9744;</span> <span class="tag">profile.php</span>: Reset Password button (admin only)</li>
+                <li><span class="ico">&#9744;</span> <span class="tag">profile.php</span>: Activity Log tab</li>
+                <li><span class="ico">&#9744;</span> <span class="tag">profileaction.php</span>: switch from <span class="tag">loginClass</span> to <span class="tag">usersClass</span></li>
+            </ul>
+
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:18px 0 10px;">Phase 6–8 — JS, DB &amp; Nav</p>
+            <ul class="checklist">
+                <li><span class="ico">&#9744;</span> Create <span class="tag">assets/js/usermanagement.js</span></li>
+                <li><span class="ico">&#9744;</span> Include it on <span class="tag">usersadd.php</span>, <span class="tag">userslist.php</span>, <span class="tag">profile.php</span></li>
+                <li><span class="ico">&#9744;</span> Run all 5 SQL statements (Phase 7)</li>
+                <li><span class="ico">&#9744;</span> Update <span class="tag">db/grc.sql</span> to reflect the new columns</li>
+                <li><span class="ico">&#9744;</span> Add "User Management" nav link in <span class="tag">layout/nav.php</span> (roles=1 only)</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRC V1 — Code Audit Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .toolbar h1 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+
+        .btn-primary { background: #4f8ef7; color: #fff; }
+        .btn-success { background: #28a745; color: #fff; }
+
+        .container {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 32px;
+        }
+
+        .report-header h2 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .report-header p {
+            color: #aab4cc;
+            font-size: 13px;
+        }
+
+        .report-header .meta {
+            display: flex;
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        .report-header .meta-item span {
+            display: block;
+            font-size: 11px;
+            color: #aab4cc;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .report-header .meta-item strong {
+            font-size: 14px;
+            color: #fff;
+        }
+
+        /* Summary table */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 32px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .summary-table th {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .summary-table td {
+            padding: 11px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+
+        .summary-table tr:last-child td { border-bottom: none; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-critical { background: #fde8e8; color: #c0392b; }
+        .badge-high     { background: #fef3e2; color: #d35400; }
+        .badge-medium   { background: #fef9e7; color: #b7950b; }
+        .badge-low      { background: #eafaf1; color: #1e8449; }
+
+        /* Finding cards */
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 36px 0 14px;
+        }
+
+        .finding {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 18px;
+            overflow: hidden;
+            border-left: 5px solid #ccc;
+        }
+
+        .finding.critical { border-left-color: #c0392b; }
+        .finding.high     { border-left-color: #d35400; }
+        .finding.medium   { border-left-color: #b7950b; }
+        .finding.low      { border-left-color: #1e8449; }
+
+        .finding-header {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .finding-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .finding-body {
+            padding: 16px 20px;
+            color: #444;
+        }
+
+        .finding-body p { margin-bottom: 10px; }
+        .finding-body p:last-child { margin-bottom: 0; }
+
+        .finding-body code {
+            background: #f4f6f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #c0392b;
+        }
+
+        .finding-body pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: 6px;
+            padding: 14px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .finding-body ul {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .finding-body ul li {
+            margin-bottom: 4px;
+        }
+
+        .file-ref {
+            display: inline-block;
+            background: #eef2ff;
+            color: #3b5bdb;
+            border: 1px solid #c5d0fa;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .finding-footer {
+            padding: 10px 20px;
+            background: #fafafa;
+            border-top: 1px solid #f0f0f0;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .finding-footer strong { color: #555; }
+
+        /* Print styles */
+        @media print {
+            .toolbar { display: none; }
+            body { background: #fff; }
+            .container { margin: 0; padding: 20px; max-width: 100%; }
+            .finding { break-inside: avoid; }
+            .report-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .summary-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; Code Audit Report</h1>
+    <div class="toolbar-actions">
+        <button class="btn btn-primary" onclick="window.print()">&#128438; Download / Print PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="report-header">
+        <h2>GRC V1 &mdash; Code Audit Report</h2>
+        <p>Governance, Risk &amp; Compliance Web Application</p>
+        <div class="meta">
+            <div class="meta-item"><span>Date</span><strong>June 15, 2026</strong></div>
+            <div class="meta-item"><span>Project</span><strong>GRC_V1</strong></div>
+            <div class="meta-item"><span>Findings</span><strong>13 Issues</strong></div>
+            <div class="meta-item"><span>Stack</span><strong>PHP / MySQL / AJAX</strong></div>
+        </div>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="section-title">Priority Summary</div>
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Finding</th>
+                <th>Priority</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>SQL Injection in <code>ajaxdata.php</code> &amp; <code>processfetch.php</code></td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>Security</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>jQuery loaded twice on almost every page</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Performance</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Double DB connection in <code>connect.php</code></td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Performance</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>JS validation file included as CSS stylesheet</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Bug</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Wrong include path in <code>entityEdit.php</code></td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Bug</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>Classes instantiated twice (header + page file)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Redundancy</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>14 files bypass <code>connectionClass</code> with direct DB calls</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Redundancy</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>Hardcoded DB credentials in two source files</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Security</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>Footer JS runs before DOM &amp; jQuery are loaded</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Bug</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>Same role-check block repeated 8× in <code>header.php</code></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Redundancy</td>
+            </tr>
+            <tr>
+                <td>11</td>
+                <td>Inline <code>&lt;style&gt;</code> blocks in 61 of 74 page files</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Redundancy</td>
+            </tr>
+            <tr>
+                <td>12</td>
+                <td>Hundreds of lines of commented-out dead code in <code>nav.php</code></td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Cleanup</td>
+            </tr>
+            <tr>
+                <td>13</td>
+                <td>Debug/test files present in production folder</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Cleanup</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- CRITICAL -->
+    <div class="section-title">Critical</div>
+
+    <div class="finding critical">
+        <div class="finding-header">
+            <span class="badge badge-critical">Critical</span>
+            <h3>1. SQL Injection — Unsanitized POST Data in Queries</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>Affected files:</strong> <span class="file-ref">Project/ajaxdata.php:3-6</span> &nbsp; <span class="file-ref">Project/processfetch.php:7-9</span></p>
+            <p>Both files receive <code>$_POST</code> values and place them directly into SQL query strings with no escaping, no prepared statements, and no validation. These files are called by AJAX, making them directly reachable from the browser.</p>
+            <pre>// ajaxdata.php — vulnerable
+$did = $_POST['dept_id'];
+$select = "SELECT process_id FROM dept_process WHERE dept_id='$did'";
+
+// processfetch.php — vulnerable
+$pid = $_POST["processid"];
+$select = "SELECT * FROM risk WHERE process='$pid'";</pre>
+            <p><strong>Fix:</strong> Use prepared statements (<code>$stmt = $conn->prepare(...)</code>) or at minimum <code>real_escape_string()</code> on every POST value before using it in a query.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> An attacker can read, modify, or delete any data in the database via a crafted AJAX request.</div>
+    </div>
+
+    <!-- HIGH -->
+    <div class="section-title">High</div>
+
+    <div class="finding high">
+        <div class="finding-header">
+            <span class="badge badge-high">High</span>
+            <h3>2. jQuery Loaded Twice on Almost Every Page</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>Location 1:</strong> <span class="file-ref">layout/header.php:190</span> — loads jQuery 3.5.1 from Google CDN.</p>
+            <p><strong>Location 2:</strong> ~20+ page files in <span class="file-ref">Project/</span> (e.g. <code>actions.php:348</code>, <code>addcontrol.php:231</code>, <code>activitylog.php:158</code>) each load a second jQuery from <code>assets/vendors/jquery/jquery.min.js</code>.</p>
+            <p>Two different jQuery instances load and run on every one of these pages. This causes event handlers to bind twice, wastes bandwidth, and can cause unpredictable AJAX behaviour.</p>
+            <p><strong>Fix:</strong> Remove the local jQuery <code>&lt;script&gt;</code> tags from every page file. The CDN version in <code>header.php</code> is sufficient.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Performance hit on every page load; risk of duplicate event handlers breaking AJAX calls.</div>
+    </div>
+
+    <div class="finding high">
+        <div class="finding-header">
+            <span class="badge badge-high">High</span>
+            <h3>3. Double Database Connection Opened in connect.php</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/connection/connect.php:2-10</span></p>
+            <p>Every time <code>connect.php</code> is included it opens <em>two</em> separate connections to the same database — one procedural (<code>$con</code>) and one OOP (<code>$db</code>). Only one is ever needed.</p>
+            <pre>$con = mysqli_connect("localhost","root","","grc"); // connection 1
+$db  = new mysqli("localhost","root","","grc");      // connection 2 — redundant</pre>
+            <p><strong>Fix:</strong> Remove the <code>$db</code> line. Standardise the codebase to use either <code>$con</code> (procedural) or <code>connectionClass</code> (OOP) — not both.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Every page that includes connect.php opens an unnecessary second DB connection, consuming server resources.</div>
+    </div>
+
+    <div class="finding high">
+        <div class="finding-header">
+            <span class="badge badge-high">High</span>
+            <h3>4. JavaScript Validation File Included as CSS Stylesheet</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>File:</strong> <span class="file-ref">layout/header.php:223</span></p>
+            <pre>&lt;link rel="stylesheet" href="../assets/vendors/validate/jquery.validate.js"&gt;</pre>
+            <p><code>jquery.validate.js</code> is a JavaScript library. Using <code>&lt;link rel="stylesheet"&gt;</code> to include it means the browser downloads it and discards it — the validation library never actually loads. Form validation is silently broken on every page.</p>
+            <p><strong>Fix:</strong> Change to a <code>&lt;script src="..."&gt;&lt;/script&gt;</code> tag, placed after jQuery loads.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Client-side form validation does not work on any page in the system.</div>
+    </div>
+
+    <div class="finding high">
+        <div class="finding-header">
+            <span class="badge badge-high">High</span>
+            <h3>5. Wrong Include Path in entityEdit.php — Header Never Loads</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/entityEdit.php:14</span></p>
+            <pre>include_once("layout/header.php");  // WRONG — missing ../</pre>
+            <p>All other files in <code>Project/</code> use <code>../layout/header.php</code>. This file is missing the <code>../</code>, so the header silently fails to load on the Edit Entity page — no nav, no session check, no CSS.</p>
+            <p><strong>Fix:</strong> Change to <code>include_once("../layout/header.php");</code></p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> The Edit Entity page renders without navigation or session authentication — users are not redirected to login even if they are not logged in.</div>
+    </div>
+
+    <!-- MEDIUM -->
+    <div class="section-title">Medium</div>
+
+    <div class="finding medium">
+        <div class="finding-header">
+            <span class="badge badge-medium">Medium</span>
+            <h3>6. Every Class Instantiated Twice — header.php + Page File</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>Affected files:</strong> <span class="file-ref">layout/header.php:77-180</span> and pages like <span class="file-ref">Project/risklist.php:1-12</span>, <span class="file-ref">Project/dashboard.php:3-42</span></p>
+            <p><code>header.php</code> already creates instances of <strong>every major class</strong> (riskClass, controlClass, kiClass, incidentClass, recommendClass, departmentClass, etc.) and runs their queries. Individual page files then create the <em>same classes</em> again and run the same queries before including the header.</p>
+            <p>For example, <code>risklist.php</code> creates <code>$riskClass = new riskClass()</code> and calls <code>showRisk()</code> — then header.php creates another <code>riskClass</code>, and after the header loads, <code>risklist.php</code> calls <code>showRisk()</code> a second time via a different variable.</p>
+            <p><strong>Fix:</strong> Move class instantiations to happen only in the header (or a dedicated bootstrap file) and reference those instances in page files, rather than re-creating them.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Every page executes the same database queries at least twice per load, doubling DB load unnecessarily.</div>
+    </div>
+
+    <div class="finding medium">
+        <div class="finding-header">
+            <span class="badge badge-medium">Medium</span>
+            <h3>7. 14 Files Bypass connectionClass with Direct DB Connections</h3>
+        </div>
+        <div class="finding-body">
+            <p>The following files include <code>connect.php</code> directly, or create their own <code>new mysqli()</code>, instead of using <code>connectionClass</code>:</p>
+            <ul>
+                <li><code>ajaxdata.php</code> — creates <code>new mysqli()</code> directly with no include at all</li>
+                <li><code>dashboard.php</code>, <code>risk_register_report.php</code>, <code>risktreatment.php</code>, <code>entitynewaction.php</code>, <code>top10risk.php</code></li>
+                <li><code>bscimport.php</code>, <code>bsciso.php</code>, <code>check_db_structure.php</code>, <code>controllist.php</code></li>
+                <li><code>entityAction.php</code>, <code>processfetch.php</code>, <code>rcatlist.php</code>, <code>regexcel.php</code>, <code>registerAction.php</code></li>
+            </ul>
+            <p><strong>Fix:</strong> Standardise all DB access through <code>connectionClass</code>. If a file needs a raw connection, have it extend or instantiate <code>connectionClass</code> rather than opening a new one.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Credentials and connection logic are scattered. If the DB config changes, you must hunt through 14+ files to update it.</div>
+    </div>
+
+    <div class="finding medium">
+        <div class="finding-header">
+            <span class="badge badge-medium">Medium</span>
+            <h3>8. Hardcoded DB Credentials in Two Source Files</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>Files:</strong> <span class="file-ref">Project/connection/connect.php</span> &nbsp; <span class="file-ref">Project/connection/connectionClass.php</span></p>
+            <p>Both files contain hardcoded database credentials (host, username, password, database name), plus multiple commented-out sets of credentials for different environments (local dev, staging, production).</p>
+            <p><strong>Fix:</strong> Move credentials to a single <code>config.php</code> file (excluded from git via <code>.gitignore</code>), or use environment variables via <code>$_ENV</code> / <code>getenv()</code>. Reference that config from both connection files.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Credentials checked into source control are a security risk. Multiple environment configs in comments makes deployment error-prone.</div>
+    </div>
+
+    <div class="finding medium">
+        <div class="finding-header">
+            <span class="badge badge-medium">Medium</span>
+            <h3>9. Footer JavaScript Runs Before jQuery and DOM Are Ready</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>File:</strong> <span class="file-ref">layout/footer.php:3-15</span></p>
+            <p>The footer PHP echoes JavaScript that calls <code>$('.btn-userpermission-add').prop('disabled', true)</code>. This inline script executes as the browser encounters it — at the footer position — before the page's <code>&lt;script&gt;</code> includes (jQuery, mine.js) have been parsed. The jQuery <code>$</code> function is not yet defined, so the script throws an error and the buttons are never disabled.</p>
+            <p><strong>Fix:</strong> Move this logic inside a <code>$(document).ready()</code> block, or place it after the JS includes at the very bottom of the page.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Permission-based UI controls (disabling buttons for certain roles) do not apply — users may see buttons they should not be able to click.</div>
+    </div>
+
+    <div class="finding medium">
+        <div class="finding-header">
+            <span class="badge badge-medium">Medium</span>
+            <h3>10. Same Role-Check Block Repeated 8 Times in header.php</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>File:</strong> <span class="file-ref">layout/header.php:78-180</span></p>
+            <p>The pattern below is copy-pasted for every class — departments, processes, risks, controls, KPI, incidents, recommendations, and KRI:</p>
+            <pre>if ($sess_roles == 1) {
+    $showX = $xClass->showX();
+} elseif ($sess_roles == 2) {
+    $showX = $xClass->showXdept($sdid);
+}</pre>
+            <p>Also, the risk category block (lines 105-111) is identical for both roles — the same method is called either way, making the if/else pointless.</p>
+            <p><strong>Fix:</strong> Create a helper function <code>fetchByRole($class, $roleMethod, $deptMethod, $deptId)</code> and call it once per class, replacing the 8 repeated blocks.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Adding a new role means updating the same pattern in 8 places — high risk of missing one.</div>
+    </div>
+
+    <!-- LOW -->
+    <div class="section-title">Low</div>
+
+    <div class="finding low">
+        <div class="finding-header">
+            <span class="badge badge-low">Low</span>
+            <h3>11. Inline &lt;style&gt; Blocks Scattered Across 61 Page Files</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>Affected:</strong> 61 of 74 page files in <span class="file-ref">Project/</span></p>
+            <p>Most page files contain a <code>&lt;style&gt;</code> block with rules like <code>h4 { text-align: center; }</code>, <code>label { font-size: 15px; color: #000; }</code>, and <code>.form-control { font-size: 13px; }</code> — the same declarations repeated across dozens of files.</p>
+            <p><strong>Fix:</strong> Extract all common repeated rules into <code>assets/css/app.css</code> or <code>assets/css/container.css</code>. Keep page-specific overrides in a page-scoped class rather than a bare <code>&lt;style&gt;</code> block.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Style changes require editing dozens of files. Inconsistent styling across pages because each file has slightly different values.</div>
+    </div>
+
+    <div class="finding low">
+        <div class="finding-header">
+            <span class="badge badge-low">Low</span>
+            <h3>12. Hundreds of Lines of Commented-Out Dead Code in nav.php</h3>
+        </div>
+        <div class="finding-body">
+            <p><strong>File:</strong> <span class="file-ref">layout/nav.php</span></p>
+            <p>Large blocks of HTML are commented out throughout <code>nav.php</code> — leftover examples from the Mazer UI template (breadcrumb, button, card, carousel, dropdown, chart links, support links, 3-level submenu examples). None of it is used or will be used.</p>
+            <p><strong>Fix:</strong> Delete all commented-out blocks. The file will shrink from ~620 lines to roughly 150 lines of actual navigation markup.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> Hard to read and maintain. Increases the chance of accidentally un-commenting the wrong block.</div>
+    </div>
+
+    <div class="finding low">
+        <div class="finding-header">
+            <span class="badge badge-low">Low</span>
+            <h3>13. Debug and Test Files Present in the Production Folder</h3>
+        </div>
+        <div class="finding-body">
+            <p>The following files appear to be development artifacts with no production purpose:</p>
+            <ul>
+                <li><span class="file-ref">Project/login_test.php</span></li>
+                <li><span class="file-ref">Project/check_db_structure.php</span></li>
+                <li><span class="file-ref">Project/test.php</span></li>
+                <li><span class="file-ref">Project/blank.php</span></li>
+                <li><span class="file-ref">Project/settings/blank.php</span></li>
+            </ul>
+            <p><strong>Fix:</strong> Confirm none of these are referenced by other files, then delete them. Verify <code>check_db_structure.php</code> is not reachable publicly — it likely exposes DB schema information.</p>
+        </div>
+        <div class="finding-footer"><strong>Impact:</strong> <code>check_db_structure.php</code> in particular may expose database schema to anyone who navigates to it directly.</div>
+    </div>
+
+</div>
+
+</body>
+</html>

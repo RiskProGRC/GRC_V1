@@ -1,0 +1,241 @@
+﻿<?php
+include_once'./settings/riskcategoryClass.php';
+include_once'./risk/riskClass.php';
+include_once'./department/departmentClass.php';
+include_once'./process/processClass.php';
+include_once'./connection/connect.php';
+include_once'./users/usersClass.php';
+
+
+$btniass="btn-light";
+$btnrass="btn-light";
+$btntass="btn-light";
+$riskClass=new riskClass();
+$usersClass= new usersClass();
+
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+<!-_________________Header location______________________->
+<?php include_once("../layout/header.php"); ?>
+
+<body>
+    <div id="app">
+        <div id="main" class="layout-horizontal">
+
+ <!-_________________Navigation location______________________->
+
+            <?php include_once("../layout/nav.php") ?>
+
+            <div class="content-wrapper container">
+                
+<div class="page-heading">
+    <h4>Risk Assessment</h4>
+</div>
+    <div class="page-content">
+        <section class="row">
+            <div class="col-12 col-lg-12">
+    <!-_________________Content location BEGINING______________________->
+                <style>
+                    .btn-orange{
+                        background-color: #ffc000 !important;
+                        color: #fff;
+                    }
+                    .btn-warning{
+                        background-color: #ffff00 !important;
+                        color: #000 !important;
+                    }
+                    .btn-success{
+                        background-color: #00b050 !important;
+                        color: #fff;
+                    }
+                    .btn-danger{
+                        background-color: #ff0000 !important;
+                        color: #fff;
+                    }
+                .assess{
+                    width:150px;
+                    height: 27px;
+                    font-size: 13px;
+                    font-weight: 800;
+                }
+                    
+                </style>
+        <section class="section">
+                    <div class="card">
+                        <div class="card-header">
+                        
+                           <!-- <a href="../Project/riskassessadd" class="btn btn-primary" style="float:right;margin-right:30px;" >
+                            <span class="fa-fw select-all fas">ï•</span>Add Assessment</a>-->
+                            
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="table1">
+                                <thead>
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Risk</th>
+                                        <th>Controls</th>
+                                        <th>Risk Owner</th>
+                                        <th>Inherent</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    foreach($showriskasstop as $assess){
+
+                                        $rid=$assess["risk_id"];
+
+
+                                        $riskname=substr($assess["risk_name"], 0 , 80);
+
+                                        $iimp=$assess["iimp"];
+                                        $ilikely=$assess["ilikely"];
+                                        $irass=$iimp*$ilikely;
+                                        $btniass=$riskClass->inherent($irass);//end of inherent risk.
+
+                                        $rimp=$assess["rimp"];
+                                        $rlikely=$assess["rlikely"];
+                                        $rrass=$rimp*$rlikely;
+                                        $btnrass=$riskClass->inherent($rrass);//end of redidual risk.
+
+                                        $timp=$assess["timp"];
+                                        $tlikely=$assess["tlikely"];
+                                        $trass=$timp*$tlikely;
+                                        $btntass=$riskClass->inherent($trass);//end of redidual risk.
+                                        ?>
+                                                                              
+                                        <tr style="height:10px;">
+                                        <td>RSK0<?=$assess["risk_id"]?></td>
+                                        <td><div style="font-size:13px;"><?=$riskname?></div></td>                                                             
+                                        <td style="padding-left:20px">
+                                            <?php                                
+                                                if(empty($rid)){
+                                                }else{
+                                                $query=mysqli_query($con,"SELECT * FROM risk_control WHERE risk_id='$rid'");
+                                                }
+
+                                                while($crow=mysqli_fetch_assoc($query)){
+                                                    $cid=$crow["control_id"];
+                                                    $qcontrol=mysqli_query($con,"SELECT * FROM control WHERE control_id='$cid'");
+                                                    $ctlrow=mysqli_fetch_assoc($qcontrol);
+                                                    $text=$ctlrow['controls'];
+                                                    $controlname=$controlclass->paragraph($text);
+                                                    echo "CTR".$ctlrow['control_id']."-".$controlname."</br>";
+                                                    //echo $cid;
+                                                }
+                                                
+                                            
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            $risks=$riskClass->fetchRisk($rid);
+                                            $uid=$risks["uid"];
+                                            $username=$usersClass->userjoin($uid);
+                                            echo $username;
+                                            ?>
+                                        </td> 
+                                         <td class="<?=$btnrass?>" style="padding:0px;border-left:2px solid #000;"><input type="button" value="<?=$rrass?>" style="width:100%;padding:30px 15px;border-radius:0px;" class="btn assess <?=$btnrass?>"></td>
+                                    </tr>
+                                     <?php } ?>
+                                         
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+
+
+    <!-_________________Content location END______________________->
+                
+            </div>
+        </section>
+    </div>
+
+  </div>
+<!------------------------info theme Modal ---------------------------------------------------------------->
+    <div class="modal fade text-left" id="risk-matrix" tabindex="-1" role="dialog"
+            aria-labelledby="myModalLabel130" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg"
+                role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-info">
+                        <h5 class="modal-title white" id="myModalLabel130">RISK ASSESSMENT MATRIX
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal"
+                            aria-label="Close">
+                            <i data-feather="x"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                       <img src="../assets/images/risk/risk-matrix.png" width="744px" height="400px" alt="">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger"
+                            data-bs-dismiss="modal">
+                            <i class="bx bx-x d-block d-sm-none"></i>
+                            <span class="d-none d-sm-block">Close</span>
+                        </button>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!------------------------info theme Modal ---------------------------------------------------------------->
+
+ <!-_________________Footer location______________________->
+
+        <?php include_once("../layout/footer.php"); ?>
+
+        
+        </div>
+        
+    </div>
+
+
+
+    <script src="../assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="../assets/js/bootstrap.bundle.min.js"></script>
+
+<!------------------------ Include Choices JavaScript drop down--------------------- -->
+        <script src="../assets/vendors/choices.js/choices.min.js"></script>
+        <script src="../assets/js/pages/form-element-select.js"></script>
+
+  <!----------------------Datatable Simple------------------------------------------------>
+    <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
+    <script>
+        // Simple Datatable
+        let table1 = document.querySelector('#table1');
+        let dataTable = new simpleDatatables.DataTable(table1);
+    </script>
+<!----------------------Datatable Simple end------------------------------------------------>
+
+    <script src="../assets/js/pages/horizontal-layout.js"></script>
+
+<!----------------------font awsome------------------------------------------------>
+    <script src="../assets/vendors/fontawesome/all.min.js"></script>
+
+   
+   <script>
+    
+    $("#datepicker").datepicker({
+        dateFormat:'yy-mm-dd'
+    });
+
+   </script> 
+   <script>
+       $(document).on('click','.riskmatrix',function(e){
+           e.preventDefault();
+           $("#risk-matrix").modal("show");
+       });
+
+   </script>
+
+</body>
+
+</html>

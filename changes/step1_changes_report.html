@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 1 Changes Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            background: #4f8ef7;
+            color: #fff;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+
+        .container {
+            max-width: 900px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: #1a1a2e;
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header p { color: #aab4cc; font-size: 13px; margin-bottom: 20px; }
+
+        .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+        .meta-item span { display: block; font-size: 11px; color: #aab4cc; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+
+        .summary-bar {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 24px;
+            flex: 1;
+            min-width: 140px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border-top: 4px solid #ccc;
+            text-align: center;
+        }
+
+        .stat-card.green  { border-top-color: #28a745; }
+        .stat-card.blue   { border-top-color: #4f8ef7; }
+        .stat-card.orange { border-top-color: #d35400; }
+
+        .stat-card .number { font-size: 32px; font-weight: 700; color: #1a1a2e; }
+        .stat-card .label  { font-size: 12px; color: #888; margin-top: 2px; }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 28px 0 12px;
+        }
+
+        .change-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border-left: 5px solid #28a745;
+        }
+
+        .change-header {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .change-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-fixed  { background: #eafaf1; color: #1e8449; }
+        .badge-bug    { background: #fde8e8; color: #c0392b; }
+        .badge-security { background: #fef3e2; color: #d35400; }
+
+        .change-body { padding: 16px 20px; color: #444; }
+        .change-body p { margin-bottom: 10px; }
+        .change-body p:last-child { margin-bottom: 0; }
+
+        .file-ref {
+            display: inline-block;
+            background: #eef2ff;
+            color: #3b5bdb;
+            border: 1px solid #c5d0fa;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .diff-block {
+            margin: 12px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .diff-label {
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .diff-before { background: #2d1a1a; }
+        .diff-before .diff-label { background: #5c1a1a; color: #f5a5a5; }
+        .diff-before pre { background: #2d1a1a; color: #f5a5a5; padding: 12px 16px; }
+
+        .diff-after { background: #1a2d1a; }
+        .diff-after .diff-label { background: #1a4d1a; color: #a5f5a5; }
+        .diff-after pre { background: #1a2d1a; color: #a5f5a5; padding: 12px 16px; }
+
+        .impact-row {
+            background: #f8f9fa;
+            border-top: 1px solid #f0f0f0;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .impact-row strong { color: #444; }
+
+        @media print {
+            .toolbar { display: none; }
+            body { background: #fff; }
+            .container { margin: 0; padding: 20px; max-width: 100%; }
+            .change-card { break-inside: avoid; }
+            .report-header, .stat-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>Step 1 Changes Report &mdash; GRC V1</h1>
+    <button class="btn" onclick="window.print()">&#128438; Download / Print PDF</button>
+</div>
+
+<div class="container">
+
+    <div class="report-header">
+        <h2>Step 1 &mdash; Fix the Broken Things</h2>
+        <p>Changes applied to GRC_V1 &mdash; Governance, Risk &amp; Compliance Web Application</p>
+        <div class="meta">
+            <div class="meta-item"><span>Date</span><strong>June 15, 2026</strong></div>
+            <div class="meta-item"><span>Phase</span><strong>Step 1 of 5</strong></div>
+            <div class="meta-item"><span>Files Changed</span><strong>3 files</strong></div>
+            <div class="meta-item"><span>Status</span><strong>&#10003; Complete</strong></div>
+        </div>
+    </div>
+
+    <div class="summary-bar">
+        <div class="stat-card green">
+            <div class="number">3</div>
+            <div class="label">Bugs Fixed</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="number">3</div>
+            <div class="label">Files Changed</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="number">0</div>
+            <div class="label">Logic Changes</div>
+        </div>
+    </div>
+
+    <div class="section-title">Changes Applied</div>
+
+    <!-- Fix 1 -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-bug">Bug Fix</span>
+            <h3>Fix 1 &mdash; Validation Library Not Loading (layout/header.php)</h3>
+            <span class="badge badge-fixed">&#10003; Fixed</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">layout/header.php &mdash; line 223</span></p>
+            <p>
+                <code>jquery.validate.js</code> is a JavaScript library that was being included using a
+                <code>&lt;link rel="stylesheet"&gt;</code> tag — the tag used for CSS files.
+                Browsers silently discard it when loaded this way, so client-side form validation
+                was never running on any page in the system.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>&lt;!-- Validation --&gt;
+&lt;link rel="stylesheet" href="../assets/vendors/validate/jquery.validate.js"&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>&lt;!-- Validation --&gt;
+&lt;script src="../assets/vendors/validate/jquery.validate.js"&gt;&lt;/script&gt;</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Client-side form validation now loads correctly on every page that uses <code>jquery.validate</code> rules.
+        </div>
+    </div>
+
+    <!-- Fix 2 -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-bug">Bug Fix</span>
+            <h3>Fix 2 &mdash; Edit Entity Page Missing Session Guard (Project/entityEdit.php)</h3>
+            <span class="badge badge-fixed">&#10003; Fixed</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/entityEdit.php &mdash; line 14</span></p>
+            <p>
+                All files inside <code>Project/</code> use <code>../layout/header.php</code> to include the
+                shared header. <code>entityEdit.php</code> was missing the <code>../</code> prefix, so PHP
+                could not find the file. The header silently failed to load — meaning the page had no
+                navigation, no CSS, and most critically <strong>no session check</strong>. A user who was not
+                logged in could access and submit this page without being redirected to login.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>&lt;?php include_once("layout/header.php"); ?&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>&lt;?php include_once("../layout/header.php"); ?&gt;</pre>
+            </div>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> The Edit Entity page now loads with full navigation, styling, and session authentication enforced.
+        </div>
+    </div>
+
+    <!-- Fix 3 -->
+    <div class="change-card">
+        <div class="change-header">
+            <span class="badge badge-bug">Bug Fix</span>
+            <h3>Fix 3 &mdash; Role-Based Button Controls Not Applying (layout/footer.php)</h3>
+            <span class="badge badge-fixed">&#10003; Fixed</span>
+        </div>
+        <div class="change-body">
+            <p><strong>File:</strong> <span class="file-ref">layout/footer.php &mdash; lines 10–14</span></p>
+            <p>
+                The footer echoes JavaScript that disables buttons based on the user's role
+                (e.g. disabling add/edit/delete buttons for admin users on the permissions page).
+                The jQuery calls were running inline — without waiting for the DOM to be fully
+                ready — so the buttons they targeted may not have existed yet when the script ran,
+                meaning the controls were never applied.
+            </p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>&lt;script&gt;
+$('.btn-userpermission-add').prop('disabled', true);
+$('.btn-userpermission-delete').prop('disabled', true);
+$('.btn-userpermission-edit').prop('disabled', true);
+&lt;/script&gt;</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>&lt;script&gt;
+$(document).ready(function(){
+    $('.btn-userpermission-add').prop('disabled', true);
+    $('.btn-userpermission-delete').prop('disabled', true);
+    $('.btn-userpermission-edit').prop('disabled', true);
+});
+&lt;/script&gt;</pre>
+            </div>
+            <p>Same fix applied to the Role 2 block that enables <code>.btn-add-group</code>.</p>
+        </div>
+        <div class="impact-row">
+            <strong>Effect:</strong> Role-based button disabling now reliably applies after the DOM is fully loaded on every page.
+        </div>
+    </div>
+
+    <div class="section-title">What Has Not Changed</div>
+    <div class="change-card" style="border-left-color:#4f8ef7;">
+        <div class="change-body" style="padding:16px 20px;">
+            <p>These fixes are <strong>surgical</strong> — no logic, no database queries, no AJAX handlers, and no page layouts were changed. Only the three specific broken lines were corrected. All other behaviour remains exactly as before.</p>
+        </div>
+    </div>
+
+    <div class="section-title">Next Step</div>
+    <div class="change-card" style="border-left-color:#b7950b;">
+        <div class="change-body" style="padding:16px 20px;">
+            <p><strong>Step 2 &mdash; SQL Injection:</strong> Fix unsanitized <code>$_POST</code> values in
+            <span class="file-ref">Project/ajaxdata.php</span> and <span class="file-ref">Project/processfetch.php</span>
+            using prepared statements. These two files are reachable by any user via AJAX and are the highest security risk in the codebase.</p>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

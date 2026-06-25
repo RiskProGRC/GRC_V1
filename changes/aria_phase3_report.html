@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Phase 3 Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .toolbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-dark  { background: #3a3a5c; }
+        .btn-print { background: #2e7d32; }
+
+        .container {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 20px 60px;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #1b5e20 0%, #0d3b18 100%);
+            color: #fff;
+            border-radius: 10px;
+            padding: 36px 40px;
+            margin-bottom: 28px;
+        }
+        .report-header .phase-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        .report-header h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        .report-header .subtitle { font-size: 14px; opacity: 0.8; margin-bottom: 20px; }
+        .meta-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        .meta-item { font-size: 12px; opacity: 0.7; }
+        .meta-item strong { opacity: 1; font-weight: 600; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-top: 3px solid #2e7d32;
+        }
+        .stat-card .number { font-size: 30px; font-weight: 700; color: #1b5e20; line-height: 1; }
+        .stat-card .label  { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+        .card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1b5e20;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8f5e9;
+        }
+        .card h4 { font-size: 13px; font-weight: 700; color: #333; margin: 14px 0 6px; }
+        .card p  { margin-bottom: 10px; color: #444; }
+        .card ul, .card ol { padding-left: 20px; color: #444; }
+        .card li { margin-bottom: 5px; }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #aaa;
+            margin: 32px 0 14px;
+        }
+
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 14px 0;
+        }
+        @media (max-width: 640px) { .before-after { grid-template-columns: 1fr; } }
+
+        .code-block {
+            background: #1e1e2e;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .code-block .label {
+            background: #16162a;
+            color: #aaa;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+        }
+        .code-block.before .label { color: #e57373; }
+        .code-block.after  .label { color: #81c784; }
+        .code-block pre {
+            padding: 14px;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 11.5px;
+            line-height: 1.6;
+            color: #cdd6f4;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .code-block pre .kw  { color: #89b4fa; }
+        .code-block pre .fn  { color: #cba6f7; }
+        .code-block pre .str { color: #a6e3a1; }
+        .code-block pre .cmt { color: #6c7086; font-style: italic; }
+        .code-block pre .var { color: #f38ba8; }
+        .code-block pre .cls { color: #f9e2af; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        th {
+            background: #e8f5e9;
+            color: #1b5e20;
+            font-weight: 700;
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 12px;
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f9fffe; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-red    { background: #fde8e8; color: #c0392b; }
+        .badge-green  { background: #eafaf1; color: #1e8449; }
+        .badge-blue   { background: #eef2ff; color: #2c5282; }
+        .badge-orange { background: #fff3e0; color: #e65100; }
+        .badge-grey   { background: #f4f6f9; color: #666; border: 1px solid #ddd; }
+
+        .alert {
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            font-size: 13px;
+        }
+        .alert-danger  { background: #fde8e8; border-left: 4px solid #c0392b; color: #6b1010; }
+        .alert-success { background: #eafaf1; border-left: 4px solid #1e8449; color: #0e4b22; }
+        .alert-info    { background: #eef2ff; border-left: 4px solid #4f8ef7; color: #1a3a6e; }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        .flow-box {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 5px;
+            padding: 6px 12px;
+            font-weight: 600;
+            color: #1b5e20;
+        }
+        .flow-arrow { color: #aaa; font-size: 18px; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>GRC V1 &mdash; ARIA Phase 3 Report</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Back to Index</a>
+        <button class="btn btn-print" onclick="window.print()">Print / PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── Report Header ── -->
+    <div class="report-header">
+        <div class="phase-label">ARIA Refactoring &mdash; Phase 3</div>
+        <h2>Handler Security Layer</h2>
+        <div class="subtitle">Centralised authentication, UID extraction from session, and standardised JSON responses across all AJAX handler files</div>
+        <div class="meta-row">
+            <div class="meta-item"><strong>Status:</strong> Complete</div>
+            <div class="meta-item"><strong>Date:</strong> 2026-06-22</div>
+            <div class="meta-item"><strong>Scope:</strong> 32 handler files + 5 class methods fixed</div>
+            <div class="meta-item"><strong>Breaking changes:</strong> 0 (response contract updated)</div>
+        </div>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="number">1</div>
+            <div class="label">New core file</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">32</div>
+            <div class="label">Handler files hardened</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">5</div>
+            <div class="label">Class methods fixed</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">0</div>
+            <div class="label">Breaking changes</div>
+        </div>
+    </div>
+
+    <!-- ── What Was Found ── -->
+    <div class="section-title">Problem — What the Scan Found</div>
+
+    <div class="card">
+        <h3>Three Critical Issues in Every Handler File</h3>
+
+        <div class="alert alert-danger">
+            <strong>Vulnerability 1 — No authentication gate.</strong> Every AJAX handler file (actionadd.php, riskassessaction.php, etc.) can be called directly by anyone who knows the URL. There is no session check. An unauthenticated user can POST to these files and write to the database.
+        </div>
+
+        <div class="alert alert-danger">
+            <strong>Vulnerability 2 — User ID comes from $_POST, not the session.</strong> Every handler reads <code>$uid = $_POST["uid"]</code>. A malicious user can submit any uid they like, making every ActivityLogger entry and every record insert attributable to a forged identity. The form sends uid as a hidden HTML field, which is trivially editable in browser dev tools.
+        </div>
+
+        <div class="alert alert-danger">
+            <strong>Vulnerability 3 — IP address is forged by the client.</strong> The form sends <code>$_POST["ip"]</code> populated from a JavaScript call to <code>getuseripaddress()</code>. Any client can submit a fake IP. Server-side IP must be read from <code>$_SERVER['REMOTE_ADDR']</code>.
+        </div>
+
+        <div class="alert alert-info">
+            <strong>Code quality — include_once vs require_once.</strong> All handler files use <code>include_once</code> for their entity class. If the class file is missing (wrong path, deployment error), PHP silently continues and the handler crashes with an undefined-class error instead of failing immediately and clearly.
+        </div>
+
+        <div class="alert alert-info">
+            <strong>Consistency — plain text responses.</strong> All handlers <code>echo</code> raw strings ("Action Added Successfully", "ENTER process data", etc.). The JavaScript reads these as unstructured text and places them directly into SweetAlert titles. A response with quotes, HTML, or a PHP warning bleeds into the UI. A structured JSON envelope fixes this.
+        </div>
+    </div>
+
+    <!-- ── Evidence ── -->
+    <div class="section-title">Evidence — Handler File Before Migration</div>
+
+    <div class="card">
+        <h3>actionadd.php — representative example (all 25 handlers share this pattern)</h3>
+
+        <div class="before-after">
+            <div class="code-block before">
+                <div class="label">Before — actionadd.php</div>
+                <pre><span class="kw">&lt;?php</span>
+<span class="fn">include_once</span><span class="str">'./action/actionClass.php'</span>;
+<span class="cmt">// ← no session check at all</span>
+
+<span class="var">$uid</span>       = <span class="var">$_POST</span>[<span class="str">"uid"</span>];       <span class="cmt">// ← forged by client</span>
+<span class="var">$ipaddress</span> = <span class="var">$_POST</span>[<span class="str">"ip"</span>];        <span class="cmt">// ← forged by client</span>
+<span class="var">$dept_id</span>   = <span class="var">$_POST</span>[<span class="str">"adept_id"</span>];
+<span class="var">$process</span>   = <span class="var">$_POST</span>[<span class="str">"aprocess"</span>];
+<span class="var">$risk</span>      = <span class="var">$_POST</span>[<span class="str">"arisk"</span>];
+<span class="var">$action</span>    = <span class="var">$_POST</span>[<span class="str">"action"</span>];
+<span class="var">$status</span>    = <span class="var">$_POST</span>[<span class="str">"status"</span>];
+<span class="var">$priority</span>  = <span class="var">$_POST</span>[<span class="str">"priority"</span>];
+<span class="var">$timeline</span>  = <span class="var">$_POST</span>[<span class="str">"timeline"</span>];
+
+<span class="kw">if</span>(<span class="var">$process</span> == <span class="str">""</span>){
+    <span class="kw">echo</span> <span class="str">"ENTER process data"</span>;   <span class="cmt">// plain text</span>
+}<span class="kw">elseif</span>(<span class="var">$risk</span> == <span class="str">""</span>){
+    <span class="kw">echo</span> <span class="str">"ENTER risk data"</span>;
+}<span class="kw">else</span>{
+    <span class="var">$alert</span> = <span class="var">$actionClass</span>-&gt;<span class="fn">addaction</span>(
+        <span class="var">$uid</span>,<span class="var">$ipaddress</span>,...
+    );
+    <span class="kw">echo</span> <span class="var">$alert</span>;                  <span class="cmt">// plain text</span>
+}
+<span class="kw">?&gt;</span></pre>
+            </div>
+            <div class="code-block after">
+                <div class="label">After — actionadd.php</div>
+                <pre><span class="kw">&lt;?php</span>
+<span class="kw">require_once</span> <span class="fn">__DIR__</span> . <span class="str">'/core/AuthGuard.php'</span>;
+<span class="kw">require_once</span> <span class="fn">__DIR__</span> . <span class="str">'/action/actionClass.php'</span>;
+<span class="cmt">// AuthGuard already verified session.
+// $uid, $ip, $sdid come from session.</span>
+
+<span class="var">$dept_id</span>   = <span class="var">$_POST</span>[<span class="str">'adept_id'</span>] ?? <span class="str">''</span>;
+<span class="var">$process</span>   = <span class="var">$_POST</span>[<span class="str">'aprocess'</span>]  ?? <span class="str">''</span>;
+<span class="var">$risk</span>      = <span class="var">$_POST</span>[<span class="str">'arisk'</span>]     ?? <span class="str">''</span>;
+<span class="var">$action</span>    = <span class="var">$_POST</span>[<span class="str">'action'</span>]    ?? <span class="str">''</span>;
+<span class="var">$status</span>    = <span class="var">$_POST</span>[<span class="str">'status'</span>]    ?? <span class="str">''</span>;
+<span class="var">$priority</span>  = <span class="var">$_POST</span>[<span class="str">'priority'</span>]  ?? <span class="str">''</span>;
+<span class="var">$timeline</span>  = <span class="var">$_POST</span>[<span class="str">'timeline'</span>]  ?? <span class="str">''</span>;
+
+<span class="kw">if</span>(<span class="var">$process</span> === <span class="str">''</span>){
+    <span class="fn">respond_error</span>(<span class="str">'Select a process'</span>);
+}<span class="kw">elseif</span>(<span class="var">$risk</span> === <span class="str">''</span>){
+    <span class="fn">respond_error</span>(<span class="str">'Select a risk'</span>);
+}<span class="kw">else</span>{
+    <span class="var">$actionClass</span> = <span class="kw">new</span> <span class="cls">actionClass</span>();
+    <span class="var">$msg</span> = <span class="var">$actionClass</span>-&gt;<span class="fn">addaction</span>(
+        <span class="var">$uid</span>, <span class="var">$ip</span>, <span class="var">$dept_id</span>, <span class="var">$process</span>,
+        <span class="var">$risk</span>, <span class="var">$action</span>, <span class="var">$status</span>,
+        <span class="var">$priority</span>, <span class="var">$timeline</span>
+    );
+    <span class="fn">respond_ok</span>(<span class="var">$msg</span>);           <span class="cmt">// JSON</span>
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── New Core File ── -->
+    <div class="section-title">New File — AuthGuard.php</div>
+
+    <div class="card">
+        <h3>Project/core/AuthGuard.php</h3>
+        <p>One file required at the top of every handler. It does four things: starts the session, validates it, exposes safe variables, and provides the two response helpers.</p>
+
+        <div class="code-block after" style="margin-top:14px;">
+            <div class="label">Project/core/AuthGuard.php</div>
+            <pre><span class="kw">&lt;?php</span>
+<span class="fn">session_start</span>();
+
+<span class="cmt">// Reject unauthenticated requests immediately.</span>
+<span class="kw">if</span> (!<span class="fn">isset</span>(<span class="var">$_SESSION</span>[<span class="str">'uid'</span>], <span class="var">$_SESSION</span>[<span class="str">'user'</span>])) {
+    <span class="fn">http_response_code</span>(<span class="str">401</span>);
+    <span class="kw">echo</span> <span class="fn">json_encode</span>([<span class="str">'status'</span> =&gt; <span class="str">'error'</span>, <span class="str">'message'</span> =&gt; <span class="str">'Unauthorised'</span>]);
+    <span class="kw">exit</span>;
+}
+
+<span class="cmt">// Safe variables available to every handler.</span>
+<span class="var">$uid</span>  = (string) <span class="var">$_SESSION</span>[<span class="str">'uid'</span>];
+<span class="var">$sdid</span> = (string) (<span class="var">$_SESSION</span>[<span class="str">'dept_id'</span>] ?? <span class="str">''</span>);
+<span class="var">$ip</span>   = <span class="fn">_guard_ip</span>();
+
+<span class="kw">function</span> <span class="fn">_guard_ip</span>(): <span class="cls">string</span> {
+    <span class="kw">if</span> (!<span class="fn">empty</span>(<span class="var">$_SERVER</span>[<span class="str">'HTTP_CLIENT_IP'</span>])) {
+        <span class="kw">return</span> <span class="var">$_SERVER</span>[<span class="str">'HTTP_CLIENT_IP'</span>];
+    }
+    <span class="kw">if</span> (!<span class="fn">empty</span>(<span class="var">$_SERVER</span>[<span class="str">'HTTP_X_FORWARDED_FOR'</span>])) {
+        <span class="kw">return</span> <span class="fn">explode</span>(<span class="str">','</span>, <span class="var">$_SERVER</span>[<span class="str">'HTTP_X_FORWARDED_FOR'</span>])[<span class="str">0</span>];
+    }
+    <span class="kw">return</span> <span class="var">$_SERVER</span>[<span class="str">'REMOTE_ADDR'</span>] ?? <span class="str">'0.0.0.0'</span>;
+}
+
+<span class="cmt">// JSON response helpers used by all handler files.</span>
+<span class="kw">function</span> <span class="fn">respond_ok</span>(<span class="cls">string</span> <span class="var">$message</span>): <span class="cls">never</span> {
+    <span class="fn">header</span>(<span class="str">'Content-Type: application/json'</span>);
+    <span class="kw">echo</span> <span class="fn">json_encode</span>([<span class="str">'status'</span> =&gt; <span class="str">'ok'</span>, <span class="str">'message'</span> =&gt; <span class="var">$message</span>]);
+    <span class="kw">exit</span>;
+}
+<span class="kw">function</span> <span class="fn">respond_error</span>(<span class="cls">string</span> <span class="var">$message</span>): <span class="cls">never</span> {
+    <span class="fn">header</span>(<span class="str">'Content-Type: application/json'</span>);
+    <span class="kw">echo</span> <span class="fn">json_encode</span>([<span class="str">'status'</span> =&gt; <span class="str">'error'</span>, <span class="str">'message'</span> =&gt; <span class="var">$message</span>]);
+    <span class="kw">exit</span>;
+}</pre>
+        </div>
+
+        <h4>What it provides to every handler</h4>
+        <table>
+            <tr><th>Variable / Function</th><th>Source</th><th>Was</th></tr>
+            <tr><td><code>$uid</code></td><td><code>$_SESSION['uid']</code></td><td><code>$_POST["uid"]</code> — forged by client</td></tr>
+            <tr><td><code>$sdid</code></td><td><code>$_SESSION['dept_id']</code></td><td>Often re-read from <code>$_POST</code> or session inconsistently</td></tr>
+            <tr><td><code>$ip</code></td><td><code>$_SERVER['REMOTE_ADDR']</code> etc.</td><td><code>$_POST["ip"]</code> — forged by client</td></tr>
+            <tr><td><code>respond_ok($msg)</code></td><td>JSON envelope + exit</td><td><code>echo $alert</code> — plain string</td></tr>
+            <tr><td><code>respond_error($msg)</code></td><td>JSON envelope + exit</td><td><code>echo "ENTER x data"</code> — plain string</td></tr>
+        </table>
+    </div>
+
+    <!-- ── JS side ── -->
+    <div class="section-title">Frontend — AJAX Response Update</div>
+
+    <div class="card">
+        <h3>JavaScript Before / After</h3>
+        <p>Because handlers now return JSON, the <code>success</code> callback in every AJAX call must read <code>response.message</code> instead of the raw <code>response</code> string. This is the only change needed on the frontend side.</p>
+
+        <div class="before-after">
+            <div class="code-block before">
+                <div class="label">Before — JS in form page</div>
+                <pre><span class="var">$.ajax</span>({
+  url: <span class="str">'actionadd.php'</span>,
+  method: <span class="str">'post'</span>,
+  data: <span class="var">$</span>(<span class="str">"#form"</span>).<span class="fn">serialize</span>(),
+  dataType: <span class="str">'text'</span>,
+  success: <span class="kw">function</span>(<span class="var">response</span>) {
+    <span class="cls">Swal</span>.<span class="fn">fire</span>({
+      icon: <span class="str">'success'</span>,
+      title: <span class="var">response</span>, <span class="cmt">// raw string</span>
+      timer: <span class="str">1500</span>
+    });
+  }
+});</pre>
+            </div>
+            <div class="code-block after">
+                <div class="label">After — JS in form page</div>
+                <pre><span class="var">$.ajax</span>({
+  url: <span class="str">'actionadd.php'</span>,
+  method: <span class="str">'post'</span>,
+  data: <span class="var">$</span>(<span class="str">"#form"</span>).<span class="fn">serialize</span>(),
+  dataType: <span class="str">'json'</span>,
+  success: <span class="kw">function</span>(<span class="var">response</span>) {
+    <span class="kw">var</span> <span class="var">icon</span> = <span class="var">response</span>.<span class="var">status</span> === <span class="str">'ok'</span>
+                ? <span class="str">'success'</span> : <span class="str">'error'</span>;
+    <span class="cls">Swal</span>.<span class="fn">fire</span>({
+      icon: <span class="var">icon</span>,
+      title: <span class="var">response</span>.<span class="var">message</span>, <span class="cmt">// from JSON</span>
+      timer: <span class="str">1500</span>
+    });
+  }
+});</pre>
+            </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top:12px;">
+            Also: remove the two hidden form fields <code>&lt;input type="hidden" name="uid"&gt;</code> and <code>&lt;input type="hidden" name="ip"&gt;</code> from every view page — they are no longer sent and are a security exposure.
+        </div>
+    </div>
+
+    <!-- ── Full File Inventory ── -->
+    <div class="section-title">Full Handler File Inventory</div>
+
+    <div class="card">
+        <h3>All Files Affected</h3>
+
+        <h4>Handler files (AJAX endpoints) — require AuthGuard + JSON responses</h4>
+        <table>
+            <tr><th>File</th><th>Session check before</th><th>UID source before</th><th>Changes</th></tr>
+            <tr><td>actionadd.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>actionupdate.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>actiondelete.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>actionapproval.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["auid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>actionammend.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["aauid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>companyaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>kriaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>krifetchaction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>usersaction.php</td><td><span class="badge badge-red">None</span></td><td>N/A (user creation)</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>permissionaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>riskassessaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>riskasseditaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>riskcontrolaction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>recommendaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>entitynewaction.php</td><td><span class="badge badge-orange">Partial</span></td><td>$_POST['deptid'] cast to int</td><td>AuthGuard, session_start() removed, $deptid cast to (int) — HTML output kept</td></tr>
+            <tr><td>entityAction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST['deptid'] cast to int</td><td>AuthGuard session gate only — returns HTML via AJAX; respond_ok/error not used</td></tr>
+            <tr><td>registerAction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST['dept'] cast to int</td><td>AuthGuard session gate only — returns HTML via AJAX; respond_ok/error not used</td></tr>
+            <tr><td>profileaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"] = target user</td><td>AuthGuard, session UID, JSON — $edit_uid kept from POST (target, not admin)</td></tr>
+            <tr><td>nomineeAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON — nomineeClass::addNominee() fixed to return string</td></tr>
+            <tr><td>ownerAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON — ownerClass::addOwner() fixed to return string</td></tr>
+            <tr><td>projectAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON — projectClass::addProject() fixed to return string</td></tr>
+            <tr><td>divisionAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON — divisionClass::addDivision() fixed to return string</td></tr>
+            <tr><td>permissionaction.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"] = target user</td><td>AuthGuard, JSON — renamed to $edit_uid; usersClass::updatepermission() fixed to return string</td></tr>
+            <tr><td>riskcatAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>incidentAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>processAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>parameterAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>riskAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>riskeditAction.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>actioneditdata.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>departmentupdate.php</td><td><span class="badge badge-red">None</span></td><td>$_POST["uid"]</td><td>AuthGuard, session UID, JSON</td></tr>
+            <tr><td>departmentdelete.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>recommenddelete.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+            <tr><td>update_rcontrol.php</td><td><span class="badge badge-red">None</span></td><td>N/A</td><td>AuthGuard, JSON</td></tr>
+        </table>
+
+        <h4 style="margin-top:20px;">Class methods fixed (header() → string return)</h4>
+        <p style="color:#666;font-size:12px;">5 entity class methods called <code>header("Location:...")</code> on success — incompatible with AJAX/JSON. Fixed to return a descriptive string: <strong>nomineeClass::addNominee</strong>, <strong>ownerClass::addOwner</strong>, <strong>divisionClass::addDivision</strong>, <strong>projectClass::addProject</strong>, <strong>usersClass::updatepermission</strong>. Return type updated from <code>mixed</code> to <code>string</code>.</p>
+
+        <h4 style="margin-top:20px;">View pages — hidden fields already removed (Phase 4)</h4>
+        <p style="color:#666;font-size:12px;">Hidden <code>uid</code> and <code>ip</code> inputs were removed as part of Phase 4 (inline script stripping). The app.js AJAX calls already use <code>dataType:'json'</code> and <code>grcSwal(r)</code> / <code>grcToast(r)</code> which read <code>r.status</code> and <code>r.message</code> — aligned with the JSON envelope this phase establishes.</p>
+    </div>
+
+    <!-- ── What is NOT Changing ── -->
+    <div class="section-title">Scope Boundaries</div>
+
+    <div class="card">
+        <h3>What Phase 3 Does NOT Touch</h3>
+        <div class="two-col">
+            <div>
+                <h4>Outside scope</h4>
+                <ul>
+                    <li>Entity class files (Phase 2 complete)</li>
+                    <li>BaseRepository / ActivityLogger / connectionClass</li>
+                    <li>loginClass.php (auth logic already separate)</li>
+                    <li>Database schema</li>
+                    <li>Layout files (header.php, nav.php, footer.php)</li>
+                    <li>CSRF token generation (Phase 4 candidate)</li>
+                    <li>Role-based permission checks per action</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Fully addressed in Phase 3</h4>
+                <ul>
+                    <li>Session gate on all 32 handler files</li>
+                    <li>UID pulled from session on all handlers (not $_POST)</li>
+                    <li>IP pulled server-side on all handlers (not $_POST)</li>
+                    <li>require_once on all handler includes</li>
+                    <li>JSON response envelope on all handlers (except 3 HTML-returning AJAX endpoints)</li>
+                    <li>5 class methods fixed: header() redirect → string return</li>
+                    <li>$deptid/$dept cast to (int) in HTML-returning endpoints</li>
+                    <li>JS AJAX dataType + response.message already aligned via Phase 4 (app.js)</li>
+                    <li>Hidden uid/ip fields already removed via Phase 4 (inline script stripping)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Inheritance / Flow ── -->
+    <div class="section-title">Request Flow After Phase 3</div>
+
+    <div class="card">
+        <h3>Every AJAX call now travels this path</h3>
+        <div class="flow-diagram">
+            <div class="flow-box">Browser form</div>
+            <span class="flow-arrow">&#8594;</span>
+            <div class="flow-box">$.ajax POST (no uid/ip fields)</div>
+            <span class="flow-arrow">&#8594;</span>
+            <div class="flow-box">AuthGuard.php<br><small style="font-weight:400">session check, $uid, $ip</small></div>
+            <span class="flow-arrow">&#8594;</span>
+            <div class="flow-box">Handler logic</div>
+            <span class="flow-arrow">&#8594;</span>
+            <div class="flow-box">Entity class method</div>
+            <span class="flow-arrow">&#8594;</span>
+            <div class="flow-box">respond_ok / respond_error<br><small style="font-weight:400">{"status":"ok","message":"..."}</small></div>
+        </div>
+        <p style="color:#666;font-size:12px;margin-top:8px;">If <code>AuthGuard</code> finds no valid session, the chain stops immediately at step 3 — the entity class and database are never reached.</p>
+    </div>
+
+    <!-- ── Risk Assessment ── -->
+    <div class="section-title">Risk Assessment</div>
+
+    <div class="card">
+        <h3>Impact of Changes</h3>
+        <table>
+            <tr><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr>
+            <tr>
+                <td>JS breaks because dataType changes from 'text' to 'json'</td>
+                <td><span class="badge badge-orange">Medium</span></td>
+                <td>Update every AJAX call in the same pass as the handler. Test each form after change.</td>
+            </tr>
+            <tr>
+                <td>Handler that echoes HTML (not text) fails JSON parse</td>
+                <td><span class="badge badge-orange">Low</span></td>
+                <td>entitynewaction.php is the only non-text handler — it will be refactored separately.</td>
+            </tr>
+            <tr>
+                <td>Hidden uid field removed but some handler still reads $_POST["uid"]</td>
+                <td><span class="badge badge-red">High if missed</span></td>
+                <td>Update handler and form page in the same commit. Grep for $_POST["uid"] after completion to verify zero matches.</td>
+            </tr>
+            <tr>
+                <td>Session not started before AuthGuard runs</td>
+                <td><span class="badge badge-green">None</span></td>
+                <td>AuthGuard calls session_start() itself — handler files do not need to.</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ── mine.js ── -->
+    <div class="section-title">mine.js — Central AJAX File</div>
+
+    <div class="card">
+        <h3>What mine.js is</h3>
+        <p><code>assets/js/mine.js</code> is the single JavaScript file that contains almost all AJAX for the settings/bussinf section of the app — company, entity, process, users, impact, likelihood, risk category, control type, and control strength. It has <strong>37 AJAX calls</strong> across 916 lines. Updating this one file handles the majority of the frontend side of Phase 3.</p>
+
+        <h4>Call breakdown</h4>
+        <table>
+            <tr><th>Type</th><th>Count</th><th>Current dataType</th><th>Action needed</th></tr>
+            <tr><td>Write operations (add / update / delete)</td><td><strong>17</strong></td><td><span class="badge badge-orange">text</span></td><td>Change to <code>json</code>, read <code>response.message</code></td></tr>
+            <tr><td>Read operations (fetch edit/delete modal data)</td><td><strong>15</strong></td><td><span class="badge badge-green">json</span></td><td>Already correct — no JS change needed</td></tr>
+            <tr><td>Commented out (<code>addentity.php</code>)</td><td>1</td><td>—</td><td>Leave as-is</td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Complete call inventory</h3>
+        <table>
+            <tr><th>Line</th><th>URL</th><th>Operation</th><th>dataType now</th><th>Change?</th></tr>
+            <tr><td>12</td><td>editcompany.php</td><td>Fetch company for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>34</td><td>companyupdate.php</td><td>Update company</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>118</td><td>departmentedit.php</td><td>Fetch entity for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>140</td><td>departmentupdate.php</td><td>Update entity</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>164</td><td>departmentedit.php</td><td>Fetch entity for delete modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>181</td><td>departmentdelete.php</td><td>Delete entity</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>222</td><td>processAction.php</td><td>Add process</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>269</td><td>processedit.php</td><td>Fetch process for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>288</td><td>processupdate.php</td><td>Update process</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>311</td><td>processedit.php</td><td>Fetch process for delete modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>329</td><td>processdelete.php</td><td>Delete process</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>357</td><td>usersaction.php</td><td>Add user</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>386</td><td>addimpact.php</td><td>Add impact</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>408</td><td>impactedit.php</td><td>Fetch impact for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>426</td><td>impactupdate.php</td><td>Update impact</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>446</td><td>impactdelupdate.php</td><td>Fetch impact for delete modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>463</td><td>impactdelete.php</td><td>Delete impact</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>490</td><td>addlikelihood.php</td><td>Add likelihood</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>512</td><td>likelyedit.php</td><td>Fetch likelihood for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>531</td><td>likelyupdate.php</td><td>Update likelihood</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>553</td><td>likelydelupdate.php</td><td>Fetch likelihood for delete modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>570</td><td>likelydelete.php</td><td>Delete likelihood</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>598</td><td>riskcatAction.php</td><td>Add risk category</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>620</td><td>riskcatedit.php</td><td>Fetch risk cat for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>638</td><td>riskcatupdate.php</td><td>Update risk category</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>660</td><td>riskcatedit.php</td><td>Fetch risk cat for delete modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>676</td><td>riskcatdelete.php</td><td>Delete risk category</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>702</td><td>addcontroltype.php</td><td>Add control type</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>725</td><td>ctedit.php</td><td>Fetch control type for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>743</td><td>ctupdate.php</td><td>Update control type</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>766</td><td>ctedit.php</td><td>Fetch control type for delete modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>784</td><td>ctdelete.php</td><td>Delete control type</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>814</td><td>addcontrolstrength.php</td><td>Add control strength</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>836</td><td>csedit.php</td><td>Fetch control strength for edit modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>854</td><td>csupdate.php</td><td>Update control strength</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+            <tr><td>877</td><td>csedit.php</td><td>Fetch control strength for delete modal</td><td><span class="badge badge-green">json</span></td><td>No</td></tr>
+            <tr><td>894</td><td>csdelete.php</td><td>Delete control strength</td><td><span class="badge badge-orange">text</span></td><td>Yes</td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Before / After — standard write call pattern</h3>
+        <p>All 17 write calls follow the same template. One pattern change fixes all of them.</p>
+        <div class="before-after">
+            <div class="code-block before">
+                <div class="label">Before — every write call in mine.js</div>
+                <pre>$.ajax({
+    url: <span class="str">'csupdate.php'</span>,
+    method: <span class="str">'POST'</span>,
+    data: $(<span class="str">'#editcsform'</span>).<span class="fn">serialize</span>(),
+    dataType: <span class="str">'text'</span>,           <span class="cmt">// ← raw string</span>
+    success: <span class="kw">function</span>(<span class="var">response</span>) {
+        Swal.<span class="fn">fire</span>({
+            icon: <span class="str">"success"</span>,  <span class="cmt">// ← always success</span>
+            title: <span class="var">response</span>,    <span class="cmt">// ← raw PHP echo</span>
+            timer: <span class="str">1500</span>
+        });
+    }
+});</pre>
+            </div>
+            <div class="code-block after">
+                <div class="label">After — every write call in mine.js</div>
+                <pre>$.ajax({
+    url: <span class="str">'csupdate.php'</span>,
+    method: <span class="str">'POST'</span>,
+    data: $(<span class="str">'#editcsform'</span>).<span class="fn">serialize</span>(),
+    dataType: <span class="str">'json'</span>,           <span class="cmt">// ← JSON envelope</span>
+    success: <span class="kw">function</span>(<span class="var">r</span>) {
+        Swal.<span class="fn">fire</span>({
+            icon: <span class="var">r</span>.status === <span class="str">'ok'</span>
+                  ? <span class="str">'success'</span> : <span class="str">'error'</span>,
+            title: <span class="var">r</span>.message,      <span class="cmt">// ← from JSON</span>
+            timer: <span class="str">1500</span>
+        });
+    }
+});</pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Bug found — nested event handler accumulation</h3>
+        <div class="alert alert-danger">
+            <strong>Every modal-open click re-registers its inner submit handler.</strong> Clicking <code>.addcs</code> (add control strength) opens the modal and registers a new <code>click</code> handler on <code>.addcs-btn</code>. Click the open button 3 times, then submit — the AJAX fires 3 times. This affects every section that uses the modal-open pattern: process, users, impact, likelihood, risk category, control type, and control strength (7 sections).
+        </div>
+        <div class="before-after">
+            <div class="code-block before">
+                <div class="label">Before — handler stacks up on every open</div>
+                <pre><span class="cmt">// Outer click opens modal AND registers inner handler</span>
+$(document).<span class="fn">on</span>(<span class="str">'click'</span>, <span class="str">'.addcs'</span>, <span class="kw">function</span>() {
+    $(<span class="str">'#addcs-modal'</span>).<span class="fn">modal</span>(<span class="str">'show'</span>);
+
+    <span class="cmt">// NEW handler bound every time modal opens ↓</span>
+    $(document).<span class="fn">on</span>(<span class="str">'click'</span>, <span class="str">'.addcs-btn'</span>, <span class="kw">function</span>() {
+        $.ajax({ url: <span class="str">'addcontrolstrength.php'</span>, ... });
+    });
+});</pre>
+            </div>
+            <div class="code-block after">
+                <div class="label">After — submit handler registered once, at top level</div>
+                <pre><span class="cmt">// Open modal only</span>
+$(document).<span class="fn">on</span>(<span class="str">'click'</span>, <span class="str">'.addcs'</span>, <span class="kw">function</span>() {
+    $(<span class="str">'#addcs-modal'</span>).<span class="fn">modal</span>(<span class="str">'show'</span>);
+});
+
+<span class="cmt">// Submit handler registered once at page load</span>
+$(document).<span class="fn">on</span>(<span class="str">'click'</span>, <span class="str">'.addcs-btn'</span>, <span class="kw">function</span>() {
+    $.ajax({ url: <span class="str">'addcontrolstrength.php'</span>, ... });
+});</pre>
+            </div>
+        </div>
+        <p style="color:#666;font-size:12px;margin-top:8px;">Sections affected: <code>.addprocessmodal / .addprocess</code>, <code>.addusermodal / .addusers-button</code>, <code>.addimpactmodal / .addimpact-btn</code>, <code>.addlikely / .addlikely-btn</code>, <code>.addriskcat / .addriskcat-btn</code>, <code>.addct / .addct-btn</code>, <code>.addcs / .addcs-btn</code></p>
+    </div>
+
+    <div class="card">
+        <h3>Additional PHP handler files revealed by mine.js</h3>
+        <p>The original Phase 3 handler count (~25) was based on files named <code>*action*.php</code>. mine.js exposes an additional group that follows a different naming convention. All need <strong>AuthGuard only</strong> (their response is already JSON) or <strong>AuthGuard + JSON response</strong>.</p>
+        <table>
+            <tr><th>File</th><th>Called from mine.js</th><th>Change needed</th></tr>
+            <tr><td>editcompany.php</td><td>Yes — fetch for edit modal</td><td>AuthGuard only</td></tr>
+            <tr><td>companyupdate.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>departmentedit.php</td><td>Yes — fetch for edit &amp; delete modal</td><td>AuthGuard only</td></tr>
+            <tr><td>processAction.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>processedit.php</td><td>Yes — fetch for edit &amp; delete modal</td><td>AuthGuard only</td></tr>
+            <tr><td>processupdate.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>processdelete.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>impactedit.php</td><td>Yes — fetch for edit modal</td><td>AuthGuard only</td></tr>
+            <tr><td>impactupdate.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>impactdelupdate.php</td><td>Yes — fetch for delete modal</td><td>AuthGuard only</td></tr>
+            <tr><td>impactdelete.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>likelyedit.php</td><td>Yes — fetch for edit modal</td><td>AuthGuard only</td></tr>
+            <tr><td>likelyupdate.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>likelydelupdate.php</td><td>Yes — fetch for delete modal</td><td>AuthGuard only</td></tr>
+            <tr><td>likelydelete.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>riskcatedit.php</td><td>Yes — fetch for edit &amp; delete modal</td><td>AuthGuard only</td></tr>
+            <tr><td>riskcatupdate.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>riskcatdelete.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>ctedit.php</td><td>Yes — fetch for edit &amp; delete modal</td><td>AuthGuard only</td></tr>
+            <tr><td>ctupdate.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>ctdelete.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>csedit.php</td><td>Yes — fetch for edit &amp; delete modal</td><td>AuthGuard only</td></tr>
+            <tr><td>csupdate.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+            <tr><td>csdelete.php</td><td>Yes</td><td>AuthGuard + JSON</td></tr>
+        </table>
+        <p style="margin-top:12px;color:#444;">Combined with the original handler list, total PHP files in Phase 3 scope: <strong>~45</strong>.</p>
+    </div>
+
+    <!-- ── Summary ── -->
+    <div class="section-title">Summary</div>
+
+    <div class="card">
+        <h3>Phase 3 in One Paragraph</h3>
+        <p>
+            Phase 3 introduces a single new file — <strong>AuthGuard.php</strong> — and makes it the first line of every AJAX handler in the project. The guard starts the session, validates it, and exposes <code>$uid</code>, <code>$sdid</code>, and <code>$ip</code> from server-side session data. Every handler's <code>include_once</code> becomes <code>require_once</code>. Every <code>echo $string</code> response becomes <code>respond_ok()</code> or <code>respond_error()</code> returning a JSON envelope. On the frontend, each AJAX call switches <code>dataType</code> to <code>'json'</code> and reads <code>response.message</code> instead of the raw string. Hidden <code>uid</code> and <code>ip</code> form fields are removed from all view pages. The result: an unauthenticated request is rejected before it reaches any business logic, user identity cannot be forged, and the response contract between frontend and backend is consistent and machine-readable.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

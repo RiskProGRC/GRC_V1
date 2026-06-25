@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 2 Changes Report — GRC V1</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+        .toolbar { background: #1a1a2e; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .toolbar h1 { font-size: 16px; font-weight: 600; }
+        .btn { padding: 8px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; background: #4f8ef7; color: #fff; text-decoration: none; display: inline-block; }
+        .btn-dark { background: #444; }
+        .btn:hover { opacity: 0.85; }
+        .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+        .report-header { background: #1a1a2e; color: #fff; border-radius: 10px; padding: 36px 40px; margin-bottom: 28px; }
+        .report-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .report-header p { color: #aab4cc; font-size: 13px; margin-bottom: 20px; }
+        .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+        .meta-item span { display: block; font-size: 11px; color: #aab4cc; text-transform: uppercase; letter-spacing: 0.8px; }
+        .meta-item strong { font-size: 14px; color: #fff; }
+        .summary-bar { display: flex; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 18px 24px; flex: 1; min-width: 140px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-top: 4px solid #ccc; text-align: center; }
+        .stat-card.red   { border-top-color: #c0392b; }
+        .stat-card.green { border-top-color: #28a745; }
+        .stat-card.blue  { border-top-color: #4f8ef7; }
+        .stat-card .number { font-size: 32px; font-weight: 700; color: #1a1a2e; }
+        .stat-card .label  { font-size: 12px; color: #888; margin-top: 2px; }
+        .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 28px 0 12px; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; border-left: 5px solid #28a745; }
+        .card.red    { border-left-color: #c0392b; }
+        .card.blue   { border-left-color: #4f8ef7; }
+        .card.yellow { border-left-color: #b7950b; }
+        .card-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f4f4f4; }
+        .card-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-fixed    { background: #eafaf1; color: #1e8449; }
+        .badge-critical { background: #fde8e8; color: #c0392b; }
+        .card-body { padding: 16px 20px; color: #444; }
+        .card-body p { margin-bottom: 10px; }
+        .card-body p:last-child { margin-bottom: 0; }
+        .file-ref { display: inline-block; background: #eef2ff; color: #3b5bdb; border: 1px solid #c5d0fa; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-family: 'Courier New', monospace; }
+        code { background: #f4f6f9; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1px 5px; font-family: 'Courier New', monospace; font-size: 12px; color: #c0392b; }
+        .diff-block { margin: 12px 0; border-radius: 6px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7; }
+        .diff-label { padding: 5px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+        .diff-before .diff-label { background: #5c1a1a; color: #f5a5a5; }
+        .diff-before pre { background: #2d1a1a; color: #f5a5a5; padding: 14px 16px; overflow-x: auto; }
+        .diff-after .diff-label { background: #1a4d1a; color: #a5f5a5; }
+        .diff-after pre { background: #1a2d1a; color: #a5f5a5; padding: 14px 16px; overflow-x: auto; }
+        .comment { color: #6a9955; }
+        .card-footer { background: #f8f9fa; border-top: 1px solid #f0f0f0; padding: 10px 20px; font-size: 12px; color: #666; }
+        .card-footer strong { color: #444; }
+        @media print {
+            .toolbar { display: none; }
+            body { background: #fff; }
+            .container { margin: 0; padding: 20px; max-width: 100%; }
+            .card { break-inside: avoid; }
+            .report-header, .stat-card, .diff-before pre, .diff-after pre,
+            .diff-before .diff-label, .diff-after .diff-label { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>Step 2 Changes Report &mdash; GRC V1</h1>
+    <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-dark">&#8592; Back to Index</a>
+        <button class="btn" onclick="window.print()">&#128438; Download / Print PDF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="report-header">
+        <h2>Step 2 &mdash; SQL Injection Fixes</h2>
+        <p>Security fixes applied to GRC_V1 &mdash; Governance, Risk &amp; Compliance Web Application</p>
+        <div class="meta">
+            <div class="meta-item"><span>Date</span><strong>June 16, 2026</strong></div>
+            <div class="meta-item"><span>Phase</span><strong>Step 2 of 5</strong></div>
+            <div class="meta-item"><span>Files Changed</span><strong>2 files</strong></div>
+            <div class="meta-item"><span>Approach</span><strong>OOP mysqli Prepared Statements</strong></div>
+            <div class="meta-item"><span>Status</span><strong>&#10003; Complete</strong></div>
+        </div>
+    </div>
+
+    <div class="summary-bar">
+        <div class="stat-card red"><div class="number">2</div><div class="label">Vulnerabilities Closed</div></div>
+        <div class="stat-card green"><div class="number">2</div><div class="label">Files Fixed</div></div>
+        <div class="stat-card blue"><div class="number">0</div><div class="label">Logic Changes</div></div>
+    </div>
+
+    <div class="section-title">What Was the Problem</div>
+    <div class="card red">
+        <div class="card-header">
+            <span class="badge badge-critical">Critical &mdash; SQL Injection</span>
+            <h3>Unsanitized AJAX POST Data in SQL Queries</h3>
+        </div>
+        <div class="card-body">
+            <p>Both files received values from <code>$_POST</code> and placed them directly into SQL query strings with no validation or escaping. Since these files are called via AJAX, any user can send a crafted request to read, modify, or delete any data in the database.</p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Vulnerable Pattern</div>
+                <pre>$did = $_POST['dept_id'];
+$select = "SELECT process_id FROM dept_process WHERE dept_id='$did'"; // $did injected directly</pre>
+            </div>
+            <p><strong>Fix applied:</strong> Replaced with <strong>OOP mysqli prepared statements</strong>. The <code>?</code> placeholder separates SQL structure from data — user input can never be interpreted as SQL code.</p>
+        </div>
+    </div>
+
+    <div class="section-title">Changes Applied</div>
+
+    <!-- ajaxdata.php -->
+    <div class="card">
+        <div class="card-header">
+            <span class="badge badge-critical">SQL Injection</span>
+            <h3>Fix 1 &mdash; Project/ajaxdata.php</h3>
+            <span class="badge badge-fixed">&#10003; Fixed</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/ajaxdata.php</span></p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>$con = new mysqli("localhost","root","","grc");
+$did = $_POST['dept_id'];
+if($did){
+    $select = "SELECT process_id FROM dept_process WHERE dept_id='$did'";
+    $result = $con->query($select) or die($con->error);
+    while($row = $result->fetch_assoc()){
+        $pid = $row['process_id'];
+        $select = "SELECT * FROM process WHERE id='$pid'";
+        $presult = $con->query($select);
+        $pname = $presult->fetch_assoc();
+        echo '&lt;option value='.$row['process_id'].'&gt;'.$pname['name'].'&lt;/option&gt;';
+    }
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>include_once './connection/connect.php';
+
+$did = $_POST['dept_id'];
+
+if($did){
+    $stmt = $con->prepare("SELECT process_id FROM dept_process WHERE dept_id=?"); <span class="comment">// prepare query, ? = safe placeholder</span>
+    $stmt->bind_param("i", $did);    <span class="comment">// bind $did as integer to ?</span>
+    $stmt->execute();                <span class="comment">// run the query</span>
+    $result = $stmt->get_result();   <span class="comment">// get results</span>
+    $count = $result->num_rows;      <span class="comment">// count rows</span>
+
+    if($count > 0){
+        echo "&lt;option value=''&gt;SELECT Process&lt;/option&gt;";
+        while($row = $result->fetch_assoc()){
+            $pid = $row['process_id'];
+
+            $stmt2 = $con->prepare("SELECT * FROM process WHERE id=?"); <span class="comment">// get process name by ID</span>
+            $stmt2->bind_param("i", $pid); <span class="comment">// bind $pid as integer</span>
+            $stmt2->execute();             <span class="comment">// run query</span>
+            $pname = $stmt2->get_result()->fetch_assoc(); <span class="comment">// fetch row</span>
+
+            echo '&lt;option value="'.$row['process_id'].'"&gt;'.$pname['name'].'&lt;/option&gt;';
+            $stmt2->close(); <span class="comment">// close inner statement</span>
+        }
+    } else {
+        echo '&lt;option&gt;No state Found&lt;/option&gt;';
+    }
+
+    $stmt->close(); <span class="comment">// close outer statement</span>
+}</pre>
+            </div>
+        </div>
+        <div class="card-footer"><strong>Also fixed:</strong> Removed standalone <code>new mysqli()</code> — now uses shared <code>$con</code> from <code>connect.php</code>.</div>
+    </div>
+
+    <!-- processfetch.php -->
+    <div class="card">
+        <div class="card-header">
+            <span class="badge badge-critical">SQL Injection</span>
+            <h3>Fix 2 &mdash; Project/processfetch.php</h3>
+            <span class="badge badge-fixed">&#10003; Fixed</span>
+        </div>
+        <div class="card-body">
+            <p><strong>File:</strong> <span class="file-ref">Project/processfetch.php</span></p>
+            <div class="diff-block diff-before">
+                <div class="diff-label">Before</div>
+                <pre>include_once './connection/connect.php';
+$pid = $_POST["processid"];
+if($pid){
+    $select = "SELECT * FROM risk WHERE process='$pid'";
+    $query = mysqli_query($con, $select);
+    $count = mysqli_num_rows($query);
+    while($row = mysqli_fetch_assoc($query)){
+        echo '&lt;option value='.$row["risk_id"].'&gt;'.$row["risk_name"].'&lt;/option&gt;';
+    }
+}</pre>
+            </div>
+            <div class="diff-block diff-after">
+                <div class="diff-label">After</div>
+                <pre>include_once './connection/connect.php';
+
+$pid = $_POST["processid"];
+
+if($pid){
+    $stmt = $con->prepare("SELECT * FROM risk WHERE process=?"); <span class="comment">// prepare query, ? = safe placeholder</span>
+    $stmt->bind_param("i", $pid);  <span class="comment">// bind $pid as integer to ?</span>
+    $stmt->execute();               <span class="comment">// run the query</span>
+    $result = $stmt->get_result();  <span class="comment">// get results</span>
+    $count = $result->num_rows;     <span class="comment">// count rows</span>
+
+    if($count > 0){
+        echo '&lt;option value=""&gt;----------Select Risk-----------&lt;/option&gt;';
+        while($row = $result->fetch_assoc()){
+            echo '&lt;option value="'.$row["risk_id"].'"&gt;'.$row["risk_name"].'&lt;/option&gt;'; <span class="comment">// output each risk</span>
+        }
+    } else {
+        echo '&lt;option&gt;NO VALUES SELECTED&lt;/option&gt;';
+    }
+
+    $stmt->close(); <span class="comment">// close statement</span>
+}</pre>
+            </div>
+        </div>
+        <div class="card-footer"><strong>Also fixed:</strong> Removed redundant closing <code>?&gt;</code> PHP tag.</div>
+    </div>
+
+    <div class="section-title">Next Step</div>
+    <div class="card yellow">
+        <div class="card-body">
+            <p><strong>Step 3 &mdash; Consolidate DB Configuration:</strong> Create a single <span class="file-ref">config.php</span> holding database credentials, then update <span class="file-ref">Project/connection/connect.php</span> and <span class="file-ref">Project/connection/connectionClass.php</span> to reference it. Remove the duplicate <code>$db</code> connection from <code>connect.php</code>.</p>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
