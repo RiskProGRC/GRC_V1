@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>profile.php — ARIA Improvement Report</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding: 30px; color: #2c3e50; }
+        h1 { background: #2c3e50; color: #fff; padding: 20px 30px; border-radius: 8px; margin-bottom: 10px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 24px; font-size: 14px; }
+
+        .applied-banner {
+            background: #eafaf1; border: 2px solid #28a745; border-radius: 8px;
+            padding: 14px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px;
+        }
+        .applied-banner .tick { font-size: 28px; }
+        .applied-banner strong { color: #1e8449; font-size: 15px; }
+        .applied-banner p { margin: 2px 0 0; color: #555; font-size: 13px; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .summary-box { border-radius: 8px; padding: 18px 20px; text-align: center; }
+        .summary-box .count { font-size: 36px; font-weight: 800; }
+        .summary-box .label { font-size: 12px; margin-top: 4px; font-weight: 600; }
+        .box-green  { background: #eafaf1; color: #1e8449; }
+        .box-orange { background: #fef9e7; color: #d68910; }
+        .box-blue   { background: #e8f0ff; color: #2471a3; }
+        .box-purple { background: #f5eeff; color: #6f42c1; }
+
+        h2 { color: #2980b9; border-left: 5px solid #2980b9; padding-left: 12px; margin-top: 40px; margin-bottom: 16px; }
+        h2.green  { color: #1e8449; border-left-color: #28a745; }
+        h2.orange { color: #d68910; border-left-color: #e0a800; }
+        h2.purple { color: #6f42c1; border-left-color: #6f42c1; }
+        h3 { color: #34495e; margin: 0 0 8px; font-size: 14px; }
+
+        .card { background: #fff; border-radius: 8px; padding: 22px 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .card.applied  { border-left: 5px solid #28a745; }
+        .card.pending  { border-left: 5px solid #e0a800; }
+        .card.bonus    { border-left: 5px solid #6f42c1; }
+
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-right: 6px; vertical-align: middle; }
+        .badge-high   { background: #fdecea; color: #c0392b; }
+        .badge-medium { background: #fef9e7; color: #d68910; }
+        .badge-low    { background: #e8f0ff; color: #2471a3; }
+        .badge-done   { background: #eafaf1; color: #1e8449; }
+        .badge-pending { background: #fef9e7; color: #d68910; }
+        .badge-bonus  { background: #f5eeff; color: #6f42c1; }
+
+        pre { background: #f0f3f7; border-left: 4px solid #2980b9; padding: 14px; border-radius: 4px; font-size: 12px; overflow-x: auto; margin: 8px 0 0; white-space: pre-wrap; }
+        pre.before { background: #fdecea; border-left-color: #c0392b; }
+        pre.after  { background: #f0faf4; border-left-color: #28a745; }
+        .diff-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin: 10px 0 4px; }
+        .diff-label.old { color: #c0392b; }
+        .diff-label.new { color: #1e8449; }
+
+        code { background: #ecf0f1; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+        .line { color: #2980b9; font-weight: 600; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        th { background: #2c3e50; color: #fff; padding: 10px 14px; text-align: left; font-size: 13px; }
+        td { padding: 9px 14px; border-bottom: 1px solid #ecf0f1; font-size: 13px; vertical-align: top; }
+        tr.done td { background: #f0faf4; }
+        tr.pend td { background: #fffdf0; }
+        tr:hover td { filter: brightness(0.97); }
+
+        .status-ok   { color: #1e8449; font-weight: 700; }
+        .status-pend { color: #d68910; font-weight: 700; }
+        .file-tag { display: inline-block; background: #e8eaf6; color: #283593; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-right: 4px; font-family: monospace; }
+
+        ul { padding-left: 20px; margin: 8px 0 0; }
+        li { margin-bottom: 5px; font-size: 13px; }
+        p { font-size: 13px; margin: 0 0 6px; }
+        .note { background: #f5eeff; border-left: 4px solid #6f42c1; padding: 10px 14px; border-radius: 4px; font-size: 13px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<h1>profile.php &mdash; ARIA Improvement Report</h1>
+<p class="subtitle">File: <code>Project/profile.php</code> &nbsp;|&nbsp; Date: 2026-06-25 &nbsp;|&nbsp; Status: <strong>16 / 17 Applied</strong></p>
+
+<div class="applied-banner">
+    <span class="tick">&#9989;</span>
+    <div>
+        <strong>ARIA Changes Applied &mdash; 16 of 17 issues fixed</strong>
+        <p>All 5 high, all 7 medium, and 4 of 5 low issues resolved. 1 low remains (profile() SELECT *). 2 bonus improvements added beyond the original report.</p>
+    </div>
+</div>
+
+<div class="summary-grid">
+    <div class="summary-box box-green">
+        <div class="count">16</div>
+        <div class="label">Applied</div>
+    </div>
+    <div class="summary-box box-orange">
+        <div class="count">1</div>
+        <div class="label">Remaining</div>
+    </div>
+    <div class="summary-box box-blue">
+        <div class="count">3</div>
+        <div class="label">Files Changed</div>
+    </div>
+    <div class="summary-box box-purple">
+        <div class="count">2</div>
+        <div class="label">Bonus Fixes</div>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<h2 class="green">&#9989; ARIA Changes Applied</h2>
+<!-- ===================================================== -->
+
+<!-- 1 -->
+<div class="card applied">
+    <h3><span class="badge badge-high">HIGH</span> <span class="badge badge-done">&#10003; Applied</span> Auth Gate Added</h3>
+    <p>Unauthenticated visitors are now redirected to login before any code runs.</p>
+    <div class="diff-label old">Before — no session check</div>
+    <pre class="before">include_once './users/usersClass.php';
+$profile = $usersclass->profile($uid);</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+/* ARIA Phase 3 — auth gate for view pages */
+if (empty($_SESSION['uid'])) {
+    header('Location: ../Project/login/login.php');
+    exit;
+}</pre>
+</div>
+
+<!-- 2 -->
+<div class="card applied">
+    <h3><span class="badge badge-high">HIGH</span> <span class="badge badge-done">&#10003; Applied</span> IDOR Eliminated — PRG Pattern (UID Hidden from URL)</h3>
+    <p>
+        <code>$_GET['id']</code> is gone. Profile is now navigated via POST from userslist.php;
+        the target UID is stored in <code>$_SESSION['profile_uid']</code> and the browser redirects
+        to clean <code>profile.php</code> with no parameters. Changing the URL does nothing.
+        Non-admins are always locked to their own UID in session.
+    </p>
+    <div class="diff-label old">Before — ID visible and editable in URL</div>
+    <pre class="before">/* profile.php */
+$uid = $_GET['id'] ?? '';
+
+/* userslist.php */
+&lt;a href="profile.php?id=&lt;?= $uid_row ?&gt;"&gt;Profile&lt;/a&gt;</pre>
+    <div class="diff-label new">After — ID never in URL</div>
+    <pre class="after">/* profile.php — PRG handler */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' &amp;&amp; isset($_POST['id'])) {
+    $posted = (int)$_POST['id'];
+    $_SESSION['profile_uid'] = $isAdmin ? $posted : $sessionUid;
+    header('Location: profile.php');
+    exit;
+}
+$uid = isset($_SESSION['profile_uid']) ? (int)$_SESSION['profile_uid'] : $sessionUid;
+
+/* defense-in-depth: even if session is tampered, non-admins cannot see another profile */
+if ($uid !== $sessionUid &amp;&amp; !$isAdmin) { $uid = $sessionUid; }
+
+/* userslist.php — POST form instead of anchor */
+&lt;form method="post" action="profile.php" class="d-inline"&gt;
+    &lt;input type="hidden" name="id" value="&lt;?= $uid_row ?&gt;"&gt;
+    &lt;button type="submit" class="btn btn-sm btn-primary"&gt;&#128100; Profile&lt;/button&gt;
+&lt;/form&gt;</pre>
+    <span class="file-tag">profile.php</span><span class="file-tag">userslist.php</span>
+</div>
+
+<!-- 3 -->
+<div class="card applied">
+    <h3><span class="badge badge-high">HIGH</span> <span class="badge badge-done">&#10003; Applied</span> Fatal Crash Null Guard</h3>
+    <p>Invalid UID now redirects to userslist instead of crashing with "Cannot use null value as array".</p>
+    <div class="diff-label old">Before</div>
+    <pre class="before">$profile = $usersclass->profile($uid);
+$upid    = $profile['id']; // fatal if $profile === null</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">$profile = $usersclass->profile((string)$uid);
+if ($profile === null) {
+    header('Location: userslist.php');
+    exit;
+}
+$upid = (int)$profile['id'];</pre>
+</div>
+
+<!-- 4 -->
+<div class="card applied">
+    <h3><span class="badge badge-high">HIGH</span> <span class="badge badge-done">&#10003; Applied</span> XSS Fixed on All Profile Field Outputs</h3>
+    <p>All 8 unescaped <code>$profile</code> outputs now go through an <code>e()</code> helper. Department option values cast to <code>int</code>.</p>
+    <div class="diff-label old">Before</div>
+    <pre class="before">&lt;span&gt;&lt;?=$profile["username"]?&gt;&lt;/span&gt;
+&lt;input value="&lt;?=$profile["fname"]?&gt;"&gt;
+&lt;option value=&lt;?=$dept["dept_id"]?&gt;&gt;...&lt;/option&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">function e(string $v): string {
+    return htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
+}
+
+&lt;span&gt;&lt;?= e($profile['username']) ?&gt;&lt;/span&gt;
+&lt;input value="&lt;?= e($profile['fname']) ?&gt;"&gt;
+&lt;option value="&lt;?= (int)$dept['dept_id'] ?&gt;"&gt;...&lt;/option&gt;</pre>
+</div>
+
+<!-- 5 -->
+<div class="card applied">
+    <h3><span class="badge badge-high">HIGH</span> <span class="badge badge-done">&#10003; Applied</span> Undefined <code>$sess_roles</code> / <code>$suid</code> — Reset Password Button Fixed</h3>
+    <p>Both variables now read from session. The Reset Password button correctly appears only for admins viewing another user's profile.</p>
+    <div class="diff-label old">Before</div>
+    <pre class="before">/* $sess_roles and $suid never assigned — button never shown */
+&lt;?php if (isset($sess_roles) &amp;&amp; $sess_roles == 1 &amp;&amp; $upid != ($suid ?? '')): ?&gt;
+    &lt;button data-csrf="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;Reset Password&lt;/button&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">$sessionUid  = (int)$_SESSION['uid'];
+$sessionRole = (int)($_SESSION['roles'] ?? 0);
+$isAdmin     = $sessionRole === 1;
+
+&lt;?php if ($isAdmin &amp;&amp; $upid !== $sessionUid): ?&gt;
+    &lt;button type="button" class="btn btn-warning btn-lg reset-pw-btn"
+            data-uid="&lt;?= $upid ?&gt;"&gt;&#128274; Reset Password&lt;/button&gt;
+&lt;?php endif; ?&gt;</pre>
+</div>
+
+<!-- 6 -->
+<div class="card applied">
+    <h3><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-done">&#10003; Applied</span> Duplicate <code>id="checkbox1"</code> — 16 Unique IDs Assigned</h3>
+    <p>Every checkbox and its label now have a unique, descriptive ID. Clicking any label toggles the correct checkbox.</p>
+    <div class="diff-label old">Before — same id on all 16 checkboxes</div>
+    <pre class="before">&lt;input type="checkbox" id="checkbox1" name="add" ...&gt;   &lt;label for="checkbox1"&gt;ADD&lt;/label&gt;
+&lt;input type="checkbox" id="checkbox1" name="edit" ...&gt;  &lt;label for="checkbox1"&gt;EDIT&lt;/label&gt;
+&lt;input type="checkbox" id="checkbox1" name="rlist" ...&gt; &lt;label for="checkbox1"&gt;Risk List&lt;/label&gt;
+/* ... 13 more with the same id */</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">&lt;input type="checkbox" id="perm-add"    name="add"    ...&gt; &lt;label for="perm-add"&gt;ADD&lt;/label&gt;
+&lt;input type="checkbox" id="perm-edit"   name="edit"   ...&gt; &lt;label for="perm-edit"&gt;EDIT&lt;/label&gt;
+&lt;input type="checkbox" id="perm-rlist"  name="rlist"  ...&gt; &lt;label for="perm-rlist"&gt;Risk List&lt;/label&gt;
+/* perm-delete, perm-process, perm-control, perm-recommend,
+   perm-rassess, perm-rregister, perm-top, perm-kpi, perm-kri,
+   perm-perform, perm-incident, perm-action, perm-objective,
+   perm-report, perm-card, perm-rating */</pre>
+</div>
+
+<!-- 7 -->
+<div class="card applied">
+    <h3><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-done">&#10003; Applied</span> Checkboxes Pre-Populated from Database</h3>
+    <p>Permission checkboxes now reflect the user's actual stored permissions instead of always showing all checked.</p>
+    <div class="diff-label old">Before — always checked regardless of DB</div>
+    <pre class="before">&lt;input type="checkbox" name="add" value="1" class="form-check-input" checked&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">$permSet    = $usersclass->fetchPermissionUids();
+$hasPermRow = isset($permSet[$upid]);
+$perms      = $hasPermRow ? ($usersclass->fetchpermission((string)$upid) ?? []) : [];
+
+&lt;input type="checkbox" id="perm-add" name="add" value="1" class="form-check-input"
+       &lt;?= !empty($perms['add_btn']) ? 'checked' : '' ?&gt;&gt;</pre>
+</div>
+
+<!-- 8 -->
+<div class="card applied">
+    <h3><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-done">&#10003; Applied</span> SUSPENDED Value Fixed: <code>2</code> &rarr; <code>0</code></h3>
+    <div class="diff-label old">Before</div>
+    <pre class="before">&lt;option value="1" selected&gt;ACTIVE&lt;/option&gt;
+&lt;option value="2"&gt;SUSPENDED&lt;/option&gt;</pre>
+    <div class="diff-label new">After — correct binary 0/1 matching toggleAccess()</div>
+    <pre class="after">$currentAccess = (int)($profile['access'] ?? 1);
+
+&lt;option value="1" &lt;?= $currentAccess === 1 ? 'selected' : '' ?&gt;&gt;ACTIVE&lt;/option&gt;
+&lt;option value="0" &lt;?= $currentAccess === 0 ? 'selected' : '' ?&gt;&gt;SUSPENDED&lt;/option&gt;</pre>
+</div>
+
+<!-- 9 -->
+<div class="card applied">
+    <h3><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-done">&#10003; Applied</span> Access Select Pre-Populated from DB</h3>
+    <p>The access dropdown now shows the user's actual current state (ACTIVE or SUSPENDED) instead of always defaulting to ACTIVE.</p>
+    <p>Fixed alongside issue #8 above — both resolved in a single change.</p>
+</div>
+
+<!-- 10 -->
+<div class="card applied">
+    <h3><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-done">&#10003; Applied</span> Malformed <code>&lt;form&gt;</code> Structure in Modal Fixed</h3>
+    <p><code>&lt;form id="permission"&gt;</code> was opened inside <code>.modal-header</code>. It now wraps only <code>.modal-body</code> and <code>.modal-footer</code> as valid HTML structure requires.</p>
+    <div class="diff-label old">Before — form opens mid-div</div>
+    <pre class="before">&lt;div class="modal-header"&gt;
+    &lt;form id="permission"&gt;            ← wrong position
+        &lt;h5 class="modal-title"&gt;...&lt;/h5&gt;
+        &lt;button data-bs-dismiss...&gt;&lt;/button&gt;
+    &lt;/div&gt;                             ← div closes inside form
+    &lt;div class="modal-body"&gt;...</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">&lt;div class="modal-header"&gt;
+    &lt;h5 class="modal-title" id="permModalLabel"&gt;User Permissions&lt;/h5&gt;
+    &lt;button type="button" class="close rounded-pill" data-bs-dismiss="modal"&gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;form id="permission"&gt;
+    &lt;input type="hidden" name="uid" value="&lt;?= $upid ?&gt;"&gt;
+    &lt;div class="modal-body"&gt;...&lt;/div&gt;
+    &lt;div class="modal-footer"&gt;...&lt;/div&gt;
+&lt;/form&gt;</pre>
+</div>
+
+<!-- 11 -->
+<div class="card applied">
+    <h3><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-done">&#10003; Applied</span> Permissions Button <code>type="button"</code> Added + Modal Wired</h3>
+    <p>Button now has <code>type="button"</code> so it does not accidentally submit <code>#profileform</code>. Bootstrap modal trigger attributes added directly.</p>
+    <div class="diff-label old">Before — defaults to type="submit", no modal trigger</div>
+    <pre class="before">&lt;button class="btn btn-primary btn-lg access" id="access"&gt;Permissions&lt;/button&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">&lt;button type="button" class="btn btn-primary btn-lg"
+        data-bs-toggle="modal" data-bs-target="#access-modal"&gt;
+    &lt;?= $hasPermRow ? 'Edit Permissions' : 'Add Permissions' ?&gt;
+&lt;/button&gt;</pre>
+</div>
+
+<!-- 12 -->
+<div class="card applied">
+    <h3><span class="badge badge-medium">MEDIUM</span> <span class="badge badge-done">&#10003; Applied</span> Permissions Modal CSRF via <code>window.CSRF_TOKEN</code></h3>
+    <p>CSRF token is now emitted as a page-level JS variable. The <code>permission-button</code> handler in <code>usermanagement.js</code> reads it from there instead of a per-button <code>data-csrf</code> attribute.</p>
+    <div class="diff-label old">Before — no CSRF on permissions form</div>
+    <pre class="before">&lt;button class="btn btn-primary permission-button" data-bs-dismiss="modal"&gt;Add Permision&lt;/button&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">&lt;!-- at bottom of profile.php --&gt;
+&lt;script&gt;window.CSRF_TOKEN = '&lt;?= $csrf ?&gt;';&lt;/script&gt;
+&lt;script src="../assets/js/usermanagement.js"&gt;&lt;/script&gt;
+
+/* usermanagement.js — permission-button reads window.CSRF_TOKEN */
+$('.permission-button').on('click', function () {
+    var csrf = window.CSRF_TOKEN;
+    ...
+});</pre>
+    <span class="file-tag">profile.php</span><span class="file-tag">usermanagement.js</span>
+</div>
+
+<!-- 13 -->
+<div class="card applied">
+    <h3><span class="badge badge-low">LOW</span> <span class="badge badge-done">&#10003; Applied</span> Broken HTML Comments Fixed &mdash; 5 Instances</h3>
+    <div class="diff-label old">Before — <code>&lt;!-</code> single dash (invalid)</div>
+    <pre class="before">&lt;!-_________________Header location______________________-&gt;
+&lt;!-_________________Navigation location______________________-&gt;
+&lt;!-_________________Content location BEGINING______________________-&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">&lt;!-- Header location --&gt;
+&lt;!-- Navigation location --&gt;
+&lt;!-- Content location BEGINNING --&gt;
+&lt;!-- Content location END --&gt;
+&lt;!-- Footer location --&gt;</pre>
+</div>
+
+<!-- 14 -->
+<div class="card applied">
+    <h3><span class="badge badge-low">LOW</span> <span class="badge badge-done">&#10003; Applied</span> Empty <code>id=""</code> on Four <code>&lt;select&gt;</code> Elements Fixed</h3>
+    <div class="diff-label old">Before</div>
+    <pre class="before">&lt;select class="form-select" name="gender" id=""&gt;
+&lt;select class="form-select" name="roles"  id=""&gt;
+&lt;select class="form-select" name="dept"   id=""&gt;
+&lt;select class="form-select" name="access" id=""&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">&lt;select class="form-select" name="gender" id="gender"&gt;
+&lt;select class="form-select" name="roles"  id="roles"&gt;
+&lt;select class="form-select" name="dept"   id="dept"&gt;
+&lt;select class="form-select" name="access" id="access-select"&gt;</pre>
+</div>
+
+<!-- 15 -->
+<div class="card applied">
+    <h3><span class="badge badge-low">LOW</span> <span class="badge badge-done">&#10003; Applied</span> <code>accessbutton()</code> Replaced — Extra DB Query Eliminated</h3>
+    <p>The ambiguous <code>$uid != $puid</code> check (where <code>accessbutton()</code> returns a string on miss) is replaced with a clean <code>isset()</code> lookup on the pre-fetched <code>$permSet</code>.</p>
+    <div class="diff-label old">Before — extra DB query per page load, broken logic</div>
+    <pre class="before">$puid = $usersclass->accessbutton($uid); // returns 'NO RECORDS FOUND' string on miss
+
+&lt;?php if ($uid != $puid): ?&gt;  ← shows button only when NO permission row exists
+    &lt;button&gt;Permissions&lt;/button&gt;</pre>
+    <div class="diff-label new">After — O(1) array lookup, admin-only guard</div>
+    <pre class="after">$permSet    = $usersclass->fetchPermissionUids(); // single query, pre-fetched
+$hasPermRow = isset($permSet[$upid]);
+
+&lt;?php if ($isAdmin): ?&gt;
+    &lt;button ...&gt;&lt;?= $hasPermRow ? 'Edit Permissions' : 'Add Permissions' ?&gt;&lt;/button&gt;</pre>
+</div>
+
+<!-- 16 -->
+<div class="card applied">
+    <h3><span class="badge badge-low">LOW</span> <span class="badge badge-done">&#10003; Applied</span> Profile Photo Double Slash Fixed</h3>
+    <div class="diff-label old">Before</div>
+    <pre class="before">src="../assets/images/faces//silhouette-glasses-profile.jpg"</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">src="../assets/images/faces/silhouette-glasses-profile.jpg" alt="Profile photo"</pre>
+</div>
+
+<!-- ===================================================== -->
+<h2 class="purple">&#11088; Bonus Fixes (Beyond Original Report)</h2>
+<!-- ===================================================== -->
+
+<div class="card bonus">
+    <h3><span class="badge badge-bonus">BONUS</span> usermanagement.js — CSRF Reading Fixed for 3 Handlers</h3>
+    <p>
+        The access-toggle, delete-user, and reset-pw-btn handlers were reading CSRF from
+        <code>$btn.data('csrf')</code> — but userslist.php was already updated to output
+        <code>window.CSRF_TOKEN</code> only (no per-button <code>data-csrf</code>). All three handlers
+        now read from <code>window.CSRF_TOKEN</code> consistently.
+    </p>
+    <div class="diff-label old">Before — stale data-attr read (undefined on new userslist.php)</div>
+    <pre class="before">var csrf = $btn.data('csrf');         // access-toggle
+var csrf = $btn.data('csrf');         // delete user
+var csrf = $(this).data('csrf');      // reset-pw-btn</pre>
+    <div class="diff-label new">After</div>
+    <pre class="after">var csrf = window.CSRF_TOKEN;         // access-toggle
+var csrf = window.CSRF_TOKEN;         // delete user
+var csrf = window.CSRF_TOKEN;         // reset-pw-btn</pre>
+    <span class="file-tag">usermanagement.js</span>
+</div>
+
+<!-- ===================================================== -->
+<h2 class="orange">&#9888; Remaining &mdash; 1 Item Pending</h2>
+<!-- ===================================================== -->
+
+<div class="card pending">
+    <h3><span class="badge badge-low">LOW</span> <span class="badge badge-pending">&#9888; Pending</span> <code>profile()</code> Fetches Password Hash via <code>SELECT *</code></h3>
+    <p>
+        <code>usersClass::profile()</code> calls <code>fetchOne('users', 'id', $uid)</code>
+        which internally runs <code>SELECT * FROM users</code>. The <code>upassword</code> bcrypt hash
+        and any other sensitive columns land in <code>$profile</code> and are available throughout
+        the template — unnecessary exposure even if not echoed.
+    </p>
+    <div class="diff-label new">Fix — override profile() to use explicit columns (usersClass.php:25)</div>
+    <pre class="after">public function profile(string $uid): ?array {
+    $stmt = $this->prepare(
+        "SELECT id, fname, sname, gender, dept_id, email, phone, username, access, roles
+         FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1"
+    );
+    $stmt->bind_param('s', $uid);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc() ?: null;
+}</pre>
+    <span class="file-tag">usersClass.php:25</span>
+</div>
+
+<!-- ===================================================== -->
+<h2>&#128203; Full Issue Tracker</h2>
+<!-- ===================================================== -->
+
+<div class="card">
+    <table>
+        <tr><th>Priority</th><th>Issue</th><th>File</th><th>Status</th></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td>No authentication guard</td><td class="line">profile.php:1</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td>IDOR — UID hidden via PRG pattern; URL never shows ID</td><td class="line">profile.php + userslist.php</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td>Fatal crash — no null check on <code>$profile</code></td><td class="line">profile.php:12–13</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td>XSS — 8 unescaped <code>$profile</code> outputs</td><td class="line">profile.php:104,113–145</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td><code>$sess_roles</code> / <code>$suid</code> undefined — Reset Password never shown</td><td class="line">profile.php:162</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>All 16 checkboxes share <code>id="checkbox1"</code></td><td class="line">profile.php:277–454</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>Checkboxes always checked — no DB pre-population</td><td class="line">profile.php:277–454</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>SUSPENDED value <code>2</code> should be <code>0</code></td><td class="line">profile.php:214</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>Access select always defaults to ACTIVE</td><td class="line">profile.php:213</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td><code>&lt;form&gt;</code> opens inside <code>.modal-header</code> — malformed</td><td class="line">profile.php:257</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>Permissions button missing <code>type="button"</code></td><td class="line">profile.php:160</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>Permissions modal has no CSRF token</td><td class="line">profile.php:257–482</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td>Broken <code>&lt;!-</code> HTML comment syntax — 5 instances</td><td class="line">profile.php:25,85,92,225,237</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td>Empty <code>id=""</code> on 4 select elements</td><td class="line">profile.php:126,178,198,212</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td><code>accessbutton()</code> — ambiguous logic + extra DB query</td><td class="line">profile.php:14</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="pend"><td><span class="badge badge-low">LOW</span></td><td><code>profile()</code> runs <code>SELECT *</code> — pulls password hash into template</td><td class="line">usersClass.php:25</td><td class="status-pend">&#9888; Pending</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td>Profile photo path double slash</td><td class="line">profile.php:103</td><td class="status-ok">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-bonus">BONUS</span></td><td>usermanagement.js CSRF reading fixed for 3 handlers</td><td class="line">usermanagement.js:120,147,183</td><td class="status-ok">&#10003; Applied</td></tr>
+    </table>
+</div>
+
+<p style="color:#7f8c8d; font-size:12px; margin-top:30px;">Updated: 2026-06-25 &nbsp;|&nbsp; GRC_V1 Project &nbsp;|&nbsp; ARIA Protocol &nbsp;|&nbsp; 16/17 applied &middot; 3 files changed</p>
+
+</body>
+</html>

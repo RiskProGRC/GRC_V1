@@ -1,20 +1,34 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+$uid=1;
+ 
+/* ARIA Phase 3 — auth gate for view pages: redirect instead of JSON */
+if (empty($_SESSION['uid'])) {
+    header('Location: ../Project/login/login.php');
+    exit;
 }
+
 include_once './department/departmentClass.php';
 include_once './users/usersClass.php';
 
 $usersclass = new usersClass();
 $deptClass  = new departmentClass();
-$showusers  = $usersclass->fetchusers();
+
+$showusers  = $usersclass->fetchusers();   // explicit columns only — no password hash
 $showdept   = $deptClass->showDept();
 $stats      = $usersclass->getStats();
+
+/* Build a dept name lookup from already-fetched $showdept — avoids N deptJoins() queries */
+$deptMap = array_column($showdept, 'dept_name', 'dept_id');
+
+/* Fetch all permission UIDs in one query — avoids N accessbutton() queries */
+$permSet = $usersclass->fetchPermissionUids();
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
-$csrf = htmlspecialchars($_SESSION['csrf_token']);
+$csrf = htmlspecialchars($_SESSION['csrf_token']); // used once in a JS variable, not per-row
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,9 +37,14 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']);
     tr, td { font-size: 13px; font-weight: 600; color: #000; }
     label  { font-size: 13px; font-weight: 800; color: #000; }
     .form-control, .form-select, .choices { font-size: 13px; }
-    .stat-card { border-radius: 10px; padding: 18px 20px; color: #fff; }
-    .stat-card h2 { font-size: 28px; font-weight: 700; margin: 0; }
-    .stat-card p  { font-size: 12px; margin: 4px 0 0; opacity: .85; }
+    .stat-card          { border-radius: 10px; padding: 18px 20px; color: #fff; }
+    .stat-card h2       { font-size: 28px; font-weight: 700; margin: 0; }
+    .stat-card p        { font-size: 12px; margin: 4px 0 0; opacity: .85; }
+    /* stat card colour modifiers — replaces inline style attributes */
+    .stat-card.sc-blue   { background: #435ebe; }
+    .stat-card.sc-green  { background: #28a745; }
+    .stat-card.sc-red    { background: #dc3545; }
+    .stat-card.sc-purple { background: #6f42c1; }
 </style>
 <body>
 <div id="app">
@@ -42,28 +61,28 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']);
                 <section class="row">
                     <div class="col-12">
 
-                        <!-- Stats cards -->
+                        <!-- Stats cards — colours set via CSS classes, not inline styles -->
                         <div class="row mb-4 g-3">
                             <div class="col-6 col-md-3">
-                                <div class="stat-card" style="background:#435ebe;">
+                                <div class="stat-card sc-blue">
                                     <h2><?= (int)($stats['total'] ?? 0) ?></h2>
                                     <p>Total Users</p>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
-                                <div class="stat-card" style="background:#28a745;">
+                                <div class="stat-card sc-green">
                                     <h2><?= (int)($stats['active'] ?? 0) ?></h2>
                                     <p>Active</p>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
-                                <div class="stat-card" style="background:#dc3545;">
+                                <div class="stat-card sc-red">
                                     <h2><?= (int)($stats['suspended'] ?? 0) ?></h2>
                                     <p>Suspended</p>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
-                                <div class="stat-card" style="background:#6f42c1;">
+                                <div class="stat-card sc-purple">
                                     <h2><?= (int)($stats['admins'] ?? 0) ?></h2>
                                     <p>Administrators</p>
                                 </div>
@@ -88,10 +107,10 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']);
                                        class="btn btn-sm btn-outline-success ms-auto">
                                         &#128190; Export CSV
                                     </a>
-                                    <button onclick="location.href='../Project/usersadd.php'"
-                                            type="button" class="btn btn-sm btn-primary">
+                                    <!-- anchor tag preserves keyboard nav and middle-click; onclick on button does not -->
+                                    <a href="../Project/usersadd.php" class="btn btn-sm btn-primary">
                                         &#43; Add User
-                                    </button>
+                                    </a>
                                 </div>
 
                                 <div class="card-body">
@@ -109,45 +128,58 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']);
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <?php if (empty($showusers)): ?>
+                                            <!-- empty state — shown when no users exist yet -->
+                                            <tr>
+                                                <td colspan="8" class="text-center py-4 text-muted">
+                                                    No users found. <a href="usersadd.php">Add the first user</a>.
+                                                </td>
+                                            </tr>
+                                            <?php else: ?>
                                             <?php foreach ($showusers as $user):
-                                                $deptid   = $user['dept_id'];
-                                                $deptname = $deptClass->deptJoins((string)$deptid);
-                                                $uid_row  = $user['id'];
-                                                $puid     = $usersclass->accessbutton((string)$uid_row);
+                                                $uid_row  = (int)$user['id'];   // cast once; reused as int throughout
+                                                $deptid   = (int)$user['dept_id'];
 
-                                                $accessLabel = $user['access'] == 1 ? 'Active' : 'Suspended';
-                                                $accessClass = $user['access'] == 1 ? 'btn-success' : 'btn-danger';
+                                                /* O(1) array lookup — no DB call per row */
+                                                $deptname = htmlspecialchars($deptMap[$deptid] ?? 'N/A', ENT_QUOTES, 'UTF-8');
 
-                                                $permBtn = ($uid_row == $puid)
-                                                    ? '<a href="permissionedit?id=' . $uid_row . '" class="btn btn-sm btn-primary"><span class="bi bi-check-square-fill"></span>&nbsp;Permission</a>'
+                                                $accessLabel = (int)$user['access'] === 1 ? 'Active' : 'Suspended'; // strict comparison
+                                                $accessClass = (int)$user['access'] === 1 ? 'btn-success' : 'btn-danger';
+
+                                                /* isset() on pre-fetched array — no DB call per row */
+                                                $permBtn = isset($permSet[$uid_row])
+                                                    ? '<a href="permissionedit.php?id=' . $uid_row . '" class="btn btn-sm btn-primary"><span class="bi bi-check-square-fill"></span>&nbsp;Permission</a>'
                                                     : '';
                                             ?>
-                                            <tr data-dept="<?= $deptid ?>">
-                                                <td>UID00<?= $uid_row ?></td>
-                                                <td><?= htmlspecialchars($user['fname'] . ' ' . $user['sname']) ?></td>
-                                                <td><?= htmlspecialchars($user['gender']) ?></td>
-                                                <td><?= htmlspecialchars($deptname) ?></td>
-                                                <td><?= htmlspecialchars($user['username']) ?></td>
-                                                <td><?= htmlspecialchars($user['phone']) ?></td>
+                                            <tr data-dept="<?= $deptid ?>"> <!-- int, no escaping needed -->
+                                                <td>UID00<?= $uid++ ?></td>
+                                                <td><?= htmlspecialchars($user['fname'] . ' ' . $user['sname'], ENT_QUOTES, 'UTF-8') ?></td>
+                                                <td><?= htmlspecialchars($user['gender'], ENT_QUOTES, 'UTF-8') ?></td>
+                                                <td><?= $deptname ?></td>
+                                                <td><?= htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') ?></td>
+                                                <td><?= htmlspecialchars($user['phone'], ENT_QUOTES, 'UTF-8') ?></td>
                                                 <td>
+                                                    <!-- CSRF read from JS variable set below, not per-button attribute -->
                                                     <button class="btn btn-sm <?= $accessClass ?> access-toggle"
-                                                            data-uid="<?= $uid_row ?>"
-                                                            data-csrf="<?= $csrf ?>">
+                                                            data-uid="<?= $uid_row ?>">
                                                         <?= $accessLabel ?>
                                                     </button>
                                                 </td>
                                                 <td class="d-flex gap-1 flex-wrap">
-                                                    <a href="profile.php?id=<?= $uid_row ?>"
-                                                       class="btn btn-sm btn-primary">
-                                                        &#128100; Profile
-                                                    </a>
+                                                    <!-- POST hides uid from URL; profile.php PRG-redirects to clean profile.php -->
+                                                    <form method="post" action="profile.php" class="d-inline">
+                                                        <input type="hidden" name="id" value="<?= $uid_row ?>">
+                                                        <button type="submit" class="btn btn-sm btn-primary">&#128100; Profile</button>
+                                                    </form>
                                                     <?= $permBtn ?>
-                                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                    <button class="btn btn-sm btn-outline-danger delete-user"
+                                                            data-uid="<?= $uid_row ?>">
                                                         Delete
                                                     </button>
                                                 </td>
                                             </tr>
                                             <?php endforeach; ?>
+                                            <?php endif; ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -175,6 +207,8 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']);
 <script src="../assets/vendors/fontawesome/all.min.js"></script>
 <script src="../assets/vendors/choices.js/choices.min.js"></script>
 <script src="../assets/js/pages/form-element-select.js"></script>
+<!-- CSRF token as a single JS variable; usermanagement.js reads window.CSRF_TOKEN instead of per-button data-csrf -->
+<script>window.CSRF_TOKEN = '<?= $csrf ?>';</script>
 <script src="../assets/js/usermanagement.js"></script>
 </body>
 </html>

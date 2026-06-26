@@ -39,40 +39,59 @@ $tab= $_GET["tab"] ?? "group";
 <style>
 .btn-group-sm>.btn, .btn-sm {
     border-radius: 0.2rem;
-    font-size: .5rem;
-    padding: 0.15rem 0.2rem;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
 }
-.btn-buss{
-    width:50px;
-    height:400px
-  }
-  .btn-buss .bi{
+.btn-buss {
+    width: 50px;
+    height: 400px;
+}
+.btn-buss .bi {
     font-size: 25px;
-  }
-  tr,td{
-        font-size:13px;
-        font-weight: 800;
-        color: #000;
-        height: 9px;
-        padding:2px 0px 2px !important;
-        text-align: center;
-    }
-.nav-link {
-  border: 1px solid #1b6ae1 !important;
-  display: block;
-  color: #000;
-  padding: 8px 16px;
-  text-decoration: none;
-  border-radius: 0px !important;
 }
-.col-2,.col-9,.nav-col{
+.table-buss {
+    border-collapse: collapse;
+}
+.table-buss th {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: #2c3e50;
+    padding: 6px 8px;
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.table-buss td {
+    font-size: 12px;
+    font-weight: 500;
+    color: #222;
+    padding: 5px 8px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    border: 1px solid #b8c8de;
+}
+.table-buss tbody tr:hover td {
+    background: #eef4ff;
+}
+.nav-link {
+    border: 1px solid #1b6ae1 !important;
+    display: block;
+    color: #000;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 0px !important;
+}
+.col-2,.col-9,.nav-col {
     padding: 0px;
     box-shadow: 5px 10px 18px #98b4e0;
 }
-.tab-pane{
-    padding:10px 10px 0px 10px;
+.tab-pane {
+    padding: 10px 10px 0px 10px;
 }
-label{
+label {
     margin-top: 10px;
 }
 </style>
@@ -105,19 +124,19 @@ label{
                                     aria-orientation="vertical">
                                     <a class="nav-link <?php echo $tab =='group' ? 'active': ''?>" id="v-pills-home-tab" data-bs-toggle="pill"
                                         href="#group" role="tab" onclick="changeTab('group')" aria-controls="v-pills-group"
-                                        aria-selected="true"><span class="fa-fw select-all fas">ï™¯</span> <span>Groups</span>  </a>
+                                        aria-selected="true"><i class="fas fa-fw fa-layer-group"></i> <span>Groups</span>  </a>
 
                                     <a class="nav-link <?php echo $tab =='company' ? 'active': ''?>" id="v-pills-profile-tab" data-bs-toggle="pill"
                                         href="#company" role="tab" onclick="changeTab('company')" aria-controls="v-pills-Company"
-                                        aria-selected="false"><span class="fa-fw select-all fas">ï†­</span> <span>Company</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-building"></i> <span>Company</span></a>
 
                                     <a class="nav-link <?php echo $tab =='entity' ? 'active': ''?>" id="v-pills-messages-tab" data-bs-toggle="pill"
                                         href="#entity" role="tab" onclick="changeTab('entity')" aria-controls="v-pills-messages"
-                                        aria-selected="false"><span class="fa-fw select-all fas">ï›¿</span> <span>Entity/Dept.</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-sitemap"></i> <span>Entity/Dept.</span></a>
 
                                     <a class="nav-link <?php echo $tab =='process' ? 'active': ''?>" id="v-pills-settings-tab" data-bs-toggle="pill"
                                         href="#process" role="tab" onclick="changeTab('process')" aria-controls="v-pills-settings"
-                                        aria-selected="false"><span class="fa-fw select-all fas">ï—½</span> <span>Process</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-cogs"></i> <span>Process</span></a>
 
                                     <a class="nav-link  <?php echo $tab =='risk_category' ? 'active': ''?>" id="v-pills-rcat-tab" data-bs-toggle="pill"
                                         href="#rcat" role="tab" onclick="changeTab('risk_category')" aria-controls="v-pills-settings"
@@ -152,15 +171,17 @@ label{
                                         aria-labelledby="v-pills-group-tab">
                                             <div class="row">
                                                 <div class="col-11">
-                                                <table class="table table-bordered" id="table1">
+                                                <div class="table-responsive">
+                                                <table class="table table-bordered table-buss" id="table1">
                                                     <thead>
                                                         <tr>
                                                             <th>Reference</th>
                                                             <th>Name</th>
-                                                            <th>website</th>
-                                                            <th>country</th>
-                                                            <th>objectives</th>
+                                                            <th>Website</th>
+                                                            <th>Country</th>
+                                                            <th>Objectives</th>
                                                             <th>Logo</th>
+                                                            <th>Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -176,17 +197,18 @@ label{
                                                                     <td>'.$group["objectives"].'</td>
                                                                     <td>'.$image.'</td>
                                                                     <td>
-                                                                    <button name="edit" class="btn btn-sm btn-primary btn-userpermission-edit" id="'.$group["id"].'"><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button name="delete"  class="btn btn-sm btn-danger btn-userpermission-delete" ><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button name="edit" class="btn btn-sm btn-primary btn-userpermission-edit" id="'.$group["id"].'"><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button name="delete"  class="btn btn-sm btn-danger btn-userpermission-delete" ><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                             }
                                                         ?>
                                                     </tbody>
                                                 </table>
+                                                </div><!-- end table-responsive -->
                                                 </div>
                                                 <div class="col-1">
-                                                    <button class="btn btn-outline-primary btn-userpermission-add" data-bs-toggle="modal"  
+                                                    <button class="btn btn-outline-primary btn-userpermission-add" data-bs-toggle="modal"
                                                     data-bs-target="#group-modal">
                                                      <i class="fa fa-plus"></i>Add
                                                     </button>
@@ -198,7 +220,8 @@ label{
                                         aria-labelledby="v-pills-company-tab">
                                         <div class="row">
                                             <div class="col-11">
-                                                <table class="table table-bordered" id="table1">
+                                                <div class="table-responsive">
+                                                <table class="table table-bordered table-buss" id="table1">
                                                     <thead>
                                                         <tr>
                                                             <th>Reference</th>
@@ -223,14 +246,15 @@ label{
                                                                     <td>'.$company["address"].'</td>
                                                                     <td>'.$image.'</td>
                                                                     <td>
-                                                                    <button name="edit" class="btn btn-sm btn-primary editcompany btn-userpermission-edit" id="'.$company["id"].'"><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button name="delete"  class="btn btn-sm btn-danger deletecompany btn-userpermission-delete" ><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button name="edit" class="btn btn-sm btn-primary editcompany btn-userpermission-edit" id="'.$company["id"].'"><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button name="delete"  class="btn btn-sm btn-danger deletecompany btn-userpermission-delete" ><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                             }
                                                         ?>
                                                     </tbody>
                                                 </table>
+                                                </div><!-- table-responsive -->
                                             </div>
                                             <div class="col-1">
                                                 <a href="companylist.php" class="btn btn-outline-primary btn-userpermission-add addcompany"  >
@@ -244,7 +268,8 @@ label{
                                         <!--------------------------start of entity------------------------------------------->
                                         <div class="row">
                                             <div class="col-11">
-                                                <table class="table table-striped" id="table2">
+                                                <div class="table-responsive">
+                                                <table class="table table-striped table-buss" id="table2">
                                                     <thead>
                                                         <tr>
                                                             <th>Reference</th>
@@ -269,14 +294,15 @@ label{
                                                                     <td>'.$dept["dept_name"].'</td>
                                                                     <td>'.$username.'</td>
                                                                     <td>
-                                                                    <button class="btn btn-sm btn-primary editentity btn-userpermission-edit" id='.$dept["dept_id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button class="btn btn-sm btn-danger delete-dept btn-userpermission-delete" id='.$dept["dept_id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button class="btn btn-sm btn-primary editentity btn-userpermission-edit" id='.$dept["dept_id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button class="btn btn-sm btn-danger delete-dept btn-userpermission-delete" id='.$dept["dept_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                             }
-                                                        ?> 
+                                                        ?>
                                                     </tbody>
                                                 </table>
+                                                </div><!-- table-responsive -->
                                             </div>
                                             <div class="col-1">
                                                 <button class="btn btn-outline-primary btn-userpermission-add addentitybtn"  data-bs-toggle="modal"  
@@ -293,7 +319,8 @@ label{
                                         aria-labelledby="v-pills-sub-tab">
                                         <div class="row">
                                                 <div class="col-11">
-                                                    <table class="table table-striped" id="table3">
+                                                    <div class="table-responsive">
+                                                    <table class="table table-striped table-buss" id="table3">
                                                         <thead id="thead">
                                                             <tr>
                                                                 <th>Code</th>
@@ -320,8 +347,8 @@ label{
                                                                     <td>'.$processname.'</td>
                                                                     <td>'.$detail.'</td>
                                                                     <td>
-                                                                    <button name="edit" class="btn btn-sm btn-primary editprocess btn-userpermission-edit" id='.$process["process_id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button name="delete"  class="btn btn-sm btn-danger processdelete btn-userpermission-delete" id='.$process["process_id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button name="edit" class="btn btn-sm btn-primary editprocess btn-userpermission-edit" id='.$process["process_id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button name="delete"  class="btn btn-sm btn-danger processdelete btn-userpermission-delete" id='.$process["process_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                             }
@@ -329,6 +356,7 @@ label{
                                                             ?>
                                                         </tbody>
                                                     </table>
+                                                    </div><!-- table-responsive -->
                                                 </div>
                                                 <div class="col-1">
                                                     <button class="btn btn-outline-primary btn-userpermission-add addprocessmodal"  data-bs-toggle="modal"  
@@ -344,7 +372,8 @@ label{
                                         <!--------------begining of user part---------------------------->
                                             <div class="row">
                                                 <div class="col-11">
-                                                    <table class="table table-striped" id="table1">
+                                                    <div class="table-responsive">
+                                                    <table class="table table-striped table-buss" id="table1">
                                                     <thead>
                                                         <tr>
                                                             <th>Userid</th>
@@ -371,8 +400,8 @@ label{
                                                         <td><?=$users["username"]?></td>
                                                         <td>0<?=$users["phone"]?></td>
                                                         <td>
-                                                            <a href="userslist">
-                                                                <dt class="the-icon"><span class="fa-fw select-all fas">ï”‚</span></dt>
+                                                            <a href=”userslist”>
+                                                                <dt class=”the-icon”><i class=”fas fa-fw fa-eye”></i></dt>
                                                             </a>
                                                             
                                                          </td>
@@ -380,6 +409,7 @@ label{
                                                 <?php } ?>
                                                     </tbody>
                                                     </table>
+                                                    </div><!-- table-responsive -->
                                                 </div>
                                                 <div class="col-1">
                                                     <button class="btn btn-outline-primary btn-userpermission-add addusermodal"  data-bs-toggle="modal"  
@@ -395,7 +425,8 @@ label{
                                         <!--------------begining of Impact levels part---------------------------->
                                             <div class="row">
                                                 <div class="col-11">
-                                                    <table class="table table-striped" id="table1">
+                                                    <div class="table-responsive">
+                                                    <table class="table table-striped table-buss" id="table1">
                                                         <thead>
                                                             <tr>
                                                                 <th>Code</th>
@@ -414,14 +445,15 @@ label{
                                                                     <td>'.$iname.'</td>
                                                                     <td>'.$impact["level"].'</td>
                                                                     <td>
-                                                                    <button class="btn btn-sm btn-primary editimpact btn-userpermission-edit" id='.$impact["id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button class="btn btn-sm btn-danger deleteimpact btn-userpermission-delete" id='.$impact["id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button class="btn btn-sm btn-primary editimpact btn-userpermission-edit" id='.$impact["id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button class="btn btn-sm btn-danger deleteimpact btn-userpermission-delete" id='.$impact["id"].'><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                                 }
-                                                            ?> 
+                                                            ?>
                                                         </tbody>
                                                     </table>
+                                                    </div><!-- table-responsive -->
                                                 </div>
                                                 <div class="col-1">
                                                     <button class="btn btn-outline-primary btn-userpermission-add addimpactmodal"  data-bs-toggle="modal"  
@@ -437,7 +469,8 @@ label{
                                         <!--------------begining of Likelihood part---------------------------->
                                             <div class="row">
                                                 <div class="col-11">
-                                                    <table class="table table-striped" id="table1">
+                                                    <div class="table-responsive">
+                                                    <table class="table table-striped table-buss" id="table1">
                                                         <thead>
                                                             <tr>
                                                                 <th>#</th>
@@ -457,14 +490,15 @@ label{
                                                                     <td>'.$lname.'</td>
                                                                     <td>'.$likely["level"].'</td>
                                                                     <td>
-                                                                    <button class="editlikelihood btn btn-sm btn-primary btn-userpermission-edit " id='.$likely["id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button class="btn btn-sm btn-danger deletelikely btn-userpermission-delete" id='.$likely["id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button class="editlikelihood btn btn-sm btn-primary btn-userpermission-edit" id='.$likely["id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button class="btn btn-sm btn-danger deletelikely btn-userpermission-delete" id='.$likely["id"].'><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                                 }
-                                                            ?> 
+                                                            ?>
                                                         </tbody>
                                                     </table>
+                                                    </div><!-- table-responsive -->
                                                 </div>
                                                 <div class="col-1">
                                                     <button class="btn btn-outline-primary btn-userpermission-add addlikely"  data-bs-toggle="modal"  
@@ -479,7 +513,8 @@ label{
                                         <!--------------begining of Risk Category part---------------------------->
                                             <div class="row">
                                                 <div class="col-11">
-                                                    <table class="table table-striped" id="table1">
+                                                    <div class="table-responsive">
+                                                    <table class="table table-striped table-buss" id="table1">
                                                         <thead>
                                                             <tr>
                                                                 <th>Number</th>
@@ -494,15 +529,15 @@ label{
                                                                 <td>'.$values["riskcat_id"].'</td>
                                                                 <td>'.$values["name"].'</td>
                                                                 <td>
-                                                                <button class="btn btn-sm btn-primary editriskcat btn-userpermission-edit" id='.$values["riskcat_id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                <button class="btn btn-sm btn-danger deleteriskcat btn-userpermission-delete" id='.$values["riskcat_id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                <button class="btn btn-sm btn-primary editriskcat btn-userpermission-edit" id='.$values["riskcat_id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                                                <button class="btn btn-sm btn-danger deleteriskcat btn-userpermission-delete" id='.$values["riskcat_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                             </tr>';
                                                             }
-                                                        ?> 
-                                                            
+                                                        ?>
                                                         </tbody>
                                                     </table>
+                                                    </div><!-- table-responsive -->
                                                 </div>
                                                 <div class="col-1">
                                                     <button class="btn btn-outline-primary btn-userpermission-add addriskcat"  data-bs-toggle="modal"  
@@ -521,7 +556,8 @@ label{
                                         <!--------------begining of Control Strength part---------------------------->
                                             <div class="row">
                                                 <div class="col-11">
-                                                    <table class="table table-striped" >
+                                                    <div class="table-responsive">
+                                                    <table class="table table-striped table-buss">
                                                         <thead>
                                                             <tr>
                                                                 <th>Code</th>
@@ -537,14 +573,15 @@ label{
                                                                     <td>'.$cs["strength_id"].'</td>
                                                                     <td>'.$cs["cs_name"].'</td>
                                                                     <td>
-                                                                    <button class="btn btn-sm btn-primary editcs btn-userpermission-edit" id='.$cs["strength_id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button class="btn btn-sm btn-danger deletecs btn-userpermission-delete" id='.$cs["strength_id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button class="btn btn-sm btn-primary editcs btn-userpermission-edit" id='.$cs["strength_id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button class="btn btn-sm btn-danger deletecs btn-userpermission-delete" id='.$cs["strength_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                             }
                                                             ?>
                                                         </tbody>
                                                     </table>
+                                                    </div><!-- table-responsive -->
                                                 </div>
                                                 <div class="col-1">
                                                     <button class="btn btn-outline-primary btn-userpermission-add addcs"  data-bs-toggle="modal"  
@@ -560,7 +597,8 @@ label{
                                         <!--------------begining of Control type part---------------------------->
                                             <div class="row">
                                                 <div class="col-11">
-                                                    <table class="table table-striped" id="table1">
+                                                    <div class="table-responsive">
+                                                    <table class="table table-striped table-buss" id="table1">
                                                         <thead>
                                                             <tr>
                                                                 <th>Code</th>
@@ -577,14 +615,15 @@ label{
                                                                     <td>'.$ict++.'</td>
                                                                     <td>'.$ct["ct_name"].'</td>
                                                                     <td>
-                                                                    <button class="btn btn-sm btn-primary editct btn-userpermission-edit" id='.$ct["ctype_id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                                                    <button class="btn btn-sm btn-danger deletect btn-userpermission-delete" id='.$ct["ctype_id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                                                    <button class="btn btn-sm btn-primary editct btn-userpermission-edit" id='.$ct["ctype_id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                                                    <button class="btn btn-sm btn-danger deletect btn-userpermission-delete" id='.$ct["ctype_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>';
                                                             }
                                                             ?>
                                                         </tbody>
                                                     </table>
+                                                    </div><!-- table-responsive -->
                                                 </div>
                                                 <div class="col-1">
                                                     <button class="btn btn-outline-primary btn-userpermission-add addct"  data-bs-toggle="modal"  
@@ -2139,17 +2178,13 @@ MODAL FOR WHOLE INFRUSTRUCTURE
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
         let table2 = document.querySelector('#table2');
         let table3 = document.querySelector('#table3');
-        
-
-        let dataTable1 = new simpleDatatables.DataTable(table1);
-        let dataTable2 = new simpleDatatables.DataTable(table2);
-        let dataTable3 = new simpleDatatables.DataTable(table3);
+        if (table1) new simpleDatatables.DataTable(table1);
+        if (table2) new simpleDatatables.DataTable(table2);
+        if (table3) new simpleDatatables.DataTable(table3);
     </script>
-    
 
 <!------------------------------SWEET ALERTS---------------------------------->
 <script src="../assets/vendors/sweetalert2/sweetalert2.all.min.js"></script>

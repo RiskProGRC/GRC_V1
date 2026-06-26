@@ -81,7 +81,7 @@ session_start(); /* session needed for CSRF and first-login uid */
 
                     <div class="form-group position-relative has-icon-left mb-4">
                         <label for=""> Email Address</label>
-                        <input type="email" name="email" value="<?php if(isset($_GET["email"])){echo htmlspecialchars($_GET["email"], ENT_QUOTES, 'UTF-8');}?>" class="form-control form-control-xl" readonly>
+                        <input type="email" name="email" value="<?php echo htmlspecialchars($_GET['email'] ?? $_SESSION['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" class="form-control form-control-xl" readonly>
                         <div class="form-control-icon">
                         <i class="bi bi-envelope"></i>
                         </div>
@@ -94,6 +94,9 @@ session_start(); /* session needed for CSRF and first-login uid */
                         <div class="form-control-icon">
                         <i class="bi bi-shield-lock"></i>
                         </div>
+                        <span id="togglePwd1" style="cursor:pointer;position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:10;">
+                            <i class="bi bi-eye" id="eyeIcon1"></i>
+                        </span>
                     </div>
                     <div class="form-group position-relative has-icon-left mb-4">
                     <label for=""> Confirm Password</label>
@@ -101,6 +104,9 @@ session_start(); /* session needed for CSRF and first-login uid */
                         <div class="form-control-icon">
                             <i class="bi bi-shield-lock"></i>
                         </div>
+                        <span id="togglePwd2" style="cursor:pointer;position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:10;">
+                            <i class="bi bi-eye" id="eyeIcon2"></i>
+                        </span>
                     </div>    
                     <p id="message"></p>           
 

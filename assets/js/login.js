@@ -94,6 +94,18 @@
     /* ── Confirm password form (confirmpass.php) ────────────────────── */
     if ($('#cpassword_form').length) {
 
+        $('#togglePwd1').on('click', function () {
+            var $field = $('#password');
+            $field.attr('type', $field.attr('type') === 'password' ? 'text' : 'password');
+            $('#eyeIcon1').toggleClass('bi-eye bi-eye-slash');
+        });
+
+        $('#togglePwd2').on('click', function () {
+            var $field = $('#cpassword');
+            $field.attr('type', $field.attr('type') === 'password' ? 'text' : 'password');
+            $('#eyeIcon2').toggleClass('bi-eye bi-eye-slash');
+        });
+
         $('.login-btn').on('click', function (e) {
             e.preventDefault();
 

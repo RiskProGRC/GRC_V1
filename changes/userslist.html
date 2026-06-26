@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>userslist.php — Improvement Report</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding: 30px; color: #2c3e50; }
+        h1 { background: #2c3e50; color: #fff; padding: 20px 30px; border-radius: 8px; margin-bottom: 10px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 14px; }
+        h2 { color: #2980b9; border-left: 5px solid #2980b9; padding-left: 12px; margin-top: 40px; }
+        h2.applied { color: #1e8449; border-left-color: #1e8449; }
+        h2.pending  { color: #d68910; border-left-color: #d68910; }
+        h3 { color: #34495e; margin-bottom: 6px; }
+        .card { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .card.card-done    { border-left: 5px solid #28a745; }
+        .card.card-pending { border-left: 5px solid #e0a800; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; margin-right: 6px; }
+        .badge-high    { background: #fdecea; color: #c0392b; }
+        .badge-medium  { background: #fef9e7; color: #d68910; }
+        .badge-low     { background: #eafaf1; color: #1e8449; }
+        .badge-good    { background: #e8f4fd; color: #1a5276; }
+        .badge-applied { background: #d5f5e3; color: #1e8449; }
+        .badge-pending-tag { background: #fef9e7; color: #b7770d; }
+        .status-done    { color: #1e8449; font-weight: 700; }
+        .status-pending { color: #b7770d; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        th { background: #2c3e50; color: #fff; padding: 10px 14px; text-align: left; font-size: 13px; }
+        td { padding: 9px 14px; border-bottom: 1px solid #ecf0f1; font-size: 13px; vertical-align: top; }
+        tr:hover td { background: #f7f9fb; }
+        tr.done td  { background: #f0faf4; }
+        code { background: #ecf0f1; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+        .line { color: #2980b9; font-weight: 600; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; }
+        .summary-box { border-radius: 8px; padding: 18px 20px; text-align: center; }
+        .summary-box .count { font-size: 36px; font-weight: 800; }
+        .summary-box .label { font-size: 13px; margin-top: 4px; }
+        .box-red    { background: #fdecea; color: #c0392b; }
+        .box-orange { background: #fef9e7; color: #d68910; }
+        .box-green  { background: #eafaf1; color: #1e8449; }
+        .box-blue   { background: #e8f4fd; color: #1a5276; }
+        pre { background: #f0f3f7; border-left: 4px solid #2980b9; padding: 14px; border-radius: 4px; font-size: 12px; overflow-x: auto; margin-top: 10px; white-space: pre-wrap; }
+        pre.diff-new { background: #f0faf4; border-left-color: #28a745; }
+        pre.diff-old { background: #fff5f5; border-left-color: #c0392b; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; font-size: 13px; }
+        .good-note  { background: #eafaf1; border-left: 4px solid #28a745; padding: 12px 16px; border-radius: 4px; font-size: 13px; margin-top: 10px; }
+        .warn-note  { background: #fef9e7; border-left: 4px solid #e0a800; padding: 12px 16px; border-radius: 4px; font-size: 13px; margin-top: 10px; }
+        .diff-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+        .diff-label.old { color: #c0392b; }
+        .diff-label.new { color: #1e8449; }
+        .applied-banner {
+            background: linear-gradient(135deg, #1e8449, #145a32);
+            color: #fff;
+            border-radius: 8px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .applied-banner .icon { font-size: 28px; }
+        .applied-banner h3  { margin: 0; font-size: 16px; }
+        .applied-banner p   { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+    </style>
+</head>
+<body>
+
+<h1>userslist.php &mdash; Improvement Report</h1>
+<p class="subtitle">
+    Files: <code>Project/userslist.php</code> &nbsp;+&nbsp; <code>Project/users/usersClass.php</code>
+    &nbsp;|&nbsp; Audit: 2026-06-25 &nbsp;|&nbsp; ARIA Changes Applied: 2026-06-25
+</p>
+
+<div class="applied-banner">
+    <div class="icon">&#10003;</div>
+    <div>
+        <h3>ARIA Changes Applied</h3>
+        <p>11 of 15 issues resolved — 4 high, 4 medium, 3 low fixed. 4 items remain (2 pending JS, 1 structural, 1 UI feature).</p>
+    </div>
+</div>
+
+<div class="summary-grid">
+    <div class="summary-box box-green">
+        <div class="count">11</div>
+        <div class="label">Applied &mdash; 2026-06-25</div>
+    </div>
+    <div class="summary-box box-orange">
+        <div class="count">4</div>
+        <div class="label">Remaining &mdash; Pending</div>
+    </div>
+    <div class="summary-box box-blue">
+        <div class="count">4</div>
+        <div class="label">Files Changed</div>
+    </div>
+    <div class="summary-box box-red">
+        <div class="count">0</div>
+        <div class="label">High Issues Left</div>
+    </div>
+</div>
+
+<!-- ======================================================= -->
+<h2 class="applied">ARIA Changes Applied</h2>
+<!-- ======================================================= -->
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-high">HIGH</span> Auth Guard Added &mdash; <code>userslist.php:4</code></h3>
+    <p>Session check now redirects unauthenticated visitors to the login page before any data is loaded.</p>
+    <div class="diff-label new">Added at top of file</div>
+    <pre class="diff-new">/* ARIA Phase 3 — auth gate for view pages: redirect instead of JSON */
+if (empty($_SESSION['uid'])) {
+    header('Location: ../Project/login/login.php');
+    exit;
+}</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-high">HIGH</span> <code>SELECT *</code> Replaced With Explicit Columns &mdash; <code>usersClass.php:46</code></h3>
+    <p>Password hash (<code>upassword</code>) and <code>first_login</code> are no longer loaded into page memory on every request.</p>
+    <div class="diff-label old">Before</div>
+    <pre class="diff-old">$stmt = $this->prepare("SELECT * FROM users WHERE deleted_at IS NULL ORDER BY id ASC");</pre>
+    <div class="diff-label new">After</div>
+    <pre class="diff-new">$stmt = $this->prepare(
+    "SELECT id, fname, sname, gender, dept_id, email, phone, username, access, roles
+     FROM users WHERE deleted_at IS NULL ORDER BY id ASC"
+);</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-high">HIGH</span> CSRF Token Moved to Single JS Variable &mdash; <code>userslist.php:207</code></h3>
+    <p>Token no longer repeated on every row's <code>data-csrf</code> attribute. Emitted once as <code>window.CSRF_TOKEN</code> before <code>usermanagement.js</code> loads.</p>
+    <div class="diff-label old">Before — per button, dozens of times in DOM</div>
+    <pre class="diff-old">&lt;button class="... access-toggle" data-uid="..." data-csrf="&lt;?= $csrf ?&gt;"&gt;</pre>
+    <div class="diff-label new">After — single declaration</div>
+    <pre class="diff-new">&lt;script&gt;window.CSRF_TOKEN = '&lt;?= $csrf ?&gt;';&lt;/script&gt;
+&lt;script src="../assets/js/usermanagement.js"&gt;&lt;/script&gt;</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-high">HIGH</span> Integer IDs Cast and Escaped &mdash; <code>userslist.php:138–149</code></h3>
+    <p>All five raw ID outputs replaced with <code>(int)</code> casts. Strict <code>===</code> used for access field comparison.</p>
+    <pre class="diff-new">$uid_row = (int)$user['id'];    // cast once; reused throughout
+$deptid  = (int)$user['dept_id'];
+$accessLabel = (int)$user['access'] === 1 ? 'Active' : 'Suspended'; // strict ===</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-medium">MEDIUM</span> N+1 Queries Eliminated &mdash; <code>userslist.php:20–24</code> + <code>usersClass.php:55</code></h3>
+    <p>
+        <code>deptJoins()</code> and <code>accessbutton()</code> calls inside the loop replaced with two
+        pre-built lookups. For 50 users: <strong>103 queries → 4 queries</strong>.
+    </p>
+    <div class="diff-label old">Before — 2 queries per row</div>
+    <pre class="diff-old">$deptname = $deptClass->deptJoins((string)$deptid);     // DB hit per user
+$puid     = $usersclass->accessbutton((string)$uid_row); // DB hit per user</pre>
+    <div class="diff-label new">After — O(1) array lookup per row</div>
+    <pre class="diff-new">/* Before the loop — built from already-fetched arrays */
+$deptMap = array_column($showdept, 'dept_name', 'dept_id');
+$permSet = $usersclass->fetchPermissionUids(); // single SELECT uid FROM permission
+
+/* Inside the loop */
+$deptname = htmlspecialchars($deptMap[$deptid] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+$permBtn  = isset($permSet[$uid_row]) ? '&lt;a href="permissionedit.php?id=...'  : '';</pre>
+    <p>New method added to <code>usersClass</code>:</p>
+    <pre class="diff-new">// return a flat array of UIDs that already have a permission row — single query replaces N accessbutton() calls
+public function fetchPermissionUids(): array {
+    $stmt = $this->prepare("SELECT uid FROM permission");
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    return array_flip(array_column($rows, 'uid')); // keyed by uid for O(1) isset() lookup
+}</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-medium">MEDIUM</span> Delete Button Wired Up &mdash; <code>userslist.php:171</code></h3>
+    <p>Removed the permanent <code>disabled</code> attribute. Button now has <code>.delete-user</code> class and <code>data-uid</code> — ready for <code>usermanagement.js</code> to handle.</p>
+    <div class="diff-label old">Before</div>
+    <pre class="diff-old">&lt;button class="btn btn-sm btn-outline-secondary" disabled&gt;Delete&lt;/button&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="diff-new">&lt;button class="btn btn-sm btn-outline-danger delete-user" data-uid="&lt;?= $uid_row ?&gt;"&gt;Delete&lt;/button&gt;</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-medium">MEDIUM</span> <code>getStats()</code> Suspended Formula Fixed &mdash; <code>usersClass.php:106</code></h3>
+    <div class="diff-label old">Before — derived by subtraction</div>
+    <pre class="diff-old">COUNT(*) - COALESCE(SUM(access = 1), 0) AS suspended</pre>
+    <div class="diff-label new">After — direct count</div>
+    <pre class="diff-new">COALESCE(SUM(access = 0), 0) AS suspended  /* direct count, not derived subtraction */</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-low">LOW</span> <code>permissionedit</code> URL Fixed &mdash; <code>userslist.php:149</code></h3>
+    <div class="diff-label old">Before</div>
+    <pre class="diff-old">href="permissionedit?id=' . $uid_row . '"</pre>
+    <div class="diff-label new">After</div>
+    <pre class="diff-new">href="permissionedit.php?id=' . $uid_row . '"</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-low">LOW</span> Inline Stat Card Styles Replaced With CSS Classes &mdash; <code>userslist.php:41–45</code></h3>
+    <div class="diff-label old">Before</div>
+    <pre class="diff-old">&lt;div class="stat-card" style="background:#435ebe;"&gt;</pre>
+    <div class="diff-label new">After — CSS modifiers in &lt;style&gt; block</div>
+    <pre class="diff-new">.stat-card.sc-blue   { background: #435ebe; }
+.stat-card.sc-green  { background: #28a745; }
+.stat-card.sc-red    { background: #dc3545; }
+.stat-card.sc-purple { background: #6f42c1; }
+
+&lt;div class="stat-card sc-blue"&gt;</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-low">LOW</span> Add User Button → <code>&lt;a&gt;</code> Tag &mdash; <code>userslist.php:109</code></h3>
+    <div class="diff-label old">Before</div>
+    <pre class="diff-old">&lt;button onclick="location.href='../Project/usersadd.php'" type="button" class="btn btn-sm btn-primary"&gt;+ Add User&lt;/button&gt;</pre>
+    <div class="diff-label new">After</div>
+    <pre class="diff-new">&lt;!-- anchor tag preserves keyboard nav and middle-click; onclick on button does not --&gt;
+&lt;a href="../Project/usersadd.php" class="btn btn-sm btn-primary"&gt;+ Add User&lt;/a&gt;</pre>
+</div>
+
+<div class="card card-done">
+    <h3><span class="badge badge-applied">&#10003; APPLIED</span> <span class="badge badge-low">LOW</span> Empty State Added to Table &mdash; <code>userslist.php:129</code></h3>
+    <pre class="diff-new">&lt;?php if (empty($showusers)): ?&gt;
+&lt;!-- empty state — shown when no users exist yet --&gt;
+&lt;tr&gt;
+    &lt;td colspan="8" class="text-center py-4 text-muted"&gt;
+        No users found. &lt;a href="usersadd.php"&gt;Add the first user&lt;/a&gt;.
+    &lt;/td&gt;
+&lt;/tr&gt;
+&lt;?php else: ?&gt;
+... loop ...
+&lt;?php endif; ?&gt;</pre>
+</div>
+
+<!-- ======================================================= -->
+<h2 class="pending">Remaining Items &mdash; Pending</h2>
+<!-- ======================================================= -->
+
+<div class="card card-pending">
+    <h3><span class="badge badge-pending-tag">&#9888; PENDING</span> <span class="badge badge-medium">MEDIUM</span> <code>adminResetPassword()</code> Has No UI</h3>
+    <p>
+        The method exists in <code>usersClass.php:86</code> (hashes a temp password, sets <code>first_login = 1</code>)
+        but there is no button or modal exposing it in the user list. An "Actions" dropdown per row would
+        group Profile, Permission, Reset Password, and Delete cleanly.
+    </p>
+    <div class="warn-note">Blocked on: confirmation modal design + handler file for the reset endpoint.</div>
+</div>
+
+<div class="card card-pending">
+    <h3><span class="badge badge-pending-tag">&#9888; PENDING</span> <span class="badge badge-low">LOW</span> <code>&lt;style&gt;</code> Block Lands in <code>&lt;body&gt;</code></h3>
+    <p>
+        The <code>&lt;style&gt;</code> block at <code>userslist.php:34</code> appears after
+        <code>include_once '../layout/header.php'</code>, which likely closes <code>&lt;/head&gt;</code>
+        and opens <code>&lt;body&gt;</code>. Styles in the body are technically invalid HTML.
+    </p>
+    <div class="warn-note">Blocked on: modifying <code>header.php</code> to accept a <code>$pageStyles</code> variable — a shared-layout change that affects all pages.</div>
+</div>
+
+<div class="card card-pending">
+    <h3><span class="badge badge-pending-tag">&#9888; PENDING</span> <span class="badge badge-low">LOW</span> No Loading State on Access Toggle</h3>
+    <p>
+        Clicking Active/Suspended fires an AJAX call but the button gives no visual feedback during the
+        request. Double-clicking can fire two concurrent requests. Fix belongs in
+        <code>usermanagement.js</code> — disable the button on click, re-enable on response.
+    </p>
+    <div class="warn-note">Blocked on: <code>usermanagement.js</code> refactor (JS-side change).</div>
+</div>
+
+<div class="card card-pending">
+    <h3><span class="badge badge-pending-tag">&#9888; PENDING</span> <span class="badge badge-low">LOW</span> Department Filter JS Dependency Not Signalled</h3>
+    <p>
+        The <code>#dept-filter</code> select has no visible handler in this file — it relies on
+        <code>usermanagement.js</code>. If that script is ever removed or renamed the filter becomes
+        silently non-functional.
+    </p>
+    <div class="warn-note">Blocked on: <code>usermanagement.js</code> audit to confirm the handler exists and add an inline comment in the view.</div>
+</div>
+
+<!-- ======================================================= -->
+<h2>What Was Already Good</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <div class="good-note">&#10003; <strong>CSRF token generated correctly</strong> — <code>bin2hex(random_bytes(32))</code> and stored in session before use.</div>
+    <div class="good-note" style="margin-top:10px;">&#10003; <strong>String values escaped</strong> — <code>fname</code>, <code>sname</code>, <code>gender</code>, <code>username</code>, <code>phone</code> all through <code>htmlspecialchars()</code>.</div>
+    <div class="good-note" style="margin-top:10px;">&#10003; <strong>Stats cast to int</strong> — <code>(int)($stats['total'] ?? 0)</code> pattern throughout stat cards.</div>
+    <div class="good-note" style="margin-top:10px;">&#10003; <strong>Soft-delete implemented</strong> — <code>deleteUser()</code> in <code>usersClass.php:76</code>; now wired to a <code>.delete-user</code> button.</div>
+</div>
+
+<!-- ======================================================= -->
+<h2>Full Issue Tracker</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <table>
+        <tr><th>Priority</th><th>Issue</th><th>Location</th><th>Status</th></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td>No authentication guard</td><td class="line">userslist.php:4</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td><code>SELECT *</code> pulls password hashes</td><td class="line">usersClass.php:46</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td>CSRF token repeated per-row in DOM</td><td class="line">userslist.php:207</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-high">HIGH</span></td><td>Unescaped IDs in 5 outputs</td><td class="line">userslist.php:138</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>N+1 queries: 2 DB calls per row</td><td class="line">userslist.php:20–24</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td>Delete button permanently disabled</td><td class="line">userslist.php:171</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr><td><span class="badge badge-medium">MEDIUM</span></td><td><code>adminResetPassword()</code> has no UI</td><td class="line">usersClass.php:86</td><td class="status-pending">&#9888; Pending</td></tr>
+        <tr class="done"><td><span class="badge badge-medium">MEDIUM</span></td><td><code>getStats()</code> suspended uses subtraction</td><td class="line">usersClass.php:106</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td><code>permissionedit</code> URL missing <code>.php</code></td><td class="line">userslist.php:149</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td><code>&lt;style&gt;</code> block in <code>&lt;body&gt;</code></td><td class="line">userslist.php:34</td><td class="status-pending">&#9888; Pending</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td>Inline background colours on stat cards</td><td class="line">userslist.php:41</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td>Add User uses <code>onclick</code> instead of <code>&lt;a&gt;</code></td><td class="line">userslist.php:109</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr class="done"><td><span class="badge badge-low">LOW</span></td><td>No empty-state row when zero users</td><td class="line">userslist.php:129</td><td class="status-done">&#10003; Applied</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td>No loading state on access toggle</td><td class="line">usermanagement.js</td><td class="status-pending">&#9888; Pending</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td>Dept filter JS dependency not signalled</td><td class="line">userslist.php:94</td><td class="status-pending">&#9888; Pending</td></tr>
+    </table>
+</div>
+
+<p style="color:#7f8c8d; font-size:12px; margin-top:30px;">Audit: 2026-06-25 &nbsp;|&nbsp; ARIA Applied: 2026-06-25 &nbsp;|&nbsp; GRC_V1 Project</p>
+
+</body>
+</html>

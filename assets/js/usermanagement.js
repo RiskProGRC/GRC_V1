@@ -117,7 +117,7 @@ $(function () {
     $(document).on('click', '.access-toggle', function () { /* delegated — rows may be dynamically rendered */
         var $btn = $(this);
         var tUid = $btn.data('uid');
-        var csrf = $btn.data('csrf'); /* CSRF token embedded in data attribute by PHP */
+        var csrf = window.CSRF_TOKEN; /* single token set by PHP at page level */
         $btn.prop('disabled', true); /* prevent double-click while request is in flight */
         $.ajax({
             url:      base + 'Project/useraccessaction.php',
@@ -130,6 +130,19 @@ $(function () {
                     $btn.text(active ? 'Active' : 'Suspended')
                         .removeClass('btn-success btn-danger')
                         .addClass(active ? 'btn-success' : 'btn-danger');
+
+                    /* update stat cards without page reload — active and suspended move in opposite directions */
+                    var $active    = $('.sc-green h2');
+                    var $suspended = $('.sc-red h2');
+                    var activeNow    = parseInt($active.text(),    10) || 0;
+                    var suspendedNow = parseInt($suspended.text(), 10) || 0;
+                    if (active) {
+                        $active.text(activeNow + 1);
+                        $suspended.text(Math.max(0, suspendedNow - 1)); /* floor at 0 — guard against stale counts */
+                    } else {
+                        $active.text(Math.max(0, activeNow - 1));
+                        $suspended.text(suspendedNow + 1);
+                    }
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: res.message });
                 }
@@ -144,7 +157,7 @@ $(function () {
         var $btn = $(this);
         var tUid = $btn.data('uid');
         var name = $btn.data('name');
-        var csrf = $btn.data('csrf');
+        var csrf = window.CSRF_TOKEN;
 
         Swal.fire({
             title:              'Delete ' + name + '?',
@@ -162,6 +175,17 @@ $(function () {
                 data:     { uid: tUid, csrf_token: csrf },
                 success: function (res) {
                     if (res.status === 'ok') {
+                        /* update stat cards — total drops by 1; active or suspended drops based on row state */
+                        var wasSuspended = $btn.closest('tr').find('.access-toggle').hasClass('btn-danger');
+                        var $total = $('.sc-blue h2');
+                        $total.text(Math.max(0, (parseInt($total.text(), 10) || 0) - 1));
+                        if (wasSuspended) {
+                            var $susp = $('.sc-red h2');
+                            $susp.text(Math.max(0, (parseInt($susp.text(), 10) || 0) - 1));
+                        } else {
+                            var $act = $('.sc-green h2');
+                            $act.text(Math.max(0, (parseInt($act.text(), 10) || 0) - 1));
+                        }
                         $btn.closest('tr').fadeOut(400, function () { $(this).remove(); }); /* animate out, then remove from DOM */
                         Swal.fire({ icon: 'success', title: 'Deleted', text: name + ' has been removed.' });
                     } else {
@@ -180,7 +204,7 @@ $(function () {
     /* ── Admin reset password ── */
     $(document).on('click', '.reset-pw-btn', function () {
         var tUid = $(this).data('uid');
-        var csrf = $(this).data('csrf');
+        var csrf = window.CSRF_TOKEN;
 
         Swal.fire({
             title:             'Set temporary password',
@@ -208,6 +232,29 @@ $(function () {
                 },
                 error: function () { Swal.fire({ icon: 'error', title: 'Error', text: 'Server error.' }); }
             });
+        });
+    });
+
+    /* ── Save / update user permissions (profile.php modal) ── */
+    $(document).on('click', '.permission-button', function () {
+        var $btn = $(this).prop('disabled', true); /* prevent double-submit */
+        var data = $('#permission').serialize() + '&csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
+        $.ajax({
+            url:      base + 'Project/permissionaction.php',
+            method:   'post',
+            dataType: 'json',
+            data:     data,
+            complete: function () { $btn.prop('disabled', false); },
+            success: function (res) {
+                if (res.status === 'ok') {
+                    Swal.fire({ icon: 'success', title: 'Done', text: res.message }).then(function () {
+                        location.reload(); /* reload so Permissions button label refreshes */
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: res.message });
+                }
+            },
+            error: function () { Swal.fire({ icon: 'error', title: 'Error', text: 'Server error.' }); }
         });
     });
 

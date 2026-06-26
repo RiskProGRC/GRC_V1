@@ -21,9 +21,15 @@ class usersClass extends BaseRepository {
         return $row['fname'] . ' ' . $row['sname'];
     }
 
-    // return full user row for profile page
+    // return profile row — explicit columns exclude upassword and first_login
     public function profile(string $uid): ?array {
-        return $this->fetchOne('users', 'id', $uid);
+        $stmt = $this->prepare(
+            "SELECT id, fname, sname, gender, dept_id, email, phone, username, access, roles
+             FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1"
+        );
+        $stmt->bind_param('s', $uid);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc() ?: null;
     }
 
     // insert a new permission row for a user
@@ -42,11 +48,22 @@ class usersClass extends BaseRepository {
         return $stmt->affected_rows > 0 ? "USER Permissions added" : "DATA NOT SENT";
     }
 
-    // return all non-deleted user rows
+    // return all non-deleted user rows; excludes sensitive columns (upassword, first_login)
     public function fetchusers(): array {
-        $stmt = $this->prepare("SELECT * FROM users WHERE deleted_at IS NULL ORDER BY id ASC");
+        $stmt = $this->prepare(
+            "SELECT id, fname, sname, gender, dept_id, email, phone, username, access, roles
+             FROM users WHERE deleted_at IS NULL ORDER BY id ASC"
+        );
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC) ?? [];
+    }
+
+    // return a flat array of UIDs that already have a permission row — single query replaces N accessbutton() calls
+    public function fetchPermissionUids(): array {
+        $stmt = $this->prepare("SELECT uid FROM permission");
+        $stmt->execute();
+        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return array_flip(array_column($rows, 'uid')); // keyed by uid for O(1) isset() lookup
     }
 
     // return permission row for a given user id
@@ -102,8 +119,8 @@ class usersClass extends BaseRepository {
     public function getStats(): array {
         $stmt = $this->prepare(
             "SELECT COUNT(*) AS total,
-                    COALESCE(SUM(access = 1), 0)                        AS active,
-                    COUNT(*) - COALESCE(SUM(access = 1), 0)             AS suspended,
+                    COALESCE(SUM(access = 1), 0)        AS active,
+                    COALESCE(SUM(access = 0), 0)        AS suspended,  /* direct count, not derived subtraction */
                     COALESCE(SUM(roles  = 1), 0)                        AS admins,
                     COALESCE(SUM(roles  = 2), 0)                        AS users
              FROM users

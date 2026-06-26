@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bussinf.php — Improvement Report</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding: 30px; color: #2c3e50; }
+        h1 { background: #2c3e50; color: #fff; padding: 20px 30px; border-radius: 8px; margin-bottom: 10px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 14px; }
+        h2 { color: #2980b9; border-left: 5px solid #2980b9; padding-left: 12px; margin-top: 40px; }
+        h3 { color: #34495e; }
+        .card { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; margin-right: 6px; }
+        .badge-high   { background: #fdecea; color: #c0392b; }
+        .badge-medium { background: #fef9e7; color: #d68910; }
+        .badge-low    { background: #eafaf1; color: #1e8449; }
+        .badge-bug    { background: #f0e6ff; color: #7d3c98; }
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        th { background: #2c3e50; color: #fff; padding: 10px 14px; text-align: left; font-size: 13px; }
+        td { padding: 9px 14px; border-bottom: 1px solid #ecf0f1; font-size: 13px; }
+        tr:hover td { background: #f7f9fb; }
+        code { background: #ecf0f1; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+        .line { color: #2980b9; font-weight: 600; }
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+        .summary-box { border-radius: 8px; padding: 18px 20px; text-align: center; }
+        .summary-box .count { font-size: 36px; font-weight: 800; }
+        .summary-box .label { font-size: 13px; margin-top: 4px; }
+        .box-red    { background: #fdecea; color: #c0392b; }
+        .box-orange { background: #fef9e7; color: #d68910; }
+        .box-green  { background: #eafaf1; color: #1e8449; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; font-size: 13px; }
+        .file-ref { font-size: 11px; color: #7f8c8d; float: right; }
+    </style>
+</head>
+<body>
+
+<h1>bussinf.php &mdash; Improvement Report</h1>
+<p class="subtitle">File: <code>Project/bussinf.php</code> &nbsp;|&nbsp; Lines: 2,179 &nbsp;|&nbsp; Date: 2026-06-25</p>
+
+<div class="summary-grid">
+    <div class="summary-box box-red">
+        <div class="count">7</div>
+        <div class="label">High Priority &mdash; Security &amp; Runtime Errors</div>
+    </div>
+    <div class="summary-box box-orange">
+        <div class="count">8</div>
+        <div class="label">Medium Priority &mdash; Broken Modal Wiring</div>
+    </div>
+    <div class="summary-box box-green">
+        <div class="count">6</div>
+        <div class="label">Low Priority &mdash; HTML &amp; UX Tidying</div>
+    </div>
+</div>
+
+<!-- ======================================================= -->
+<h2>1. Security &mdash; Fix Immediately</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <h3><span class="badge badge-high">HIGH</span> XSS on All Table Outputs</h3>
+    <p>
+        Every <code>echo</code> that prints database values into the HTML tables is unescaped.
+        If any field in the database contains a <code>&lt;script&gt;</code> tag or HTML entity,
+        it will execute in the browser. This affects all tab panes.
+    </p>
+    <table>
+        <tr><th>Tab Pane</th><th>Lines</th><th>Vulnerable Fields</th></tr>
+        <tr><td>Groups</td><td class="line">170 – 183</td><td><code>$group["name"]</code>, <code>$group["website"]</code>, <code>$group["country"]</code>, <code>$group["objectives"]</code></td></tr>
+        <tr><td>Company</td><td class="line">217 – 230</td><td><code>$company["company_name"]</code>, <code>$company["email"]</code>, <code>$company["phone"]</code>, <code>$company["address"]</code></td></tr>
+        <tr><td>Entity</td><td class="line">266 – 275</td><td><code>$dept["dept_name"]</code>, <code>$companyname</code>, <code>$username</code></td></tr>
+        <tr><td>Process</td><td class="line">317 – 327</td><td><code>$processname</code>, <code>$deptname</code>, <code>$detail</code></td></tr>
+        <tr><td>Impact</td><td class="line">412 – 420</td><td><code>$iname</code>, <code>$impact["level"]</code></td></tr>
+        <tr><td>Likelihood</td><td class="line">455 – 463</td><td><code>$lname</code>, <code>$likely["level"]</code></td></tr>
+        <tr><td>Risk Category</td><td class="line">493 – 500</td><td><code>$values["name"]</code></td></tr>
+        <tr><td>Control Strength</td><td class="line">536 – 543</td><td><code>$cs["cs_name"]</code></td></tr>
+        <tr><td>Control Type</td><td class="line">576 – 583</td><td><code>$ct["ct_name"]</code></td></tr>
+    </table>
+    <p><strong>Fix:</strong> Wrap every output value in <code>htmlspecialchars($value, ENT_QUOTES, 'UTF-8')</code> before printing.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-high">HIGH</span> No CSRF Token on Group Form</h3>
+    <p>
+        The Groups "Add" form at <span class="line">line 636</span> POSTs directly to <code>group.php</code> with no CSRF token.
+        All other save/edit operations use AJAX (which can include a token in headers), but this one bypasses that protection entirely.
+    </p>
+    <p><strong>Fix:</strong> Generate a <code>$_SESSION['csrf_token']</code> and embed it as a hidden field; verify it in <code>group.php</code>.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-medium">MEDIUM</span> File Upload Has No Client-Side Type Guard</h3>
+    <p>
+        Logo upload inputs at <span class="line">lines 657</span> and <span class="line">776</span> have no <code>accept</code> attribute,
+        so the file picker shows all file types. Server-side validation is essential but the browser-level guard is also missing.
+    </p>
+    <p><strong>Fix:</strong> Add <code>accept="image/png, image/jpeg, image/gif"</code> to each file input and validate the MIME type and size on the server.</p>
+</div>
+
+<!-- ======================================================= -->
+<h2>2. Broken PHP Variables &mdash; Runtime Errors</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <h3><span class="badge badge-high">HIGH</span> Undefined &amp; Misnamed Variables</h3>
+    <p>
+        Several variables are referenced but never assigned, or are referenced with the wrong case.
+        PHP will throw notices/warnings, and the affected tab panes will render broken or blank.
+    </p>
+    <table>
+        <tr><th>Variable</th><th>Line</th><th>Problem</th><th>Fix</th></tr>
+        <tr>
+            <td><code>$userclass</code></td>
+            <td class="line">261</td>
+            <td>Case mismatch — initialized as <code>$userClass</code> (capital C) on line 23</td>
+            <td>Change to <code>$userClass->userjoin($uid)</code></td>
+        </tr>
+        <tr>
+            <td><code>$deptClass</code></td>
+            <td class="line">315</td>
+            <td>Never instantiated in this file; should be <code>$departmentClass</code> (line 26)</td>
+            <td>Change to <code>$departmentClass->deptJoins($deptid)</code></td>
+        </tr>
+        <tr>
+            <td><code>$showRiskCat</code></td>
+            <td class="line">492</td>
+            <td>Never fetched — the Risk Category tab loop has no data source</td>
+            <td>Add a <code>riskcatClass</code> include and fetch call at the top of the file</td>
+        </tr>
+        <tr>
+            <td><code>$showcstrength</code></td>
+            <td class="line">534</td>
+            <td>Never fetched — the Control Strength tab loop has no data source</td>
+            <td>Add a <code>controlstrengthClass</code> include and fetch call at the top of the file</td>
+        </tr>
+        <tr>
+            <td><code>$suid</code></td>
+            <td class="line">944, 1025</td>
+            <td>Used as a hidden field value in entity forms but never assigned</td>
+            <td>Assign from session: <code>$suid = $_SESSION['user_id'] ?? '';</code></td>
+        </tr>
+        <tr>
+            <td><code>$profile</code></td>
+            <td class="line">1190</td>
+            <td>Used to pre-select a department in the user modal but never assigned</td>
+            <td>Fetch the current user's profile from session/DB before use</td>
+        </tr>
+        <tr>
+            <td><code>$i</code></td>
+            <td class="line">413</td>
+            <td>Counter used in Impact loop but never initialized — starts as <code>null</code></td>
+            <td>Add <code>$i = 1;</code> before the loop (like <code>$il = 1</code> on line 452)</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ======================================================= -->
+<h2>3. Broken Modal Wiring</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <h3><span class="badge badge-high">HIGH</span> Duplicate Modal IDs — Bootstrap Only Opens the First</h3>
+    <p>
+        Bootstrap uses <code>querySelector</code> to find a modal by ID. When the same ID exists
+        more than once, only the first one ever opens regardless of which trigger is clicked.
+    </p>
+    <table>
+        <tr><th>Duplicate ID</th><th>Declared at Lines</th><th>Effect</th></tr>
+        <tr>
+            <td><code>id="deptdelete-modal"</code></td>
+            <td class="line">879, 1084</td>
+            <td>Second delete-entity modal is completely unreachable</td>
+        </tr>
+        <tr>
+            <td><code>id="delete-modal"</code></td>
+            <td class="line">1332, 1666, 1801</td>
+            <td>Likelihood and Risk Category delete modals are unreachable; only the Impact delete modal opens</td>
+        </tr>
+    </table>
+    <p><strong>Fix:</strong> Give each modal a unique ID (<code>impdelete-modal</code>, <code>lklydelete-modal</code>, <code>rcdelete-modal</code>) and update the JS that triggers them.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-high">HIGH</span> Add Buttons With Wrong or Missing Targets</h3>
+    <p>
+        Several "Add" buttons are wired to incorrect modal targets, causing the wrong modal to open
+        or no modal at all.
+    </p>
+    <table>
+        <tr><th>Tab</th><th>Line</th><th>Current Target</th><th>Should Be</th></tr>
+        <tr><td>Entity "Add"</td><td class="line">282</td><td><em>None</em> (no <code>data-bs-target</code>)</td><td><code>#addentity-modal</code></td></tr>
+        <tr><td>Process "Add"</td><td class="line">335</td><td><code>#</code></td><td><code>#addprocess-modal</code></td></tr>
+        <tr><td>Impact "Add"</td><td class="line">428</td><td><code>#group</code> (opens Groups modal)</td><td><code>#addimpact-modal</code></td></tr>
+        <tr><td>Likelihood "Add"</td><td class="line">471</td><td><code>#group</code></td><td><code>#addlikely-modal</code></td></tr>
+        <tr><td>Risk Category "Add"</td><td class="line">509</td><td><code>#group</code></td><td><code>#riskcat-modal</code></td></tr>
+        <tr><td>Control Strength "Add"</td><td class="line">551</td><td><code>#group</code></td><td><code>#addcs-modal</code></td></tr>
+        <tr><td>Control Type "Add"</td><td class="line">591</td><td><code>#group</code></td><td><code>#addct-modal</code></td></tr>
+    </table>
+</div>
+
+<!-- ======================================================= -->
+<h2>4. Broken HTML</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <h3><span class="badge badge-medium">MEDIUM</span> Duplicate <code>&lt;tr&gt;</code> in Users Table</h3>
+    <p>
+        Lines <span class="line">365–366</span> have two consecutive <code>&lt;tr&gt;</code> opening tags inside the users table loop.
+        This creates a phantom blank row above every user row and produces invalid HTML.
+    </p>
+    <p><strong>Fix:</strong> Remove the extra <code>&lt;tr&gt;</code> on line 365.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-medium">MEDIUM</span> Broken HTML Comment Syntax</h3>
+    <p>
+        Five comment tags use a single dash: <code>&lt;!-___...</code> instead of <code>&lt;!--</code>.
+        Found at lines <span class="line">37, 83, 95, 607, 2129</span>.
+        Invalid comments may cause surrounding markup to be parsed incorrectly in some browsers.
+    </p>
+    <p><strong>Fix:</strong> Change <code>&lt;!-</code> to <code>&lt;!--</code> and ensure each has a closing <code>--&gt;</code>.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-medium">MEDIUM</span> Shared <code>id="table1"</code> Across Multiple Tab Panes</h3>
+    <p>
+        The ID <code>table1</code> is applied to tables in the Groups, Company, Users, Impact, Likelihood,
+        Risk Category, and Control Type panes (lines <span class="line">155, 201, 347, 398, 440, 482, 563</span>).
+        The DataTable initialiser at line <span class="line">2148</span> uses <code>querySelector('#table1')</code>,
+        which returns only the first match. All other tables with that ID are never initialized as DataTables.
+    </p>
+    <p><strong>Fix:</strong> Give each table a unique ID (<code>table-group</code>, <code>table-company</code>, etc.) and update the DataTable init block accordingly.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-low">LOW</span> Group Table Header/Body Column Count Mismatch</h3>
+    <p>
+        The Groups table <code>&lt;thead&gt;</code> at line <span class="line">156</span> declares 6 columns
+        (Reference, Name, Website, Country, Objectives, Logo) but the <code>&lt;tbody&gt;</code> outputs
+        7 columns — the 6 data columns plus an Action column with no matching <code>&lt;th&gt;</code>.
+    </p>
+    <p><strong>Fix:</strong> Add an <code>&lt;th&gt;Action&lt;/th&gt;</code> header to the Groups table thead.</p>
+</div>
+
+<!-- ======================================================= -->
+<h2>5. UX Issues</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <h3><span class="badge badge-medium">MEDIUM</span> "Close" Buttons That Reload the Page</h3>
+    <p>
+        Several modal Close buttons use <code>&lt;a href="bussinf.php"&gt;</code> instead of
+        <code>data-bs-dismiss="modal"</code>. This causes a full page reload whenever the user
+        cancels out of a modal, losing any unsaved state and creating a jarring UX.
+    </p>
+    <table>
+        <tr><th>Modal</th><th>Line</th></tr>
+        <tr><td>Add Impact</td><td class="line">1261</td></tr>
+        <tr><td>Add Likelihood</td><td class="line">1597</td></tr>
+        <tr><td>Add Control Strength</td><td class="line">1878</td></tr>
+        <tr><td>Edit Control Type</td><td class="line">2065</td></tr>
+        <tr><td>Add Control Type</td><td class="line">2017</td></tr>
+        <tr><td>Delete Control Type</td><td class="line">2103</td></tr>
+    </table>
+    <p><strong>Fix:</strong> Replace <code>&lt;a href="bussinf.php" class="btn btn-danger"&gt;</code> with <code>&lt;button type="button" class="btn btn-danger" data-bs-dismiss="modal"&gt;</code>.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-medium">MEDIUM</span> Password Confirm Field Has No <code>name</code></h3>
+    <p>
+        The "Re-ENTER PASSWORD" input in the Users modal at line <span class="line">1200</span>
+        has <code>name=""</code>. The value is never submitted, so no server-side or JS
+        password-match validation is possible.
+    </p>
+    <p><strong>Fix:</strong> Set <code>name="confirm_password"</code> and add client-side validation to compare it with the <code>password</code> field before submission.</p>
+</div>
+
+<div class="card">
+    <h3><span class="badge badge-low">LOW</span> Delete Control Type Modal Uses <code>type="text"</code> for Hidden ID</h3>
+    <p>
+        Line <span class="line">2095</span>: the field holding the record ID to delete uses
+        <code>type="text"</code>, making the ID visible in the rendered form. It should be <code>type="hidden"</code>.
+    </p>
+</div>
+
+<!-- ======================================================= -->
+<h2>6. Summary Priority Table</h2>
+<!-- ======================================================= -->
+
+<div class="card">
+    <table>
+        <tr><th>Priority</th><th>Issue</th><th>Lines</th></tr>
+        <tr><td><span class="badge badge-high">HIGH</span></td><td>XSS — escape all echo output with <code>htmlspecialchars()</code></td><td class="line">170–583</td></tr>
+        <tr><td><span class="badge badge-high">HIGH</span></td><td>Undefined variables: <code>$showRiskCat</code>, <code>$showcstrength</code>, <code>$deptClass</code>, <code>$userclass</code></td><td class="line">261, 315, 492, 534</td></tr>
+        <tr><td><span class="badge badge-high">HIGH</span></td><td>Duplicate modal IDs (<code>deptdelete-modal</code>, <code>delete-modal</code>)</td><td class="line">879, 1084, 1332, 1666, 1801</td></tr>
+        <tr><td><span class="badge badge-high">HIGH</span></td><td>Add buttons wired to wrong modal targets (7 buttons)</td><td class="line">282, 335, 428, 471, 509, 551, 591</td></tr>
+        <tr><td><span class="badge badge-medium">MEDIUM</span></td><td>Close buttons in modals causing page reload (6 instances)</td><td class="line">1261, 1597, 1878, 2017, 2065, 2103</td></tr>
+        <tr><td><span class="badge badge-medium">MEDIUM</span></td><td>Duplicate <code>&lt;tr&gt;</code> in users table</td><td class="line">365 – 366</td></tr>
+        <tr><td><span class="badge badge-medium">MEDIUM</span></td><td>Shared <code>id="table1"</code> breaks DataTable init for 6 tables</td><td class="line">155, 201, 347, 398, 440, 482, 563</td></tr>
+        <tr><td><span class="badge badge-medium">MEDIUM</span></td><td>Password confirm field has no <code>name</code></td><td class="line">1200</td></tr>
+        <tr><td><span class="badge badge-medium">MEDIUM</span></td><td>No CSRF token on Group form</td><td class="line">636</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td>Broken HTML comment syntax <code>&lt;!-</code> instead of <code>&lt;!--</code></td><td class="line">37, 83, 95, 607, 2129</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td>Groups table thead missing Action column</td><td class="line">156</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td>Delete Control Type uses <code>type="text"</code> for hidden ID field</td><td class="line">2095</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td>File upload inputs missing <code>accept</code> attribute</td><td class="line">657, 776</td></tr>
+        <tr><td><span class="badge badge-low">LOW</span></td><td>Uninitialized counter <code>$i</code> in Impact loop</td><td class="line">413</td></tr>
+    </table>
+</div>
+
+<p style="color:#7f8c8d; font-size:12px; margin-top:30px;">Generated: 2026-06-25 &mdash; GRC_V1 Project</p>
+
+</body>
+</html>

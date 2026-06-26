@@ -119,11 +119,19 @@ class loginClass extends BaseRepository { /* 3.1 — was connectionClass */
         $email     = $this->real_escape_string($email);
         $token     = $this->real_escape_string($token);
 
-        if (empty($token)) {
-            return 'No token provided';
-        }
         if (empty($email) || empty($pass)) {
             return 'Missing required fields';
+        }
+
+        /* first-login flow: uid from session, no reset token */
+        if (empty($token)) {
+            if (empty($uid)) {
+                return 'No token provided';
+            }
+            $uid_esc     = $this->real_escape_string($uid);
+            $update_pass = "UPDATE users SET upassword='$pass', user_type=1 WHERE id='$uid_esc'";
+            $result      = $this->query($update_pass) or die($this->error);
+            return $result ? "Password updated" : "Password Not Updated";
         }
 
         $check_token = "SELECT * FROM users WHERE verify_token='$token' LIMIT 1";
@@ -204,6 +212,7 @@ class loginClass extends BaseRepository { /* 3.1 — was connectionClass */
                 session_regenerate_id(true); /* 1.1 — rotate session ID on first-login path too */
                 $_SESSION["uid"]     = $row["id"];
                 $_SESSION["user"]    = $row["username"];
+                $_SESSION["email"]   = $row["email"]; /* needed by confirmpass.php to pre-fill email field */
                 $_SESSION["dept_id"] = $row["dept_id"];
                 $_SESSION["roles"]   = $row["roles"];
 

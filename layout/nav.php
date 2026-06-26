@@ -1,6 +1,6 @@
 <?php
 $uid = $suid;
-$access = $userclass->fetchpermission($uid);
+$access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — treat as all-denied */
 ?>
 
 <style>
