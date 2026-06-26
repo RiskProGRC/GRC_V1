@@ -155,6 +155,8 @@
         .card-link.userslist    { border-left-color: #6f42c1; }
         .card-link.profile      { border-left-color: #c0392b; }
         .card-link.profile      .card-icon { background: #fdecea; }
+        .card-link.risktracker  { border-left-color: #1565c0; }
+        .card-link.risktracker  .card-icon { background: #e3f2fd; }
 
         .card-icon {
             width: 42px; height: 42px;
@@ -215,7 +217,7 @@
 
 <div class="toolbar">
     <h1>GRC V1 &mdash; Changes &amp; Reports Index</h1>
-    <span class="toolbar-meta">10 sections &nbsp;&middot;&nbsp; 27 reports</span>
+    <span class="toolbar-meta">11 sections &nbsp;&middot;&nbsp; 29 reports</span>
 </div>
 
 <div class="layout">
@@ -258,6 +260,10 @@
         </a>
         <a class="menu-item" href="#sec-inbox" onclick="setActive(this)">
             <span class="menu-icon">&#128386;</span> Inbox
+            <span class="menu-count">1</span>
+        </a>
+        <a class="menu-item" href="#sec-risktracker" onclick="setActive(this)">
+            <span class="menu-icon">&#128202;</span> Risk Tracker
             <span class="menu-count">1</span>
         </a>
         <a class="menu-item" href="#sec-study" onclick="setActive(this)">
@@ -629,6 +635,35 @@
                 <div class="card-info">
                     <h3>Inbox &mdash; UI Changes Report</h3>
                     <p>Responsive layout fix (col-1 bug), table-buss on 5 tables, DataTable null guards, nav-tabs themed to match bussinf (#02338d navy + gold active border)</p>
+                </div>
+                <span class="badge badge-done">&#10003; Complete</span>
+                <span class="arrow">&#8250;</span>
+            </a>
+        </section>
+
+        <!-- ── Risk Tracker ── -->
+        <section class="section" id="sec-risktracker">
+            <div class="section-heading">
+                <span class="sec-icon">&#128202;</span>
+                <h3>Risk Tracker</h3>
+                <span class="sec-count">2 reports</span>
+            </div>
+
+            <a href="riskstatus_entityaction_report.html" class="card-link risktracker">
+                <div class="card-icon">&#9889;</div>
+                <div class="card-info">
+                    <h3>Risk Tracker &mdash; entityAction.php N+1 Query Fix</h3>
+                    <p>5 queries updated, 10 per-row lookups eliminated &mdash; adds JOINs for users, process, and action across all 5 section loops; reduces 65+ queries to 6</p>
+                </div>
+                <span class="badge badge-done">&#10003; Complete</span>
+                <span class="arrow">&#8250;</span>
+            </a>
+
+            <a href="risk_status_demo.html" class="card-link risktracker">
+                <div class="card-icon">&#128202;</div>
+                <div class="card-info">
+                    <h3>risk_status_demo &mdash; riskview.php + riskview_fetch.php</h3>
+                    <p>Clean rebuild of the Risk Tracker department view using JSON API pattern &mdash; 6 verified prepared statements, JS-rendered tables, 4 schema bugs discovered &amp; fixed</p>
                 </div>
                 <span class="badge badge-done">&#10003; Complete</span>
                 <span class="arrow">&#8250;</span>

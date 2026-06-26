@@ -46,26 +46,55 @@ $deptid=$sdid;
     font-size: 25px;
   }
   tr,td{
-        font-size:11px;
-        font-weight: 800;
+        font-size:10px;
+        font-weight: 700;
         color: #000;
         height: 9px;
         padding:2px 0px 2px !important;
     }
-.nav-link {
-  border: 1px solid #1b6ae1 !important;
-  display: block;
-  color: #000;
-  padding: 8px 16px;
-  text-decoration: none;
-  border-radius: 0px !important;
+/* ── Nav-tabs — bussinf theme ── */
+#myTab {
+    background: #02338d;
+    border-bottom: 2px solid #012a73;
+    padding: 5px 6px 0;
+    gap: 3px;
+    border-radius: 6px 6px 0 0;
+}
+#myTab .nav-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 13px 14px;
+    margin: 3px 2px 0;
+    border-radius: 8px 8px 0 0 !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-bottom: 3px solid transparent !important;
+    background: rgba(255,255,255,0.08);
+    color: #cde0ff;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+#myTab .nav-link:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border-bottom-color: #a8c8ff !important;
+}
+#myTab .nav-link.active {
+    background: #0554e9 !important;
+    color: #fff !important;
+    font-size: 13px;
+    font-weight: 700;
+    border-bottom: 3px solid #ffc107 !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
 }
 .col-2,.col-9,.nav-col{
     padding: 0px;
     box-shadow: 5px 10px 18px #98b4e0;
 }
 .tab-pane{
-    padding:10px 10px 0px 10px;
+    padding:0px 10px 0px 10px;
 }
 .form-card{
 padding-top: 0px !important;
@@ -92,6 +121,20 @@ box-shadow: 5px 10px 18px #98b4e0;
     padding: 5px;
     text-align: center;
 }
+/* ARIA_table standard style */
+.table-buss { border-collapse: collapse; }
+.table-buss th {
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: #02338d; padding: 3px 5px;
+    white-space: nowrap; text-align: center; vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.table-buss td {
+    font-size: 10px; font-weight: 700; color: #000;
+    padding: 2px 5px; text-align: center; vertical-align: middle;
+    white-space: nowrap; border: 1px solid #b8c8de;
+}
+.table-buss tbody tr:hover td { background: #eef4ff; }
 </style>
 <body>
     <div id="app">
@@ -168,7 +211,8 @@ box-shadow: 5px 10px 18px #98b4e0;
                                                     <div class="tab-pane fade show active" id="v-pills-group" role="tabpanel"
                                                         aria-labelledby="v-pills-group-tab">
                                                         <!--------------------------begin of risk------------------------------------------->
-                                                                <table class="table table-striped" id="table1">
+                                                                <div class="table-responsive">
+                                                                <table class="table table-striped table-buss" id="table1">
                                                                         <thead id="thead">
                                                                             <tr>
                                                                                 <th>Reference</th>
@@ -190,6 +234,7 @@ box-shadow: 5px 10px 18px #98b4e0;
                                                                                 </tr>
                                                                         </tbody>
                                                                     </table>
+                                                                </div><!-- table-responsive -->
                                                         <!--------------------------end of risk------------------------------------------->
 
                                                     </div>
@@ -200,7 +245,8 @@ box-shadow: 5px 10px 18px #98b4e0;
                                                     <div class="tab-pane fade" id="v-pills-entity" role="tabpanel"
                                                         aria-labelledby="v-pills-entity-tab">
                                                         <!--------------------------start of entity------------------------------------------->
-                                                            <table class="table table-striped" id="table2">
+                                                            <div class="table-responsive">
+                                                            <table class="table table-striped table-buss" id="table2">
                                                                 <thead>
                                                                     <tr>
                                                                         <th>Reference</th>
@@ -232,6 +278,7 @@ box-shadow: 5px 10px 18px #98b4e0;
                                                                     ?> 
                                                                 </tbody>
                                                             </table>
+                                                            </div><!-- table-responsive -->
                                                     <!--------------------------End of entity------------------------------------------->
                                                     </div>
                                                     <div class="tab-pane fade" id="v-pills-sub" role="tabpanel"
@@ -848,9 +895,9 @@ box-shadow: 5px 10px 18px #98b4e0;
         // Simple Datatable
         let table1 = document.querySelector('#table1');
         let table2 = document.querySelector('#table2');
-        
-        let dataTable1 = new simpleDatatables.DataTable(table1);
-        let dataTable2 = new simpleDatatables.DataTable(table2);
+
+        if (table1) new simpleDatatables.DataTable(table1);
+        if (table2) new simpleDatatables.DataTable(table2);
     </script>
 
 <!------------------------------SWEET ALERTS---------------------------------->

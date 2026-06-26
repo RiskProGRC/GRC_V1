@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Tracker — entityAction.php N+1 Query Fix Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+
+        .toolbar {
+            background: #1a1a2e; color: #fff; padding: 14px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .toolbar h1 { font-size: 15px; font-weight: 600; }
+        .toolbar-meta { font-size: 12px; color: #aab; }
+        .toolbar a { color: #7eb8ff; text-decoration: none; font-size: 12px; }
+
+        .layout { display: flex; }
+
+        .sidebar {
+            width: 230px; flex-shrink: 0; background: #1a1a2e;
+            min-height: calc(100vh - 47px); position: sticky; top: 47px;
+            height: calc(100vh - 47px); overflow-y: auto;
+            padding: 20px 0 40px;
+        }
+        .sidebar-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.2px; color: #556; padding: 18px 20px 6px;
+        }
+        .menu-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 20px; color: #9aa; text-decoration: none;
+            font-size: 13px; font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.06); color: #e0e6ff; }
+        .menu-item.active { background: rgba(79,142,247,0.15); color: #7eb8ff; border-left-color: #4f8ef7; }
+        .menu-num {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(255,255,255,0.08); color: #667;
+            font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .main { flex: 1; padding: 32px 36px 80px; max-width: 960px; }
+
+        .page-header { margin-bottom: 28px; }
+        .page-header h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+        .page-header p { color: #888; font-size: 13px; }
+
+        .summary-bar {
+            display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px;
+        }
+        .stat-pill {
+            background: #fff; border-radius: 8px; padding: 12px 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            text-align: center; min-width: 130px;
+        }
+        .stat-pill .num { font-size: 28px; font-weight: 700; }
+        .stat-pill .lbl { font-size: 11px; color: #888; margin-top: 2px; }
+        .stat-pill.red .num { color: #c0392b; }
+        .stat-pill.green .num { color: #1e8449; }
+        .stat-pill.blue .num { color: #1565c0; }
+        .stat-pill.orange .num { color: #e65100; }
+
+        .change-card {
+            background: #fff; border-radius: 8px; margin-bottom: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-left: 5px solid #ccc;
+            overflow: hidden;
+        }
+        .change-card.perf { border-left-color: #1565c0; }
+        .change-card.security { border-left-color: #c0392b; }
+
+        .card-head {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 18px; border-bottom: 1px solid #f0f0f0;
+        }
+        .card-head .num-badge {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+        .perf .num-badge { background: #e3f2fd; color: #1565c0; }
+        .security .num-badge { background: #fde8e8; color: #c0392b; }
+
+        .card-head h3 { font-size: 14px; font-weight: 700; color: #1a1a2e; flex: 1; }
+        .tag {
+            display: inline-block; padding: 2px 10px; border-radius: 20px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+        }
+        .tag-perf { background: #e3f2fd; color: #1565c0; }
+        .tag-sec  { background: #fde8e8; color: #c0392b; }
+        .tag-queries { background: #fef9e7; color: #7d6608; }
+
+        .card-body { padding: 16px 18px; }
+        .card-body p { margin-bottom: 8px; color: #444; font-size: 13px; }
+
+        .section-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: #888; margin: 14px 0 6px;
+        }
+
+        pre {
+            background: #1a1a2e; color: #c9d1d9; padding: 14px 16px;
+            border-radius: 6px; font-size: 12px; font-family: 'Cascadia Code', Consolas, monospace;
+            overflow-x: auto; margin: 8px 0 14px; line-height: 1.7;
+        }
+        .del { color: #ff7b72; text-decoration: line-through; }
+        .add { color: #7ee787; }
+        .cmt { color: #8b949e; }
+        .kw  { color: #ff7b72; }
+        .fn  { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .var { color: #ffa657; }
+
+        .impact-row {
+            display: flex; gap: 8px; align-items: center;
+            background: #f8f9fa; border-radius: 6px; padding: 8px 12px;
+            margin-bottom: 6px; font-size: 12px;
+        }
+        .impact-row .arrow { color: #aaa; }
+        .impact-row .before { color: #c0392b; font-weight: 600; }
+        .impact-row .after  { color: #1e8449; font-weight: 600; }
+
+        .section { scroll-margin-top: 20px; margin-bottom: 44px; }
+        .section-heading {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 14px; padding-bottom: 10px;
+            border-bottom: 2px solid #e8ecf1;
+        }
+        .section-heading h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1a1a2e; }
+        .section-heading .sec-count { margin-left: auto; font-size: 11px; color: #aaa; font-weight: 600; }
+
+        .checklist { list-style: none; }
+        .checklist li {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+            font-size: 13px; color: #333;
+        }
+        .checklist li:last-child { border-bottom: none; }
+        .checklist .icon { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+        .checklist .file { font-family: Consolas, monospace; font-size: 11px; color: #555; background: #f0f0f0; padding: 1px 6px; border-radius: 4px; }
+        .checklist .lines { font-family: Consolas, monospace; font-size: 10px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>Risk Tracker &mdash; entityAction.php &mdash; N+1 Query Fix Report</h1>
+    <div style="display:flex;gap:20px;align-items:center;">
+        <span class="toolbar-meta">entityAction.php &nbsp;&middot;&nbsp; 2026-06-26</span>
+        <a href="index.html">&#8592; Back to Index</a>
+    </div>
+</div>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="sidebar-label">Sections</div>
+        <a class="menu-item active" href="#sec-overview">
+            <span class="menu-num">&#128202;</span> Overview
+        </a>
+        <a class="menu-item" href="#sec-problem">
+            <span class="menu-num">&#9888;</span> The Problem
+        </a>
+        <a class="menu-item" href="#sec-risk">
+            <span class="menu-num">1</span> Risk Query Fix
+        </a>
+        <a class="menu-item" href="#sec-ki">
+            <span class="menu-num">2</span> KI Query Fix
+        </a>
+        <a class="menu-item" href="#sec-control">
+            <span class="menu-num">3</span> Control Query Fix
+        </a>
+        <a class="menu-item" href="#sec-recommend">
+            <span class="menu-num">4</span> Recommend Query Fix
+        </a>
+        <a class="menu-item" href="#sec-action">
+            <span class="menu-num">5</span> Action Query Fix
+        </a>
+        <a class="menu-item" href="#sec-checklist">
+            <span class="menu-num">&#10003;</span> Apply Checklist
+        </a>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <div class="page-header">
+            <h2>Risk Tracker &mdash; entityAction.php &mdash; N+1 Query Fix Report</h2>
+            <p>Eliminate all per-row database lookups by moving joins into the 5 main queries.</p>
+        </div>
+
+        <!-- Summary bar -->
+        <div class="summary-bar">
+            <div class="stat-pill red">
+                <div class="num">12</div>
+                <div class="lbl">Queries eliminated<br>(per dept load)</div>
+            </div>
+            <div class="stat-pill blue">
+                <div class="num">5</div>
+                <div class="lbl">Main queries<br>to update</div>
+            </div>
+            <div class="stat-pill green">
+                <div class="num">6</div>
+                <div class="lbl">Total queries<br>after fix</div>
+            </div>
+            <div class="stat-pill orange">
+                <div class="num">1</div>
+                <div class="lbl">File affected<br>entityAction.php</div>
+            </div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <section class="section" id="sec-overview">
+            <div class="section-heading">
+                <h3>Overview</h3>
+            </div>
+            <p style="color:#444;font-size:13px;margin-bottom:12px;">
+                When a user selects a department from the dropdown in <strong>riskstatus.php</strong>,
+                an AJAX call fires to <strong>entityAction.php</strong>. That file runs 5 main queries
+                (risk, KI, control, recommend, action) and then loops over each result set to render the
+                HTML tables. The problem is that inside each loop, additional individual SELECT queries
+                are fired to look up usernames, process names, and action names — one per row.
+            </p>
+            <p style="color:#444;font-size:13px;">
+                With a department that has 10 risks, 10 KIs, 10 controls, 10 recommendations, and 10 actions,
+                the current code fires <strong>5 + 10 + 10 + 20 + 10 + 10 = 65 queries</strong>.
+                After this fix it will always be exactly <strong>6 queries</strong>, regardless of row count.
+            </p>
+        </section>
+
+        <!-- THE PROBLEM -->
+        <section class="section" id="sec-problem">
+            <div class="section-heading">
+                <h3>The Problem &mdash; N+1 Queries Per Loop</h3>
+            </div>
+
+            <div class="impact-row">
+                <span style="font-weight:600;min-width:120px;">Risk loop</span>
+                <span class="before">+1 query/row</span>
+                <span class="arrow">&#8594;</span>
+                <span>SELECT * FROM users WHERE id='$uid'</span>
+            </div>
+            <div class="impact-row">
+                <span style="font-weight:600;min-width:120px;">KI loop</span>
+                <span class="before">+1 query/row</span>
+                <span class="arrow">&#8594;</span>
+                <span>SELECT * FROM users WHERE id='$uid'</span>
+            </div>
+            <div class="impact-row">
+                <span style="font-weight:600;min-width:120px;">Control loop</span>
+                <span class="before">+2 queries/row</span>
+                <span class="arrow">&#8594;</span>
+                <span>SELECT * FROM process + SELECT * FROM users</span>
+            </div>
+            <div class="impact-row">
+                <span style="font-weight:600;min-width:120px;">Recommend loop</span>
+                <span class="before">+1 query/row</span>
+                <span class="arrow">&#8594;</span>
+                <span>SELECT * FROM action WHERE id='$aid'</span>
+            </div>
+            <div class="impact-row">
+                <span style="font-weight:600;min-width:120px;">Action loop</span>
+                <span class="before">+1 query/row</span>
+                <span class="arrow">&#8594;</span>
+                <span>SELECT * FROM process WHERE process_id='$pid'</span>
+            </div>
+        </section>
+
+        <!-- CHANGE 1: RISK -->
+        <section class="section" id="sec-risk">
+            <div class="section-heading">
+                <h3>Change 1 &mdash; Risk Query</h3>
+                <span class="sec-count">Lines 9–13 &amp; 139–164</span>
+            </div>
+
+            <div class="change-card perf">
+                <div class="card-head">
+                    <div class="num-badge">1</div>
+                    <h3>Add users JOIN to risk query; remove per-row SELECT</h3>
+                    <span class="tag tag-perf">Performance</span>
+                    <span class="tag tag-queries">Saves 1 query/row</span>
+                </div>
+                <div class="card-body">
+                    <p>The risk query does not JOIN the users table, so the loop fetches the reviewer name with a separate SELECT per row. Add the JOIN and select the name columns directly.</p>
+
+                    <div class="section-label">Before — Query (lines 9–13)</div>
+<pre><span class="var">$rselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT risk.risk_id,risk.risk_name,risk.nominee,risk.cause,
+  risk.rdate,riskcat.name,risk.reviewer
+  FROM risk
+  INNER JOIN riskcat ON risk.rcat=riskcat.riskcat_id
+  WHERE dept='<span class="var">$deptid</span>'"</span>);</pre>
+
+                    <div class="section-label">After — Query</div>
+<pre><span class="var">$rselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT risk.risk_id,risk.risk_name,risk.nominee,risk.cause,
+  risk.rdate,riskcat.name,
+  CONCAT(users.fname,' ',users.sname) AS reviewer_name
+  FROM risk
+  INNER JOIN riskcat ON risk.rcat=riskcat.riskcat_id
+  INNER JOIN users ON risk.reviewer=users.id
+  WHERE dept='<span class="var">$deptid</span>'"</span>);</pre>
+
+                    <div class="section-label">Before — Loop (lines 139–164)</div>
+<pre><span class="kw">while</span>(<span class="var">$rrisk</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$rselect</span>)){
+    <span class="del">$uid=$rrisk['reviewer'];</span>
+    <span class="del">$select=mysqli_query($con,"SELECT * FROM users WHERE id='$uid'");</span>
+    <span class="del">$row=mysqli_fetch_assoc($select);</span>
+    <span class="del">$user=$row["fname"].'&amp;nbsp;'.$row["sname"];</span>
+    <span class="cmt">// ... table row output ...</span>
+    &lt;td&gt;&lt;?=<span class="var">$user</span>?&gt;&lt;/td&gt;   <span class="cmt">// reviewer cell</span>
+}</pre>
+
+                    <div class="section-label">After — Loop</div>
+<pre><span class="kw">while</span>(<span class="var">$rrisk</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$rselect</span>)){
+    <span class="cmt">// no extra query needed</span>
+    &lt;td&gt;&lt;?=<span class="add">$rrisk['reviewer_name']</span>?&gt;&lt;/td&gt;   <span class="cmt">// reviewer cell</span>
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHANGE 2: KI -->
+        <section class="section" id="sec-ki">
+            <div class="section-heading">
+                <h3>Change 2 &mdash; KI Query</h3>
+                <span class="sec-count">Lines 16–21 &amp; 193–214</span>
+            </div>
+
+            <div class="change-card perf">
+                <div class="card-head">
+                    <div class="num-badge">2</div>
+                    <h3>Add users JOIN to KI query; remove per-row SELECT</h3>
+                    <span class="tag tag-perf">Performance</span>
+                    <span class="tag tag-queries">Saves 1 query/row</span>
+                </div>
+                <div class="card-body">
+                    <p>The KI loop looks up the owner's name via a separate SELECT per row. Add the JOIN to return the name directly.</p>
+
+                    <div class="section-label">Before — Query (lines 16–21)</div>
+<pre><span class="var">$kiselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT ki.id,ki.risk_id,ki.ki,ki.process_id,ki.owner,risk.risk_name
+  FROM ki
+  INNER JOIN risk ON ki.risk_id=risk.risk_id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY ki.risk_id ASC"</span>);</pre>
+
+                    <div class="section-label">After — Query</div>
+<pre><span class="var">$kiselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT ki.id,ki.risk_id,ki.ki,ki.process_id,risk.risk_name,
+  CONCAT(users.fname,' ',users.sname) AS owner_name
+  FROM ki
+  INNER JOIN risk ON ki.risk_id=risk.risk_id
+  INNER JOIN users ON ki.owner=users.id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY ki.risk_id ASC"</span>);</pre>
+
+                    <div class="section-label">Before — Loop (lines 193–214)</div>
+<pre><span class="kw">while</span>(<span class="var">$kivalue</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$kiselect</span>)){
+    <span class="del">$uid=$kivalue['owner'];</span>
+    <span class="del">$select=mysqli_query($con,"SELECT * FROM users WHERE id='$uid'");</span>
+    <span class="del">$row=mysqli_fetch_assoc($select);</span>
+    <span class="del">$user=$row["fname"].'&amp;nbsp;'.$row["sname"];</span>
+    &lt;td&gt;&lt;?=<span class="var">$user</span>?&gt;&lt;/td&gt;
+}</pre>
+
+                    <div class="section-label">After — Loop</div>
+<pre><span class="kw">while</span>(<span class="var">$kivalue</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$kiselect</span>)){
+    &lt;td&gt;&lt;?=<span class="add">$kivalue['owner_name']</span>?&gt;&lt;/td&gt;
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHANGE 3: CONTROL -->
+        <section class="section" id="sec-control">
+            <div class="section-heading">
+                <h3>Change 3 &mdash; Control Query</h3>
+                <span class="sec-count">Lines 24–34 &amp; 246–272</span>
+            </div>
+
+            <div class="change-card perf">
+                <div class="card-head">
+                    <div class="num-badge">3</div>
+                    <h3>Add process &amp; users JOINs to control query; remove 2 per-row SELECTs</h3>
+                    <span class="tag tag-perf">Performance</span>
+                    <span class="tag tag-queries">Saves 2 queries/row</span>
+                </div>
+                <div class="card-body">
+                    <p>The control loop is the worst offender — it fires two extra queries per row (one for process name, one for reviewer name). Both can be absorbed into the main query.</p>
+
+                    <div class="section-label">Before — Query (lines 24–34)</div>
+<pre><span class="var">$cselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT control.risk,control.control,control.control_id,
+  control.process_id,control.cstrength,control.ctype,control.reviewer,
+  risk.risk_name,control_strength.cs_name,control_type.ct_name
+  FROM control
+  INNER JOIN risk ON control.risk=risk.risk_id
+  INNER JOIN control_strength ON control.cstrength=control_strength.strength_id
+  INNER JOIN control_type ON control.ctype=control_type.ctype_id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY control.risk ASC"</span>);</pre>
+
+                    <div class="section-label">After — Query</div>
+<pre><span class="var">$cselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT control.risk,control.control,control.control_id,
+  risk.risk_name,control_strength.cs_name,control_type.ct_name,
+  process.process_name,
+  CONCAT(users.fname,' ',users.sname) AS reviewer_name
+  FROM control
+  INNER JOIN risk ON control.risk=risk.risk_id
+  INNER JOIN control_strength ON control.cstrength=control_strength.strength_id
+  INNER JOIN control_type ON control.ctype=control_type.ctype_id
+  INNER JOIN process ON control.process_id=process.process_id
+  INNER JOIN users ON control.reviewer=users.id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY control.risk ASC"</span>);</pre>
+
+                    <div class="section-label">Before — Loop (lines 246–271)</div>
+<pre><span class="kw">while</span>(<span class="var">$control</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$cselect</span>)){
+    <span class="del">$pid=$control['process_id'];</span>
+    <span class="del">$select=mysqli_query($con,"SELECT * FROM process WHERE process_id='$pid'");</span>
+    <span class="del">$row=mysqli_fetch_assoc($select);</span>
+    <span class="del">$process=$row["process_name"];</span>
+    <span class="del">$uid=$control['reviewer'];</span>
+    <span class="del">$select=mysqli_query($con,"SELECT * FROM users WHERE id='$uid'");</span>
+    <span class="del">$row=mysqli_fetch_assoc($select);</span>
+    <span class="del">$user=$row["fname"].'&amp;nbsp;'.$row["sname"];</span>
+    &lt;td&gt;&lt;?=<span class="var">$process</span>?&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;?=<span class="var">$user</span>?&gt;&lt;/td&gt;
+}</pre>
+
+                    <div class="section-label">After — Loop</div>
+<pre><span class="kw">while</span>(<span class="var">$control</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$cselect</span>)){
+    &lt;td&gt;&lt;?=<span class="add">$control['process_name']</span>?&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;?=<span class="add">$control['reviewer_name']</span>?&gt;&lt;/td&gt;
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHANGE 4: RECOMMEND -->
+        <section class="section" id="sec-recommend">
+            <div class="section-heading">
+                <h3>Change 4 &mdash; Recommend Query</h3>
+                <span class="sec-count">Lines 37–43 &amp; 302–322</span>
+            </div>
+
+            <div class="change-card perf">
+                <div class="card-head">
+                    <div class="num-badge">4</div>
+                    <h3>Add action LEFT JOIN to recommend query; remove per-row SELECT</h3>
+                    <span class="tag tag-perf">Performance</span>
+                    <span class="tag tag-queries">Saves 1 query/row</span>
+                </div>
+                <div class="card-body">
+                    <p>The recommend loop fetches the linked action text with a separate SELECT per row. A LEFT JOIN (not INNER, since the action link may be empty) absorbs this.</p>
+
+                    <div class="section-label">Before — Query (lines 37–43)</div>
+<pre><span class="var">$rmd</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT recommend.risk_id,recommend.id,recommend.mrc,recommend.armc,
+  recommend.action,recommend.status,recommend.timeline,risk.risk_name
+  FROM recommend
+  INNER JOIN risk ON recommend.risk_id=risk.risk_id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY recommend.risk_id ASC"</span>);</pre>
+
+                    <div class="section-label">After — Query</div>
+<pre><span class="var">$rmd</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT recommend.risk_id,recommend.id,recommend.mrc,recommend.armc,
+  recommend.status,recommend.timeline,risk.risk_name,
+  action.action AS action_name
+  FROM recommend
+  INNER JOIN risk ON recommend.risk_id=risk.risk_id
+  LEFT JOIN action ON recommend.action=action.id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY recommend.risk_id ASC"</span>);</pre>
+
+                    <div class="section-label">Before — Loop (lines 302–322)</div>
+<pre><span class="kw">while</span>(<span class="var">$recommend</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$rmd</span>)){
+    <span class="del">$aid=$recommend['action'];</span>
+    <span class="del">$select=mysqli_query($con,"SELECT * FROM action WHERE id='$aid'");</span>
+    <span class="del">$row=mysqli_fetch_assoc($select);</span>
+    <span class="del">$action=$row["action"];</span>
+    &lt;td&gt;&lt;?=substr(<span class="var">$action</span>,0,40)?&gt;&lt;/td&gt;
+}</pre>
+
+                    <div class="section-label">After — Loop</div>
+<pre><span class="kw">while</span>(<span class="var">$recommend</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$rmd</span>)){
+    &lt;td&gt;&lt;?=<span class="add">substr($recommend['action_name'],0,40).(strlen($recommend['action_name'])>40?'...':'')</span>?&gt;&lt;/td&gt;
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHANGE 5: ACTION -->
+        <section class="section" id="sec-action">
+            <div class="section-heading">
+                <h3>Change 5 &mdash; Action Query</h3>
+                <span class="sec-count">Lines 46–52 &amp; 354–380</span>
+            </div>
+
+            <div class="change-card perf">
+                <div class="card-head">
+                    <div class="num-badge">5</div>
+                    <h3>Add process JOIN to action query; remove per-row SELECT</h3>
+                    <span class="tag tag-perf">Performance</span>
+                    <span class="tag tag-queries">Saves 1 query/row</span>
+                </div>
+                <div class="card-body">
+                    <p>The action loop fetches process name per row. Add the JOIN and read it directly from the result.</p>
+
+                    <div class="section-label">Before — Query (lines 46–52)</div>
+<pre><span class="var">$aselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT action.id,action.risk_id,action.action,action.process_id,
+  action.priority,action.status,action.timeline,risk.risk_name
+  FROM action
+  INNER JOIN risk ON action.risk_id=risk.risk_id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY action.risk_id ASC"</span>);</pre>
+
+                    <div class="section-label">After — Query</div>
+<pre><span class="var">$aselect</span>=<span class="fn">mysqli_query</span>(<span class="var">$con</span>,<span class="str">"SELECT action.id,action.risk_id,action.action,
+  action.priority,action.status,action.timeline,risk.risk_name,
+  process.process_name
+  FROM action
+  INNER JOIN risk ON action.risk_id=risk.risk_id
+  INNER JOIN process ON action.process_id=process.process_id
+  WHERE dept_id='<span class="var">$deptid</span>'
+  ORDER BY action.risk_id ASC"</span>);</pre>
+
+                    <div class="section-label">Before — Loop (lines 354–380)</div>
+<pre><span class="kw">while</span>(<span class="var">$action</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$aselect</span>)){
+    <span class="del">$pid=$action['process_id'];</span>
+    <span class="del">$select=mysqli_query($con,"SELECT * FROM process WHERE process_id='$pid'");</span>
+    <span class="del">$row=mysqli_fetch_assoc($select);</span>
+    <span class="del">$process=$row["process_name"];</span>
+    &lt;td&gt;&lt;?=<span class="var">$process</span>?&gt;&lt;/td&gt;
+}</pre>
+
+                    <div class="section-label">After — Loop</div>
+<pre><span class="kw">while</span>(<span class="var">$action</span>=<span class="fn">mysqli_fetch_assoc</span>(<span class="var">$aselect</span>)){
+    &lt;td&gt;&lt;?=<span class="add">$action['process_name']</span>?&gt;&lt;/td&gt;
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- APPLY CHECKLIST -->
+        <section class="section" id="sec-checklist">
+            <div class="section-heading">
+                <h3>Apply Checklist</h3>
+                <span class="sec-count">File: Project/entityAction.php</span>
+            </div>
+
+            <ul class="checklist">
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Risk query</strong> — add <code>INNER JOIN users ON risk.reviewer=users.id</code>, add <code>CONCAT(users.fname,' ',users.sname) AS reviewer_name</code> to SELECT</div>
+                        <div><span class="lines">Lines 9–13</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Risk loop</strong> — remove 4 lines of per-row user lookup; replace <code>$user</code> reference with <code>$rrisk['reviewer_name']</code></div>
+                        <div><span class="lines">Lines 141–144</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>KI query</strong> — add <code>INNER JOIN users ON ki.owner=users.id</code>, add <code>CONCAT(users.fname,' ',users.sname) AS owner_name</code>, remove <code>ki.owner</code> from SELECT</div>
+                        <div><span class="lines">Lines 16–21</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>KI loop</strong> — remove 4 lines of per-row user lookup; replace <code>$user</code> reference with <code>$kivalue['owner_name']</code></div>
+                        <div><span class="lines">Lines 195–198</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Control query</strong> — add <code>INNER JOIN process ON control.process_id=process.process_id</code> and <code>INNER JOIN users ON control.reviewer=users.id</code>; add <code>process.process_name</code> and <code>CONCAT(users.fname,' ',users.sname) AS reviewer_name</code> to SELECT</div>
+                        <div><span class="lines">Lines 24–34</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Control loop</strong> — remove 8 lines of per-row process + user lookups; replace <code>$process</code> with <code>$control['process_name']</code> and <code>$user</code> with <code>$control['reviewer_name']</code></div>
+                        <div><span class="lines">Lines 248–257</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Recommend query</strong> — add <code>LEFT JOIN action ON recommend.action=action.id</code>; add <code>action.action AS action_name</code> to SELECT; remove <code>recommend.action</code> (raw id) from SELECT</div>
+                        <div><span class="lines">Lines 37–43</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Recommend loop</strong> — remove 4 lines of per-row action lookup; replace <code>$action</code> reference with <code>$recommend['action_name']</code></div>
+                        <div><span class="lines">Lines 303–307</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Action query</strong> — add <code>INNER JOIN process ON action.process_id=process.process_id</code>; add <code>process.process_name</code> to SELECT</div>
+                        <div><span class="lines">Lines 46–52</span></div>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">&#9744;</span>
+                    <div>
+                        <div><strong>Action loop</strong> — remove 4 lines of per-row process lookup; replace <code>$process</code> reference with <code>$action['process_name']</code></div>
+                        <div><span class="lines">Lines 356–360</span></div>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    const sections = document.querySelectorAll('.section');
+    const menuItems = document.querySelectorAll('.menu-item');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                menuItems.forEach(item => {
+                    item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+                });
+            }
+        });
+    }, { threshold: 0.3 });
+    sections.forEach(sec => observer.observe(sec));
+</script>
+
+</body>
+</html>
