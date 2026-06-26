@@ -51,15 +51,30 @@ $btntass="btn-light";
             <div class="col-12 col-lg-12">
     <!-_________________Content location BEGINING______________________->
                 <style>
-                    .btn-orange{
-                    background-color: #ff4700;
-                    border-color: #ff4700;
-                    border:1px solid #fff;
-                    color: #fff;
-                }
-                
-                
-                    
+                    .btn-orange {
+                        background-color: #ff4700;
+                        border-color: #ff4700;
+                        border: 1px solid #fff;
+                        color: #fff;
+                    }
+                    .btn-group-sm>.btn, .btn-sm {
+                        border-radius: 0.2rem;
+                        font-size: 0.75rem;
+                        padding: 0.2rem 0.4rem;
+                    }
+                    .table-buss { border-collapse: collapse; }
+                    .table-buss th {
+                        font-size: 12px; font-weight: 700; color: #fff;
+                        background: #02338d; padding: 3px 5px;
+                        white-space: nowrap; text-align: center; vertical-align: middle;
+                        border: 1px solid rgba(255,255,255,0.3);
+                    }
+                    .table-buss td {
+                        font-size: 12px; font-weight: 500; color: #222;
+                        padding: 2px 5px; text-align: center; vertical-align: middle;
+                        white-space: nowrap; border: 1px solid #b8c8de;
+                    }
+                    .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
                   <section class="section">
                   <form method="" id="convert_form" action="">
@@ -67,12 +82,13 @@ $btntass="btn-light";
                         <div class="card-header">
                         <input type="hidden" name="file_content" id="file_content">
                         <button onclick="location.href='../Project/addrisk.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                        <span class="fa-fw select-all fas">ï•</span>Add Risks</button>
+                        <i class="fas fa-fw fa-plus"></i> Add Risks</button>
                         <!--<a href="../Project/addrisk" class="btn btn-primary" style="float:right;margin-right:30px;" >
-                            <span class="fa-fw select-all fas">ï•</span>Add Risks</a>-->
+                            <i class="fas fa-fw fa-plus"></i> Add Risks</a>-->
                         </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+                            <table class="table table-striped table-buss" id="table1">
                                 <thead id="thead">
                                     <tr>
                                         <th>Reference</th>
@@ -126,11 +142,11 @@ $btntass="btn-light";
                                                 </td>
                                                 <td>
                                             <?php if($approval==2){ ?>
-                                            <a href="#" class="btn btn-sm btn-primary "><span class="fa-fw select-all fas">ïŒƒ</span></a>
+                                            <a href="#" class="btn btn-sm btn-primary "><i class="fas fa-fw fa-pen"></i></a>
                                             <?php }else{ ?>
-                                                <button class="btn btn-sm btn-primary edit-risk" id='<?=$values["risk_id"]?>'><span class="fa-fw select-all fas">ïŒƒ</span></button> 
+                                                <button class="btn btn-sm btn-primary edit-risk" id='<?=$values["risk_id"]?>'><i class="fas fa-fw fa-pen"></i></button> 
                                             <?php }?>                                          
-                                            <button class="btn btn-sm btn-danger delete-risk btn-userpermission-delete" id='.$values["risk_id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                            <button class="btn btn-sm btn-danger delete-risk btn-userpermission-delete" id='.$values["risk_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                             </td>
                                         </tr>
                                         <?php
@@ -140,6 +156,7 @@ $btntass="btn-light";
                                          
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
                   </form>
@@ -372,7 +389,7 @@ $btntass="btn-light";
     <script>
         // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

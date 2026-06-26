@@ -55,19 +55,33 @@ $btntass="btn-light";
                     font-size: 13px;
                     font-weight: 800;
                 }
-                    
+                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
         <section class="section">
                     <div class="card">
                         <div class="card-header">
                         <button onclick="location.href='../Project/riskassessadd.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                        <span class="fa-fw select-all fas">ï•</span>Add Assessment</button>
+                        <i class="fas fa-fw fa-plus"></i>Add Assessment</button>
                            <!-- <a href="../Project/riskassessadd" class="btn btn-primary" style="float:right;margin-right:30px;" >
-                            <span class="fa-fw select-all fas">ï•</span>Add Assessment</a>-->
+                            <i class="fas fa-fw fa-plus"></i>Add Assessment</a>-->
                             
                         </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+                            <table class="table table-striped table-buss" id="table1">
                                 <thead>
                                     <tr>
                                         <th>Reference</th>
@@ -101,7 +115,7 @@ $btntass="btn-light";
                                         $btntass=$riskClass->inherent($trass);//end of redidual risk.
 
 
-                                        
+
                                         echo'<tr style="height:10px;">
                                         <td>RSK0'.$assess["risk_id"].'</td>
                                         <td><div style="font-size:13px;">'.$riskname.'</div></td>
@@ -109,17 +123,18 @@ $btntass="btn-light";
                                         <td style="padding:0px;border-left:2px solid #000;"><input type="button" style="width:100%;padding:30px 15px;border-radius:0px;" value="'.$rrass.'" class="btn assess '.$btnrass.'"></td>
                                         <td style="padding:0px;border-left:2px solid #000;"><input type="button" style="width:100%;padding:30px 15px;border-radius:0px;" value="'.$trass.'" class="btn assess '.$btntass.'"></td>
                                         <td style="padding-left:20px">
-                                        <a href="../Project/riskassessedit.php?id='.$assess["id"].'" class="btn btn-sm btn-primary userpermission-edit"><span class="fa-fw select-all fas">ïŒƒ</span></a>
-                                        <a href="#" class="btn btn-sm btn-danger "><span class="fa-fw select-all fas">ï‹­</span></a>
+                                        <a href="../Project/riskassessedit.php?id='.$assess["id"].'" class="btn btn-sm btn-primary userpermission-edit"><i class="fas fa-fw fa-pen"></i></a>
+                                        <a href="#" class="btn btn-sm btn-danger "><i class="fas fa-fw fa-trash"></i></a>
                                         <a href="../Project/update_rcontrol.php?id='.$assess["risk_id"].'" class="btn btn-sm btn-primary userpermission-control">Edit control</a>
                                         </td>
                                     </tr>';
                                     }
 
                                     ?>
-                                         
+
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
 
@@ -186,9 +201,8 @@ $btntass="btn-light";
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

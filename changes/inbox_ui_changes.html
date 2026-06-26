@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inbox.php — UI Changes Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+
+        .toolbar {
+            background: #02338d;
+            color: #fff;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .toolbar h1 { font-size: 15px; font-weight: 600; }
+        .toolbar-meta { font-size: 12px; color: #a8c8ff; }
+        .toolbar a { color: #a8c8ff; font-size: 12px; text-decoration: none; }
+        .toolbar a:hover { color: #fff; }
+
+        .layout { display: flex; }
+
+        .sidebar {
+            width: 210px;
+            flex-shrink: 0;
+            background: #1a1a2e;
+            min-height: calc(100vh - 47px);
+            position: sticky;
+            top: 47px;
+            height: calc(100vh - 47px);
+            overflow-y: auto;
+            padding: 20px 0 40px;
+        }
+        .sidebar-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.2px; color: #556; padding: 14px 18px 6px;
+        }
+        .s-item {
+            display: block; padding: 9px 18px; color: #9aa;
+            text-decoration: none; font-size: 12px; font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .s-item:hover { background: rgba(255,255,255,0.06); color: #e0e6ff; border-left-color: #4f8ef7; }
+
+        .main { flex: 1; padding: 30px 36px 60px; }
+
+        .page-header { margin-bottom: 28px; }
+        .page-header h2 { font-size: 20px; font-weight: 700; color: #02338d; margin-bottom: 4px; }
+        .page-header p { color: #888; font-size: 12px; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 36px; }
+        .summary-box { border-radius: 10px; padding: 16px 18px; text-align: center; }
+        .summary-box .num { font-size: 32px; font-weight: 800; }
+        .summary-box .lbl { font-size: 11px; margin-top: 2px; font-weight: 600; }
+        .box-blue   { background: #dbeafe; color: #1e40af; }
+        .box-green  { background: #dcfce7; color: #166534; }
+        .box-orange { background: #ffedd5; color: #9a3412; }
+        .box-purple { background: #ede9fe; color: #5b21b6; }
+
+        .section { margin-bottom: 40px; scroll-margin-top: 20px; }
+        .section-heading {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 14px; padding-bottom: 8px;
+            border-bottom: 2px solid #e0e8f5;
+        }
+        .section-heading h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #02338d; }
+        .section-heading .sec-icon { font-size: 18px; }
+
+        .change-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-left: 4px solid #02338d;
+        }
+        .change-card.green  { border-left-color: #16a34a; }
+        .change-card.orange { border-left-color: #ea580c; }
+        .change-card.purple { border-left-color: #7c3aed; }
+        .change-card.cyan   { border-left-color: #0891b2; }
+
+        .change-card h4 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+        .change-card p  { font-size: 12px; color: #555; margin-bottom: 6px; }
+        .change-card ul { font-size: 12px; color: #555; padding-left: 18px; }
+        .change-card ul li { margin-bottom: 3px; }
+
+        .diff {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            margin-top: 10px; font-size: 11px; font-family: monospace;
+        }
+        .diff-before, .diff-after {
+            border-radius: 6px; padding: 10px 12px;
+        }
+        .diff-before { background: #fef2f2; border: 1px solid #fca5a5; }
+        .diff-after  { background: #f0fdf4; border: 1px solid #86efac; }
+        .diff-label  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+        .diff-before .diff-label { color: #dc2626; }
+        .diff-after  .diff-label { color: #16a34a; }
+        .diff pre { white-space: pre-wrap; word-break: break-all; color: #333; }
+
+        .badge {
+            display: inline-block; padding: 2px 9px; border-radius: 20px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase; margin-right: 4px;
+        }
+        .badge-done  { background: #dcfce7; color: #166534; }
+        .badge-ui    { background: #dbeafe; color: #1e40af; }
+        .badge-style { background: #ede9fe; color: #5b21b6; }
+        .badge-fix   { background: #ffedd5; color: #9a3412; }
+
+        table.preview {
+            width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px;
+        }
+        table.preview th { background: #02338d; color: #fff; padding: 4px 8px; text-align: left; }
+        table.preview td { padding: 4px 8px; border: 1px solid #b8c8de; color: #333; }
+        table.preview tr:nth-child(even) td { background: #f4f8ff; }
+
+        /* live tab preview */
+        .tab-preview {
+            background: #02338d;
+            border-radius: 6px 6px 0 0;
+            padding: 5px 6px 0;
+            display: flex;
+            gap: 4px;
+            margin-top: 12px;
+        }
+        .tab-preview .tp-tab {
+            padding: 7px 14px;
+            border-radius: 6px 6px 0 0;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-bottom: 3px solid transparent;
+            background: rgba(255,255,255,0.08);
+            color: #cde0ff;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tab-preview .tp-tab.active {
+            background: rgba(255,255,255,0.22);
+            color: #fff;
+            border-bottom: 3px solid #ffc107;
+            font-weight: 700;
+        }
+        .tab-preview-body {
+            background: #fff;
+            border: 1px solid #d0daea;
+            border-radius: 0 0 6px 6px;
+            padding: 10px 14px;
+            font-size: 11px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>inbox.php &mdash; UI Changes Report</h1>
+    <span style="display:flex;align-items:center;gap:20px;">
+        <a href="index.html">&larr; Back to Index</a>
+        <span class="toolbar-meta">File: Project/inbox.php &nbsp;&middot;&nbsp; Date: 2026-06-26</span>
+    </span>
+</div>
+
+<div class="layout">
+
+    <nav class="sidebar">
+        <div class="sidebar-label">Sections</div>
+        <a class="s-item" href="#sec-responsive">&#128241; Responsive Fix</a>
+        <a class="s-item" href="#sec-tables">&#128203; Table Styling</a>
+        <a class="s-item" href="#sec-datatables">&#128200; DataTables</a>
+        <a class="s-item" href="#sec-nav">&#127912; Nav-Tabs Theme</a>
+    </nav>
+
+    <main class="main">
+
+        <div class="page-header">
+            <h2>inbox.php &mdash; UI Changes Report</h2>
+            <p>All visual and structural changes applied to Project/inbox.php &mdash; responsive layout fix, table styling, DataTable null guards, and nav-tabs themed to match bussinf.</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-box box-orange">
+                <div class="num">1</div>
+                <div class="lbl">Layout Bug Fixed</div>
+            </div>
+            <div class="summary-box box-blue">
+                <div class="num">5</div>
+                <div class="lbl">Tables Styled</div>
+            </div>
+            <div class="summary-box box-green">
+                <div class="num">5</div>
+                <div class="lbl">DataTable Guards</div>
+            </div>
+            <div class="summary-box box-purple">
+                <div class="num">3</div>
+                <div class="lbl">Nav-Tab States Styled</div>
+            </div>
+        </div>
+
+        <!-- ── Responsive Fix ── -->
+        <section class="section" id="sec-responsive">
+            <div class="section-heading">
+                <span class="sec-icon">&#128241;</span>
+                <h3>1. Responsive Layout Fix</h3>
+            </div>
+
+            <div class="change-card orange">
+                <h4><span class="badge badge-fix">Bug Fix</span> <code>col-1</code> Crushed All Tables on Non-Large Screens</h4>
+                <p>The section wrapper had <code>col-1 col-lg-12</code>. On any screen below the Bootstrap <code>lg</code> breakpoint (992px), the column was only 8.3% wide — all tables were invisible or broken. Changed to <code>col-12</code> so the card is always full width.</p>
+                <div class="diff">
+                    <div class="diff-before">
+                        <div class="diff-label">Before — 8% wide on tablet/mobile</div>
+                        <pre>&lt;div class="col-1 col-lg-12"&gt;</pre>
+                    </div>
+                    <div class="diff-after">
+                        <div class="diff-label">After — full width on all screens</div>
+                        <pre>&lt;div class="col-12"&gt;</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Table Styling ── -->
+        <section class="section" id="sec-tables">
+            <div class="section-heading">
+                <span class="sec-icon">&#128203;</span>
+                <h3>2. Table Styling — <code>.table-buss</code></h3>
+            </div>
+
+            <div class="change-card green">
+                <h4><span class="badge badge-done">Done</span> <code>.table-buss</code> Applied to All 5 Tables</h4>
+                <p>The project standard table class (defined in <code>assets/css/style.css</code>) was applied to all inbox tables. Each table was also wrapped in <code>&lt;div class="table-responsive"&gt;</code> for horizontal scrolling on narrow screens.</p>
+                <table class="preview">
+                    <tr><th>Table ID</th><th>Tab</th><th>Change</th></tr>
+                    <tr><td>#table1</td><td>Risks</td><td>+ table-buss, + table-responsive wrapper</td></tr>
+                    <tr><td>#table3</td><td>Controls</td><td>+ table-buss, + table-responsive wrapper</td></tr>
+                    <tr><td>#table2</td><td>KPIs</td><td>+ table-buss, + table-responsive wrapper</td></tr>
+                    <tr><td>#table4</td><td>Recommendations</td><td>+ table-buss, + table-responsive wrapper</td></tr>
+                    <tr><td>#table5</td><td>Actions</td><td>+ table-buss, + table-responsive wrapper</td></tr>
+                </table>
+            </div>
+
+            <div class="change-card green">
+                <h4><span class="badge badge-done">Done</span> Table Pattern Used</h4>
+                <div class="diff" style="grid-template-columns: 1fr 1fr;">
+                    <div class="diff-before">
+                        <div class="diff-label">Before</div>
+                        <pre>&lt;table class="table table-striped"
+    id="table1"&gt;</pre>
+                    </div>
+                    <div class="diff-after">
+                        <div class="diff-label">After</div>
+                        <pre>&lt;div class="table-responsive"&gt;
+&lt;table class="table table-striped
+    table-buss" id="table1"&gt;
+...
+&lt;/table&gt;
+&lt;/div&gt;&lt;!-- table-responsive --&gt;</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="change-card">
+                <h4><span class="badge badge-ui">CSS</span> <code>.table-buss</code> inline copy kept in <code>&lt;style&gt;</code></h4>
+                <p>The inline <code>&lt;style&gt;</code> block retains a copy of <code>.table-buss</code> alongside the global definition in <code>style.css</code>. This ensures the style applies even if the global sheet is not linked or is overridden by the page theme.</p>
+            </div>
+        </section>
+
+        <!-- ── DataTables ── -->
+        <section class="section" id="sec-datatables">
+            <div class="section-heading">
+                <span class="sec-icon">&#128200;</span>
+                <h3>3. DataTables — Null Guards</h3>
+            </div>
+
+            <div class="change-card green">
+                <h4><span class="badge badge-fix">Fix</span> Null Guards Added to All 5 DataTable Inits</h4>
+                <p>Previously, all 5 DataTable initialisations ran unconditionally. If any table element was absent (e.g. tab not yet rendered), it would throw a JS error and break the others. Each init now checks the element exists first.</p>
+                <div class="diff">
+                    <div class="diff-before">
+                        <div class="diff-label">Before — throws if element missing</div>
+                        <pre>let dataTable1 = new simpleDatatables
+    .DataTable(table1);
+let dataTable2 = new simpleDatatables
+    .DataTable(table2);
+// ... same for table3, table4, table5</pre>
+                    </div>
+                    <div class="diff-after">
+                        <div class="diff-label">After — safe on every page load</div>
+                        <pre>if (table1) new simpleDatatables
+    .DataTable(table1);
+if (table2) new simpleDatatables
+    .DataTable(table2);
+// ... same for table3, table4, table5</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Nav Tabs ── -->
+        <section class="section" id="sec-nav">
+            <div class="section-heading">
+                <span class="sec-icon">&#127912;</span>
+                <h3>4. Nav-Tabs Theme — Matching bussinf</h3>
+            </div>
+
+            <div class="change-card purple">
+                <h4><span class="badge badge-style">Style</span> Nav-Tabs Themed to Match bussinf Color Scheme</h4>
+                <p>The default Bootstrap nav-tabs (white background, grey borders) were restyled to match the bussinf nav-pill color scheme. Tabs remain <strong>horizontal</strong> — only the visual appearance changes. The active indicator uses a <strong>bottom border</strong> (gold <code>#ffc107</code>) instead of the left border used in bussinf's vertical pills.</p>
+            </div>
+
+            <div class="change-card purple">
+                <h4><span class="badge badge-style">Style</span> Tab States — Default / Hover / Active</h4>
+                <table class="preview">
+                    <tr><th>State</th><th>Background</th><th>Text</th><th>Indicator</th></tr>
+                    <tr><td>Tab strip</td><td>#02338d (navy)</td><td>—</td><td>bottom: 2px solid #012a73</td></tr>
+                    <tr><td>Default tab</td><td>rgba(255,255,255,0.08)</td><td>#cde0ff</td><td>bottom: 3px solid transparent</td></tr>
+                    <tr><td>Hover</td><td>rgba(255,255,255,0.18)</td><td>#fff</td><td>bottom: 3px solid #a8c8ff</td></tr>
+                    <tr><td>Active</td><td>rgba(255,255,255,0.22)</td><td>#fff bold 13px</td><td>bottom: 3px solid #ffc107 (gold)</td></tr>
+                </table>
+
+                <!-- live preview -->
+                <div class="tab-preview">
+                    <div class="tp-tab active">Risks</div>
+                    <div class="tp-tab">Controls</div>
+                    <div class="tp-tab">KPIs</div>
+                    <div class="tp-tab">Recommendation</div>
+                    <div class="tp-tab">Action</div>
+                </div>
+                <div class="tab-preview-body">Tab content area &mdash; table renders here</div>
+            </div>
+
+            <div class="change-card purple">
+                <h4><span class="badge badge-style">Style</span> Full CSS Added (scoped to <code>#myTab</code>)</h4>
+                <div class="diff" style="grid-template-columns: 1fr;">
+                    <div class="diff-after">
+                        <div class="diff-label">Added to inbox.php &lt;style&gt; block</div>
+                        <pre>#myTab {
+    background: #02338d;
+    border-bottom: 2px solid #012a73;
+    padding: 5px 6px 0;
+    gap: 3px;
+    border-radius: 6px 6px 0 0;
+}
+#myTab .nav-link {
+    display: flex; flex-direction: row; align-items: center;
+    padding: 9px 12px; margin: 3px 2px 0;
+    border-radius: 8px 8px 0 0 !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-bottom: 3px solid transparent !important;
+    background: rgba(255,255,255,0.08);
+    color: #cde0ff; font-size: 12px; font-weight: 600;
+    transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+#myTab .nav-link:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border-bottom-color: #a8c8ff !important;
+}
+#myTab .nav-link.active {
+    background: rgba(255,255,255,0.22) !important;
+    color: #fff !important;
+    font-size: 13px; font-weight: 700;
+    border-bottom: 3px solid #ffc107 !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="change-card cyan">
+                <h4><span class="badge badge-ui">Note</span> Scoped to <code>#myTab</code> — No Other Pages Affected</h4>
+                <p>All nav-tab CSS is prefixed with <code>#myTab</code> (the tab list ID on inbox.php). This means the theme only applies to this page and does not leak into bussinf.php, userslist.php, or any other page that may use Bootstrap nav-tabs.</p>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>

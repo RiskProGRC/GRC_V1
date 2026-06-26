@@ -52,6 +52,20 @@ $showaction=$actionClass->showaction();
                         font-weight: 600;
                         color: #000;
                     }
+                                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
 
                 <section class="section">
@@ -60,13 +74,14 @@ $showaction=$actionClass->showaction();
                         <div class="card-header">
                             <input type="hidden" name="file_content" id="file_content">
                             <button onclick="location.href='../Project/addrecommend.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                            <span class="fa-fw select-all fas">ï•</span>Recommendation</button>
+                            <i class="fas fa-fw fa-plus"></i>Recommendation</button>
                             <!--<a href="../Project/addrecommend" class="btn btn-primary" style="float:right;margin-right:30px;">
-                            <span class="fa-fw select-all fas">ï•</span>Recommendation</a>-->
+                            <i class="fas fa-fw fa-plus"></i>Recommendation</a>-->
                             <button type="button" name="convert" id="convert" class="btn btn-primary convert" style="float:right;margin-right:30px;">EXPORT</button>
                         </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                                 <thead id="thead">
                                     <tr>
                                         <th>reference id</th>
@@ -101,8 +116,8 @@ $showaction=$actionClass->showaction();
                                         <td><?='RMD00'.$recommend["id"]?></td>
                                         <td><?=$deptname?></td>
                                         <td><?=$riskname?></td>
-                                        <td><?=$recommend["mrc"]?></td>
-                                        <td><?=$recommend["armc"]?></td>
+                                        <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;"><?=substr($recommend["mrc"],0,60).'...'?></td>
+                                        <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;"><?=substr($recommend["armc"],0,60).'...'?></td>
                                         <td><?=$recommend["timeline"]?></td>
                                         <td> 
                                             <?php
@@ -116,9 +131,9 @@ $showaction=$actionClass->showaction();
                                                     ?>
                                                 </td>
                                         <td>
-                                        <button class="btn btn-sm btn-primary editrecommend" id='<?=$recommend["id"]?>'><span class="fa-fw select-all fas">ïŒƒ</span></button>
+                                        <button class="btn btn-sm btn-primary editrecommend" id='<?=$recommend["id"]?>'><i class="fas fa-fw fa-pen"></i></button>
                                        
-                                        <button class="btn btn-sm btn-danger recommenddelete btn-userpermission-delete" id='.$recommend["id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                        <button class="btn btn-sm btn-danger recommenddelete btn-userpermission-delete" id='.$recommend["id"].'><i class="fas fa-fw fa-trash"></i></button>
                                          </td>
                                     </tr>
                                     <?php
@@ -127,6 +142,7 @@ $showaction=$actionClass->showaction();
                                     ?>
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
                   </form>
@@ -319,9 +335,8 @@ $showaction=$actionClass->showaction();
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

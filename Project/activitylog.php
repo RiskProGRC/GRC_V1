@@ -65,6 +65,20 @@ $i=1;
                     text-align: center;
                 }
                     
+                                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
                   <section class="section">
                   <form method="POST" id="convert_form" action="export.php">
@@ -72,7 +86,8 @@ $i=1;
                         <div class="card-header">
                         </div>
                         <div class="card-body">
-                        <table class="table table-striped" id="table1">
+                        <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -94,12 +109,13 @@ $i=1;
                                     <td><?=$logs["created_at"]?></td>
                                     <td><?=$username?></td>
                                     <td><?=$logs["entity"]?></td>
-                                    <td><?=$logs["action"]?></td>
+                                    <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;"><?=substr($logs["action"],0,60).'...'?></td>
                                     <td><?=$logs["ip_address"]?></td>
                                 </tr>
                                 <?php } ?>
                             </tbody>
                         </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
                   </form>
@@ -144,9 +160,8 @@ $i=1;
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

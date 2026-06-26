@@ -72,6 +72,20 @@ $kriClass= new kriClass();
                         background-color: #518503;
                         color:#fff;
                     }
+                                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
                 <section class="section">
                 <form method="POST" id="convert_form" action="export.php">
@@ -79,13 +93,14 @@ $kriClass= new kriClass();
                         <div class="card-header">
                         <input type="hidden" name="file_content" id="file_content">
                         <button onclick="location.href='../Project/parameteradd.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                        <span class="fa-fw select-all fas">ï•</span>Add KRI Parameters</button>
+                        <i class="fas fa-fw fa-plus"></i>Add KRI Parameters</button>
                            <!-- <a href="../Project/parameteradd" class="btn btn-primary" style="float:right;margin-right:30px;">
-                            <span class="fa-fw select-all fas">ï•</span>Add KRI</a>-->
+                            <i class="fas fa-fw fa-plus"></i>Add KRI</a>-->
                            <!-- <button type="button" name="convert" id="convert" class="btn btn-primary convert" style="float:right;margin-right:30px;">EXPORT</button>     
 -->                     </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                                 <thead id="thead">
                                     <tr>
                                         <th>ID</th>
@@ -116,14 +131,15 @@ $kriClass= new kriClass();
                                             <td class="severe"><?=$kri["fmboard"]?> - <?=$kri["tmboard"]?>                                             
                                             </td>
                                             <td>
-                                            <button name="edit" value="Edit" class="btn btn-sm btn-primary parameteredit btn-userpermission-edit" id="<?=$kri['id']?>" ><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                            <button  name="delete" value="Delete" class="btn btn-sm btn-danger parameterdelete btn-userpermission-delete" ><span class="fa-fw select-all fas">ï‹­</span></button>
+                                            <button name="edit" value="Edit" class="btn btn-sm btn-primary parameteredit btn-userpermission-edit" id="<?=$kri['id']?>" ><i class="fas fa-fw fa-pen"></i></button>
+                                            <button  name="delete" value="Delete" class="btn btn-sm btn-danger parameterdelete btn-userpermission-delete" ><i class="fas fa-fw fa-trash"></i></button>
                                             </td>
                                         </tr>
                                    
                                    <?php } ?> 
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
                    </form>
@@ -329,9 +345,8 @@ $kriClass= new kriClass();
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

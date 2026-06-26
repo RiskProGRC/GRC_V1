@@ -35,8 +35,8 @@ $krishow=$kriclass->fetchkri();
     <!-_________________Content location BEGINING______________________->
                  <style>
                     tr,td,.btn{
-                        font-size:12px;
-                        font-weight: 800;
+                        font-size:11px;
+                        font-weight: 700;
                         color: #000;
                     }
                     label,b {
@@ -99,24 +99,39 @@ $krishow=$kriclass->fetchkri();
                         text-align: center;
                     }
                     .kri_btn {
-                        font-size: 14px;
+                        font-size: 11px;
                         color: #fff;
                     }
                     .form-control{
                         border: 1px solid #000;
                     }
+                                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
                 <section class="section">
                     <div class="card">
                         <div class="card-header">
                         <button onclick="location.href='../Project/performance.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                        <span class="fa-fw select-all fas">ï•</span>Add KRI</button>
+                        <i class="fas fa-fw fa-plus"></i>Add KRI</button>
                         <!--<a href="../Project/kriadd" class="btn btn-primary" style="float:right;margin-right:30px;">
-                        <span class="fa-fw select-all fas">ï•</span>Add Risk Performance</a>-->
+                        <i class="fas fa-fw fa-plus"></i>Add Risk Performance</a>-->
                             
                         </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                                 <thead>
                                     <tr>
                                         <th>id</th>
@@ -167,17 +182,18 @@ $krishow=$kriclass->fetchkri();
                                             }elseif($rperform > $tmboard){
                                                 echo "severe";
                                                 }?>"> <?= $kri["risk_apetite"] ?></td>
-                                            <td><?= $kri["rapetite_desc"]?></td>
+                                            <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;"><?=substr($kri["rapetite_desc"],0,60).'...'?></td>
                                             <td>
-                                                <button name="edit"  class="btn btn-sm btn-primary histadd" id="<?=$kri["id"]?>"><span class=" fa-fw select-all fas">ïŒƒ</span>Update</button>
-                                                <button name="delete"  class="btn btn-sm kribtn btn-danger "><a class="kri_btn" href="krihist.php?id=<?= $kri['id']?>"> <span class="fa-fw select-all fas">ï€—</span>Hist</a></button>
-                                                <button name="delete"  class="btn btn-sm kribtn  btn-danger " ><a class="kri_btn" href="krichart.php?id=<?= $kri['id']?>"><span class="fa-fw select-all fas">ïˆ</span> chart</a></button>
+                                                <button name="edit" class="btn btn-sm btn-primary histadd" id="<?=$kri["id"]?>" title="Update"><i class="fas fa-fw fa-pen"></i></button>
+                                                <button name="delete" class="btn btn-sm kribtn btn-danger" title="History"><a class="kri_btn" href="krihist.php?id=<?= $kri['id']?>"><i class="fas fa-fw fa-clock"></i></a></button>
+                                                <button name="delete" class="btn btn-sm kribtn btn-danger" title="Chart"><a class="kri_btn" href="krichart.php?id=<?= $kri['id']?>"><i class="fas fa-fw fa-chart-line"></i></a></button>
                                             </td>
                                     </tr>
                                     
                                     <?php } ?>
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
 
@@ -464,9 +480,8 @@ $krishow=$kriclass->fetchkri();
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

@@ -51,18 +51,33 @@ $showaction=$actionclass->showaction();
                         font-weight: 800;
                         color: #000;
                     }
+                                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
                 <section class="section">
                     <div class="card">
                         <div class="card-header">
                         <button onclick="location.href='../Project/incidentadd.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                        <span class="fa-fw select-all fas">ï•</span>Add Incident</button>
+                        <i class="fas fa-fw fa-plus"></i>Add Incident</button>
                            <!-- <a href="../Project/incidentadd" class="btn btn-primary" style="float:right;margin-right:30px;">
-                            <span class="fa-fw select-all fas">ï•</span>Add Incident</a>-->
+                            <i class="fas fa-fw fa-plus"></i>Add Incident</a>-->
                             
                         </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                                 <thead id="thead">
                                     <tr>
                                         <th>Code</th>
@@ -86,15 +101,15 @@ $showaction=$actionclass->showaction();
                                                                            
                                  echo '<tr>
                                         <td>INC00'.$incident["incident_id"].'</td>
-                                        <td>'.$incident["incident"].'</td>
+                                        <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;">'.substr($incident["incident"],0,60).'...</td>
                                         <td>'.$riskname.'</td>
                                         <td>'.$incident["dol"].'</td>
                                         <td>'.$incident["actual"].'</td>
                                         <td>'.$incident["expected"].'</td>
                                         <td>'.$actionname.'</td>
                                         <td>
-                                        <button name="edit" value="Edit" class="btn btn-primary btn-sm incidentedit btn-userpermission-edit" id='.$incident["incident_id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger incidentdelete btn-userpermission-delete" id='.$incident["incident_id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                        <button name="edit" value="Edit" class="btn btn-primary btn-sm incidentedit btn-userpermission-edit" id='.$incident["incident_id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger incidentdelete btn-userpermission-delete" id='.$incident["incident_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                          </td>
                                     </tr>';
 
@@ -103,6 +118,7 @@ $showaction=$actionclass->showaction();
                                
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
                 </section>
@@ -282,9 +298,8 @@ $showaction=$actionclass->showaction();
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

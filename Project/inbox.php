@@ -108,14 +108,100 @@ $i=1;
         min-width: 7em;
         box-shadow: 0 0 30px rgb(26 3 3 / 18%);
     }
- </style>    
+    .btn-group-sm>.btn, .btn-sm {
+        border-radius: 0.2rem;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+    }
+    .table-buss {
+        border-collapse: collapse;
+    }
+    .table-buss th {
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        background: #02338d;
+        padding: 3px 5px;
+        white-space: nowrap;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    .table-buss td {
+        font-size: 12px;
+        font-weight: 500;
+        color: #222;
+        padding: 2px 5px;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+        border: 1px solid #b8c8de;
+    }
+    .table-buss tbody tr:hover td {
+        background: #eef4ff;
+    }
+    /* ── DataTable top bar ── */
+    .datatable-top {
+        padding: 2px 4px !important;
+        font-size: 10px !important;
+    }
+    .datatable-top .datatable-selector {
+        font-size: 10px !important;
+        padding: 1px 3px !important;
+        height: auto !important;
+        width: 50px !important;
+    }
+    .datatable-top .datatable-search input {
+        font-size: 10px !important;
+        padding: 1px 5px !important;
+        height: 22px !important;
+        width: 120px !important;
+    }
+    /* ── Nav-tabs — bussinf theme ── */
+    #myTab {
+        background: #02338d;
+        border-bottom: 2px solid #012a73;
+        padding: 5px 6px 0;
+        gap: 3px;
+        border-radius: 6px 6px 0 0;
+    }
+    #myTab .nav-link {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 13px 14px;
+        margin: 3px 2px 0;
+        border-radius: 8px 8px 0 0 !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        border-bottom: 3px solid transparent !important;
+        background: rgba(255,255,255,0.08);
+        color: #cde0ff;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+    }
+    #myTab .nav-link:hover {
+        background: rgba(255,255,255,0.18);
+        color: #fff;
+        border-bottom-color: #a8c8ff !important;
+    }
+    #myTab .nav-link.active {
+        background: #0554e9 !important;
+        color: #fff !important;
+        font-size: 13px;
+        font-weight: 700;
+        border-bottom: 3px solid #ffc107 !important;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    }
+ </style>
 
 <div class="page-heading">
     <h4>INBOX</h4>
 </div>
     <div class="page-content">
         <section class="row">
-            <div class="col-1 col-lg-12">
+            <div class="col-12">
     <!-_________________Content location BEGINING______________________->
                 <div class="card">
                     <div class="card-header">
@@ -161,7 +247,8 @@ $i=1;
                         </ul>
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade show active" id="risk" role="tabpanel" aria-labelledby="risk-tab">
-                                <table class="table table-striped" id="table1">
+                                <div class="table-responsive">
+                                <table class="table table-striped table-buss" id="table1">
                                     <thead id="thead">
                                         <tr>
                                             <th>Reference</th>
@@ -247,9 +334,11 @@ $i=1;
                                             
                                     </tbody>
                                 </table>
+                                </div><!-- table-responsive -->
                             </div>
                             <div class="tab-pane fade" id="control" role="tabpanel" aria-labelledby="control-tab">
-                                <table class="table table-striped" id="table3">
+                                <div class="table-responsive">
+                                <table class="table table-striped table-buss" id="table3">
                                     <thead id="thead">
                                         <tr>
                                             <th>Reference</th>
@@ -318,9 +407,11 @@ $i=1;
                                                 
                                     </tbody>
                                 </table>
+                                </div><!-- table-responsive -->
                             </div>
                             <div class="tab-pane fade" id="kpi" role="tabpanel" aria-labelledby="kpi-tab">
-                                <table class="table table-striped" id="table2">
+                                <div class="table-responsive">
+                                <table class="table table-striped table-buss" id="table2">
                                     <thead id="thead">
                                         <tr>
                                             <th>Ref</th>
@@ -378,12 +469,14 @@ $i=1;
                                         <?php
                                             }
                                         ?>
-                                        
+                
                                     </tbody>
                                 </table>
+                                </div><!-- table-responsive -->
                             </div>
                             <div class="tab-pane fade" id="recommend" role="tabpanel" aria-labelledby="recommend-tab">
-                                <table class="table table-striped" id="table4">
+                                <div class="table-responsive">
+                                <table class="table table-striped table-buss" id="table4">
                                     <thead id="thead">
                                         <tr>
                                             <th>reference id</th>
@@ -454,9 +547,11 @@ $i=1;
                                         ?>
                                     </tbody>
                                 </table>
+                                </div><!-- table-responsive -->
                             </div>
                             <div class="tab-pane fade" id="action" role="tabpanel" aria-labelledby="action-tab">
-                                <table class="table table-striped" id="table5">
+                                <div class="table-responsive">
+                                <table class="table table-striped table-buss" id="table5">
                                     <thead id="thead">
                                         <tr>
                                             <th>reference id</th>
@@ -521,6 +616,7 @@ $i=1;
                                         ?>
                                     </tbody>
                                 </table>
+                                </div><!-- table-responsive -->
                             </div>
                         </div>
                     </div>
@@ -985,11 +1081,11 @@ $i=1;
         let table4 = document.querySelector('#table4');
         let table5 = document.querySelector('#table5');
 
-        let dataTable1 = new simpleDatatables.DataTable(table1);
-        let dataTable2 = new simpleDatatables.DataTable(table2);
-        let dataTable3 = new simpleDatatables.DataTable(table3);
-        let dataTable4 = new simpleDatatables.DataTable(table4);
-        let dataTable5 = new simpleDatatables.DataTable(table5);
+        if (table1) new simpleDatatables.DataTable(table1);
+        if (table2) new simpleDatatables.DataTable(table2);
+        if (table3) new simpleDatatables.DataTable(table3);
+        if (table4) new simpleDatatables.DataTable(table4);
+        if (table5) new simpleDatatables.DataTable(table5);
     </script>
 
 <!------------------------------SWEET ALERTS---------------------------------->

@@ -77,6 +77,20 @@ $showrisk= $riskclass->showRisk();
                     text-align: center;
 
                     }
+                                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
                 <section class="section">
                <!-- <form method="POST" id="convert_form" action="export.php">-->
@@ -84,13 +98,14 @@ $showrisk= $riskclass->showRisk();
                         <div class="card-header">
                        <!-- <input type="hidden" name="file_content" id="file_content">-->
                         <button onclick="location.href='../Project/addaction.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                        <span class="fa-fw select-all fas">ï•</span>Add Action</button>
+                        <i class="fas fa-fw fa-plus"></i>Add Action</button>
                             <!--<a href="../Project/addaction" class="btn btn-primary" style="float:right;margin-right:30px;">
-                            <span class="fa-fw select-all fas">ï•</span>Add Action</a>-->
+                            <i class="fas fa-fw fa-plus"></i>Add Action</a>-->
                           <!--  <button type="button" name="convert" id="convert" class="btn btn-primary convert" style="float:right;margin-right:30px;">EXPORT</button>   
                 -->   </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                                 <thead id="thead">
                                     <tr>
                                         <th>reference id</th>
@@ -120,7 +135,7 @@ $showrisk= $riskclass->showRisk();
                                         <td><?='ACT00'.$action["id"]?></td>
                                         <td><?=$processname?></td>
                                         <td><?=$riskname?></td>
-                                        <td><?=$action["action"]?></td>
+                                        <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;"><?=substr($action["action"],0,60).'...'?></td>
                                         <td><?=$action["timeline"]?></td>
                                         <td><?=$action["priority"]?></td>
                                         <td>
@@ -135,14 +150,15 @@ $showrisk= $riskclass->showRisk();
                                         ?>
                                         </td>
                                         <td>
-                                        <button name="delete" value="Delete" class="btn btn-sm btn-primary editactionbtn" id="<?=$action['id']?>"> <span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger actiondeletebtn btn-userpermission-delete" id=""><span class="fa-fw select-all fas">ï‹­</span></button>
+                                        <button name="delete" value="Delete" class="btn btn-sm btn-primary editactionbtn" id="<?=$action['id']?>"> <i class="fas fa-fw fa-pen"></i></button>
+                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger actiondeletebtn btn-userpermission-delete" id=""><i class="fas fa-fw fa-trash"></i></button>
                                          </td>
                                     </tr>
                                 <?php }
                                     ?>
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
 
@@ -329,9 +345,8 @@ $showrisk= $riskclass->showRisk();
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

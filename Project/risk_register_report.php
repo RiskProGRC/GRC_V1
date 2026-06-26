@@ -337,7 +337,7 @@ function getRiskTreatment($treatment) {
                                     <div class="card-body">
                                         <?php if(count($risks) > 0): ?>
                                             <div class="table-responsive">
-                                                <table class="table table-striped table-hover" id="riskRegisterTable" style="font-size: 12px;">
+                                                <table class="table table-striped table-buss" id="riskRegisterTable">
                                                     <thead class="table-dark">
                                                     <tr>
                                                         <th>Risk ID</th>
@@ -603,5 +603,19 @@ function getRiskTreatment($treatment) {
         max-height: 600px;
         overflow-y: auto;
     }
+    .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+    .table-buss { border-collapse: collapse; }
+    .table-buss th {
+        font-size: 12px; font-weight: 700; color: #fff;
+        background: #02338d; padding: 3px 5px;
+        white-space: nowrap; text-align: center; vertical-align: middle;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    .table-buss td {
+        font-size: 12px; font-weight: 500; color: #222;
+        padding: 2px 5px; text-align: center; vertical-align: middle;
+        white-space: nowrap; border: 1px solid #b8c8de;
+    }
+    .table-buss tbody tr:hover td { background: #eef4ff; }
 </style>
 </html>

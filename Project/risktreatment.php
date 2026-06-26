@@ -65,6 +65,20 @@ $btntass="btn-light";
                     font-weight: 800;
                 }
                     
+                                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
                 </style>
         <section class="section">
                     <div class="card">
@@ -73,7 +87,8 @@ $btntass="btn-light";
                             
                         </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                                 <thead>
                                     <tr>
                                         <th>Reference</th>
@@ -117,17 +132,17 @@ $btntass="btn-light";
                                         <td><div style="font-size:13px;"><?='RSK0'.$assess["risk_id"].'('.$riskname.')'?></div></td>
                                         <td style="padding:0px;border-left:2px solid #000;"><input type="button" style="width:100%;padding:30px 15px;border-radius:0px;" class="btn assess <?=$btniass?>" Value="<?=$irass?>"></td>
                                         <td style="padding:0px;border-left:2px solid #000;"><input type="button" style="width:100%;padding:30px 15px;border-radius:0px;" class="btn assess <?=$btnrass?>" Value="<?=$rrass?>"></td>
-                                        <td style="padding-left:20px;font-size:12px;">
-                                            <?php 
+                                        <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;">
+                                            <?php
                                             if(empty($rid)){
                                             }else{
                                             $query4=mysqli_query($con,"SELECT * FROM risk_control WHERE risk_id='$rid'");
-                                                
+
                                             while($crow=mysqli_fetch_assoc($query4)){
                                                 $cid=$crow["control_id"];
                                                 $qcontrol=mysqli_query($con,"SELECT * FROM control WHERE control_id='$cid'");
                                                 $ctlrow=mysqli_fetch_assoc($qcontrol);
-                                                echo "CTR".$ctlrow['control_id']."-". $ctlrow['controls']."</br>";
+                                                echo "CTR".$ctlrow['control_id']."-".substr($ctlrow['controls'],0,60)."...</br>";
                                                 }
 
                                             }
@@ -184,6 +199,7 @@ $btntass="btn-light";
                                          
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
 
@@ -460,9 +476,8 @@ $btntass="btn-light";
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

@@ -26,15 +26,32 @@ $showlikely= $likelyclass->showlikely();
             <div class="col-12 col-lg-12">
     <!-_________________Content location BEGINING______________________->
 
+                                <style>
+                .btn-group-sm>.btn, .btn-sm { border-radius: 0.2rem; font-size: 0.75rem; padding: 0.2rem 0.4rem; }
+                .table-buss { border-collapse: collapse; }
+                .table-buss th {
+                    font-size: 12px; font-weight: 700; color: #fff;
+                    background: #02338d; padding: 3px 5px;
+                    white-space: nowrap; text-align: center; vertical-align: middle;
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+                .table-buss td {
+                    font-size: 12px; font-weight: 500; color: #222;
+                    padding: 2px 5px; text-align: center; vertical-align: middle;
+                    white-space: nowrap; border: 1px solid #b8c8de;
+                }
+                .table-buss tbody tr:hover td { background: #eef4ff; }
+                </style>
                 <section class="section">
                     <div class="card">
                         <div class="card-header">
                             <button class="btn btn-primary addlikely btn-userpermission-add" style="float:right;margin-right:30px;">
-                            <span class="fa-fw select-all fas">ï•</span>Add Likelihood<button>
+                            <i class="fas fa-fw fa-plus"></i>Add Likelihood<button>
                             
                         </div>
                         <div class="card-body">
-                            <table class="table table-striped" id="table1">
+                            <div class="table-responsive">
+<table class="table table-striped table-buss" id="table1">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -53,14 +70,15 @@ $showlikely= $likelyclass->showlikely();
                                             <td>'.$lname.'</td>
                                             <td>'.$likely["level"].'</td>
                                             <td>
-                                            <button class="btn btn-sm btn-primary editlikely btn-userpermission-edit" id='.$likely["id"].'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                            <button class="btn btn-sm btn-danger deletelikely btn-userpermission-delete" id='.$likely["id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                            <button class="btn btn-sm btn-primary editlikely btn-userpermission-edit" id='.$likely["id"].'><i class="fas fa-fw fa-pen"></i></button>
+                                            <button class="btn btn-sm btn-danger deletelikely btn-userpermission-delete" id='.$likely["id"].'><i class="fas fa-fw fa-trash"></i></button>
                                             </td>
                                         </tr>';
                                         }
                                     ?> 
                                 </tbody>
                             </table>
+                            </div><!-- table-responsive -->
                         </div>
                     </div>
 
@@ -244,9 +262,8 @@ $showlikely= $likelyclass->showlikely();
   <!----------------------Datatable Simple------------------------------------------------>
     <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
     <script>
-        // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 

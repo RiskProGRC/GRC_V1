@@ -150,6 +150,8 @@
         .card-link.validation   { border-left-color: #00897b; }
         .card-link.fixes        { border-left-color: #c0392b; }
         .card-link.bussinf      { border-left-color: #2471a3; }
+        .card-link.inbox        { border-left-color: #0e7490; }
+        .card-link.inbox        .card-icon { background: #e0f7fa; }
         .card-link.userslist    { border-left-color: #6f42c1; }
         .card-link.profile      { border-left-color: #c0392b; }
         .card-link.profile      .card-icon { background: #fdecea; }
@@ -213,7 +215,7 @@
 
 <div class="toolbar">
     <h1>GRC V1 &mdash; Changes &amp; Reports Index</h1>
-    <span class="toolbar-meta">9 sections &nbsp;&middot;&nbsp; 25 reports</span>
+    <span class="toolbar-meta">10 sections &nbsp;&middot;&nbsp; 27 reports</span>
 </div>
 
 <div class="layout">
@@ -236,7 +238,7 @@
         </a>
         <a class="menu-item" href="#sec-bussinf" onclick="setActive(this)">
             <span class="menu-icon">&#127970;</span> Business Infra
-            <span class="menu-count">1</span>
+            <span class="menu-count">2</span>
         </a>
         <a class="menu-item" href="#sec-part1" onclick="setActive(this)">
             <span class="menu-icon">&#128295;</span> Changes &mdash; Part 1
@@ -252,6 +254,10 @@
         </a>
         <a class="menu-item" href="#sec-templates" onclick="setActive(this)">
             <span class="menu-icon">&#128196;</span> Templates
+            <span class="menu-count">1</span>
+        </a>
+        <a class="menu-item" href="#sec-inbox" onclick="setActive(this)">
+            <span class="menu-icon">&#128386;</span> Inbox
             <span class="menu-count">1</span>
         </a>
         <a class="menu-item" href="#sec-study" onclick="setActive(this)">
@@ -440,7 +446,7 @@
             <div class="section-heading">
                 <span class="sec-icon">&#127970;</span>
                 <h3>Business Infrastructure</h3>
-                <span class="sec-count">1 report</span>
+                <span class="sec-count">2 reports</span>
             </div>
 
             <a href="bussinf.html" class="card-link bussinf">
@@ -450,6 +456,16 @@
                     <p>14 issues across bussinf.php &mdash; 4 high (XSS, broken variables, duplicate modal IDs, wrong Add targets), 5 medium, 5 low</p>
                 </div>
                 <span class="badge badge-pending">&#9888; Pending</span>
+                <span class="arrow">&#8250;</span>
+            </a>
+
+            <a href="bussinf_ui_changes.html" class="card-link bussinf">
+                <div class="card-icon">&#127912;</div>
+                <div class="card-info">
+                    <h3>Business Infrastructure &mdash; UI Changes Report</h3>
+                    <p>Icons fixed (9 nav tabs + all edit/delete buttons), table-buss styling, table-responsive wrappers, nav-pill sidebar redesign, theme color #02338d applied, responsive layout</p>
+                </div>
+                <span class="badge badge-done">&#10003; Complete</span>
                 <span class="arrow">&#8250;</span>
             </a>
         </section>
@@ -596,6 +612,25 @@
                     <p>Bootstrap 5 template — heatmap, appetite gauges, residual bar, KRI radar, scenario loss curve, ownership map, watchlist, priority table</p>
                 </div>
                 <span class="badge badge-done">&#10003; Ready</span>
+                <span class="arrow">&#8250;</span>
+            </a>
+        </section>
+
+        <!-- ── Inbox ── -->
+        <section class="section" id="sec-inbox">
+            <div class="section-heading">
+                <span class="sec-icon">&#128386;</span>
+                <h3>Inbox</h3>
+                <span class="sec-count">1 report</span>
+            </div>
+
+            <a href="inbox_ui_changes.html" class="card-link inbox">
+                <div class="card-icon">&#128386;</div>
+                <div class="card-info">
+                    <h3>Inbox &mdash; UI Changes Report</h3>
+                    <p>Responsive layout fix (col-1 bug), table-buss on 5 tables, DataTable null guards, nav-tabs themed to match bussinf (#02338d navy + gold active border)</p>
+                </div>
+                <span class="badge badge-done">&#10003; Complete</span>
                 <span class="arrow">&#8250;</span>
             </a>
         </section>
