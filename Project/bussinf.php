@@ -56,8 +56,8 @@ $tab= $_GET["tab"] ?? "group";
     font-size: 12px;
     font-weight: 700;
     color: #fff;
-    background: #2c3e50;
-    padding: 6px 8px;
+    background: #02338d;
+    padding: 3px 5px;
     white-space: nowrap;
     text-align: center;
     vertical-align: middle;
@@ -67,7 +67,7 @@ $tab= $_GET["tab"] ?? "group";
     font-size: 12px;
     font-weight: 500;
     color: #222;
-    padding: 5px 8px;
+    padding: 2px 5px;
     text-align: center;
     vertical-align: middle;
     white-space: nowrap;
@@ -76,16 +76,58 @@ $tab= $_GET["tab"] ?? "group";
 .table-buss tbody tr:hover td {
     background: #eef4ff;
 }
+.nav-col {
+    padding: 6px 4px;
+    background: #02338d;
+    border-right: 1px solid #012a73;
+}
 .nav-link {
-    border: 1px solid #1b6ae1 !important;
-    display: block;
-    color: #000;
-    padding: 8px 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 9px 10px;
+    margin: 3px 4px;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-left: 3px solid transparent !important;
+    background: rgba(255,255,255,0.08);
+    color: #cde0ff;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
     text-decoration: none;
-    border-radius: 0px !important;
+    transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+    line-height: 1.2;
+}
+.nav-link i, .nav-link .fa {
+    font-size: 14px;
+    margin-bottom: 0;
+    margin-right: 7px;
+    color: #a8c8ff;
+    transition: color 0.18s;
+    flex-shrink: 0;
+}
+.nav-link:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border-left-color: #a8c8ff !important;
+}
+.nav-link:hover i, .nav-link:hover .fa {
+    color: #fff;
+}
+.nav-link.active {
+    background: rgba(255,255,255,0.22);
+    color: #fff !important;
+    border-left: 3px solid #ffc107 !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    font-size: 13px;
+    font-weight: 700;
+}
+.nav-link.active i, .nav-link.active .fa {
+    color: #fff !important;
 }
 .col-2,.col-9,.nav-col {
-    padding: 0px;
     box-shadow: 5px 10px 18px #98b4e0;
 }
 .tab-pane {
@@ -93,6 +135,12 @@ $tab= $_GET["tab"] ?? "group";
 }
 label {
     margin-top: 10px;
+}
+@media (max-width: 768px) {
+    .nav-col { border-right: none; border-bottom: 1px solid #d0daea; padding: 4px 2px; }
+    #v-pills-tab { flex-direction: row !important; flex-wrap: wrap; }
+    .nav-link { flex-direction: row; padding: 7px 10px; font-size: 11px; margin: 2px; }
+    .nav-link i, .nav-link .fa { margin-bottom: 0; margin-right: 5px; font-size: 13px; }
 }
 </style>
 <body>
@@ -119,7 +167,7 @@ label {
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-2 nav-col">
+                            <div class="col-12 col-lg-2 nav-col">
                                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist"
                                     aria-orientation="vertical">
                                     <a class="nav-link <?php echo $tab =='group' ? 'active': ''?>" id="v-pills-home-tab" data-bs-toggle="pill"
@@ -140,7 +188,7 @@ label {
 
                                     <a class="nav-link  <?php echo $tab =='risk_category' ? 'active': ''?>" id="v-pills-rcat-tab" data-bs-toggle="pill"
                                         href="#rcat" role="tab" onclick="changeTab('risk_category')" aria-controls="v-pills-settings"
-                                        aria-selected="false"><span class="fa fa-cogs"></span>  <span>Risk Category</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-tags"></i> <span>Risk Category</span></a>
 
                                     <!--<a class="nav-link" id="v-pills-users-tab" data-bs-toggle="pill"
                                         href="#users" role="tab" aria-controls="v-pills-settings"
@@ -148,23 +196,23 @@ label {
 
                                     <a class="nav-link <?php echo $tab =='impact' ? 'active': ''?>" id="v-pills-impact-tab" data-bs-toggle="pill"
                                         href="#impact" role="tab" onclick="changeTab('impact')" aria-controls="v-pills-settings"
-                                        aria-selected="false"><span class="fa fa-asterisk"></span>  <span>Impact levels</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-bolt"></i> <span>Impact levels</span></a>
 
                                     <a class="nav-link <?php echo $tab =='likelihood' ? 'active': ''?>" id="v-pills-likely-tab" data-bs-toggle="pill"
                                         href="#likely" role="tab" onclick="changeTab('likelihood')" aria-controls="v-pills-settings"
-                                        aria-selected="false"><span class="fa fa-battery-half"></span>  <span>Likelihood Level</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-chart-bar"></i> <span>Likelihood Level</span></a>
 
                                     <a class="nav-link <?php echo $tab =='control_type' ? 'active': ''?>" id="v-pills-ctype-tab" data-bs-toggle="pill"
                                         href="#ctype" role="tab" onclick="changeTab('control_type')" aria-controls="v-pills-settings"
-                                        aria-selected="false"><span class="fa fa-certificate"></span>  <span>Control Type</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-shield-alt"></i> <span>Control Type</span></a>
 
                                     <a class="nav-link <?php echo $tab =='control_strength' ? 'active': ''?>" id="v-pills-cstrength-tab" data-bs-toggle="pill"
                                         href="#cstrength" role="tab" onclick="changeTab('control_strength')" aria-controls="v-pills-settings"
-                                        aria-selected="false"><span class="fa fa-cubes"></span>  <span>Control Strength</span></a>
+                                        aria-selected="false"><i class="fas fa-fw fa-cubes"></i> <span>Control Strength</span></a>
                                     
                                 </div>
                             </div>
-                            <div class="col-10">
+                            <div class="col-12 col-lg-10">
                                 <div class="tab-content" id="v-pills-tabContent">
 
                                     <div class="tab-pane fade show active" id="group" role="tabpanel"
