@@ -24,6 +24,7 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
 
     /* ── Main nav bar ──────────────────────────────────────────── */
     .layout-horizontal .main-navbar {
+        background-color: #02338d !important;
         padding: 0 1rem !important;
     }
     .layout-horizontal .main-navbar ul {
@@ -59,6 +60,14 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
     .layout-horizontal .main-navbar ul > .menu-item.has-sub .menu-link:after {
         top: 50% !important;
         transform: translateY(-50%) !important;
+    }
+
+    /* ── Active link — gold bottom accent ─────────────────────── */
+    .layout-horizontal .main-navbar ul .menu-item.active > .menu-link,
+    .layout-horizontal .main-navbar ul .menu-link.active {
+        border-bottom: 3px solid #ffc107 !important;
+        color: #fff !important;
+        background: rgba(255,255,255,0.1) !important;
     }
 
     /* ── User dropdown text ────────────────────────────────────── */
@@ -119,7 +128,7 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
         }
 
         .layout-horizontal .main-navbar {
-            background-color: #1a1a2e !important;
+            background-color: #02338d !important;
             padding: 0.5rem 1rem !important;
             border-top: 1px solid rgba(255,255,255,0.08);
         }
@@ -246,7 +255,7 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
                         <div class="submenu-group-wrapper">
                             <ul class="submenu-group">
                                 <li class="submenu-item">
-                                    <a href="../Project/riskstatus.php" class="submenu-link">Risk Tracker</a>
+                                    <a href="../Project/riskview.php" class="submenu-link">Risk Tracker</a>
                                 </li>
                                 <li class="submenu-item">
                                     <a href="../Project/risk_report.php" class="submenu-link">Risk Report Log</a>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risk Status Demo — riskview.php & riskview_fetch.php</title>
+    <title>Risk Tracker — riskview.php &amp; riskview_fetch.php (Simplified AJAX)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
@@ -40,43 +40,38 @@
         .page-header h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
         .page-header p { color: #888; font-size: 13px; }
 
-        /* summary pills */
         .summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
         .stat-pill { background: #fff; border-radius: 8px; padding: 12px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); text-align: center; min-width: 130px; }
         .stat-pill .num { font-size: 26px; font-weight: 700; }
         .stat-pill .lbl { font-size: 11px; color: #888; margin-top: 2px; }
-        .stat-pill.blue .num { color: #1565c0; }
+        .stat-pill.blue .num  { color: #1565c0; }
         .stat-pill.green .num { color: #1e8449; }
-        .stat-pill.orange .num { color: #e65100; }
-        .stat-pill.red .num { color: #c0392b; }
+        .stat-pill.orange .num{ color: #e65100; }
+        .stat-pill.navy .num  { color: #02338d; }
 
-        /* sections */
         .section { scroll-margin-top: 20px; margin-bottom: 40px; }
         .section-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #e8ecf1; }
         .section-heading h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1a1a2e; }
         .section-heading .sec-meta { margin-left: auto; font-size: 11px; color: #aaa; font-weight: 600; }
 
-        /* cards */
         .card { background: #fff; border-radius: 8px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border-left: 5px solid #ccc; overflow: hidden; }
-        .card.blue { border-left-color: #1565c0; }
-        .card.green { border-left-color: #1e8449; }
+        .card.blue   { border-left-color: #1565c0; }
+        .card.green  { border-left-color: #1e8449; }
         .card.orange { border-left-color: #e65100; }
-        .card.red { border-left-color: #c0392b; }
-        .card.purple { border-left-color: #6a1b9a; }
-        .card.teal { border-left-color: #00695c; }
+        .card.navy   { border-left-color: #02338d; }
+        .card.teal   { border-left-color: #00695c; }
+        .card.red    { border-left-color: #c0392b; }
 
         .card-head { display: flex; align-items: center; gap: 12px; padding: 13px 18px; border-bottom: 1px solid #f0f0f0; }
         .card-head h3 { font-size: 13px; font-weight: 700; color: #1a1a2e; flex: 1; }
         .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
         .tag-new    { background: #e3f2fd; color: #1565c0; }
         .tag-fix    { background: #fde8e8; color: #c0392b; }
-        .tag-design { background: #e8f5e9; color: #1e8449; }
-        .tag-db     { background: #fff3e0; color: #e65100; }
+        .tag-change { background: #e8f5e9; color: #1e8449; }
+        .tag-nav    { background: #fff3e0; color: #e65100; }
 
         .card-body { padding: 16px 18px; }
         .card-body p { margin-bottom: 8px; color: #444; font-size: 13px; }
-
-        .sec-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 14px 0 6px; }
 
         pre {
             background: #1a1a2e; color: #c9d1d9;
@@ -92,41 +87,47 @@
         .add { color: #7ee787; }
 
         .diff-row { display: flex; gap: 8px; align-items: flex-start; background: #f8f9fa; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; font-size: 12px; }
-        .diff-row .lbl { min-width: 100px; font-weight: 700; color: #555; flex-shrink: 0; }
+        .diff-row .lbl { min-width: 90px; font-weight: 700; color: #555; flex-shrink: 0; }
         .diff-row .old { color: #c0392b; text-decoration: line-through; }
         .diff-row .new { color: #1e8449; font-weight: 600; }
 
-        /* file list */
         .file-list { list-style: none; }
         .file-list li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
         .file-list li:last-child { border-bottom: none; }
         .file-badge { font-family: Consolas, monospace; font-size: 11px; background: #f0f0f0; color: #555; padding: 2px 8px; border-radius: 4px; }
         .role-badge { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; }
-        .role-view    { background: #e3f2fd; color: #1565c0; }
-        .role-api     { background: #e8f5e9; color: #1e8449; }
+        .role-view  { background: #e3f2fd; color: #1565c0; }
+        .role-api   { background: #e8f5e9; color: #1e8449; }
+        .role-nav   { background: #fff3e0; color: #e65100; }
 
-        /* checklist */
         .checklist { list-style: none; }
         .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; color: #333; }
         .checklist li:last-child { border-bottom: none; }
-        .checklist .icon { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
-        .done .icon { color: #1e8449; }
+        .checklist .icon { font-size: 15px; margin-top: 1px; flex-shrink: 0; color: #1e8449; }
 
-        /* db table */
         .db-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; }
         .db-table th { background: #1a1a2e; color: #fff; padding: 6px 10px; text-align: left; font-size: 11px; }
         .db-table td { padding: 5px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
         .db-table tr:nth-child(even) td { background: #f8f9fa; }
-        .col-key { font-family: Consolas, monospace; font-size: 11px; color: #0554e9; font-weight: 700; }
         .col-fix { background: #fff3cd !important; }
+
+        .flow-box {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            background: #f0f4ff; border-radius: 8px; padding: 14px 18px; margin-bottom: 14px;
+        }
+        .flow-step {
+            background: #02338d; color: #fff; border-radius: 6px;
+            padding: 6px 14px; font-size: 12px; font-weight: 700; white-space: nowrap;
+        }
+        .flow-arrow { color: #02338d; font-size: 18px; font-weight: 700; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <h1>Risk Status Demo &mdash; riskview.php &amp; riskview_fetch.php</h1>
+    <h1>Risk Tracker &mdash; riskview.php &amp; riskview_fetch.php (Simplified AJAX Rebuild)</h1>
     <div style="display:flex;gap:20px;align-items:center;">
-        <span class="toolbar-meta">2 new files &nbsp;&middot;&nbsp; 2026-06-26</span>
+        <span class="toolbar-meta">3 files changed &nbsp;&middot;&nbsp; 2026-06-27</span>
         <a href="index.html">&#8592; Back to Index</a>
     </div>
 </div>
@@ -136,233 +137,209 @@
     <nav class="sidebar">
         <div class="sidebar-label">Sections</div>
         <a class="menu-item active" href="#sec-overview">&#128202; Overview</a>
-        <a class="menu-item" href="#sec-files">&#128196; Files Created</a>
-        <a class="menu-item" href="#sec-architecture">&#9965; Architecture</a>
-        <a class="menu-item" href="#sec-db">&#128200; DB Schema Verified</a>
-        <a class="menu-item" href="#sec-bugs">&#128027; Bugs Found &amp; Fixed</a>
+        <a class="menu-item" href="#sec-files">&#128196; Files Changed</a>
+        <a class="menu-item" href="#sec-flow">&#9881; How It Works</a>
         <a class="menu-item" href="#sec-fetch">&#128196; riskview_fetch.php</a>
         <a class="menu-item" href="#sec-view">&#128196; riskview.php</a>
-        <a class="menu-item" href="#sec-vs">&#9878; vs entityAction</a>
+        <a class="menu-item" href="#sec-nav">&#128279; Nav Link</a>
+        <a class="menu-item" href="#sec-db">&#128200; DB Notes</a>
+        <a class="menu-item" href="#sec-vs">&#9878; vs Old Versions</a>
     </nav>
 
     <main class="main">
 
         <div class="page-header">
-            <h2>Risk Status Demo &mdash; riskview.php &amp; riskview_fetch.php</h2>
-            <p>A clean rebuild of the Risk Tracker department view — JSON API + JS rendering, replacing the PHP HTML-response AJAX pattern.</p>
+            <h2>Risk Tracker &mdash; Simplified AJAX Rebuild</h2>
+            <p>riskview.php + riskview_fetch.php rewritten to match the existing entityAction.php / display() AJAX pattern &mdash; simpler, easier to read, same verified queries.</p>
         </div>
 
         <div class="summary-bar">
-            <div class="stat-pill blue"><div class="num">2</div><div class="lbl">New files<br>created</div></div>
-            <div class="stat-pill green"><div class="num">6</div><div class="lbl">DB queries<br>total (fixed)</div></div>
-            <div class="stat-pill orange"><div class="num">4</div><div class="lbl">Schema bugs<br>discovered</div></div>
-            <div class="stat-pill red"><div class="num">0</div><div class="lbl">N+1 queries<br>remaining</div></div>
+            <div class="stat-pill navy"><div class="num">3</div><div class="lbl">Files<br>changed</div></div>
+            <div class="stat-pill green"><div class="num">6</div><div class="lbl">SQL queries<br>(no N+1)</div></div>
+            <div class="stat-pill blue"><div class="num">0</div><div class="lbl">JS table<br>builders</div></div>
+            <div class="stat-pill orange"><div class="num">1</div><div class="lbl">$.ajax call<br>total</div></div>
         </div>
 
         <!-- OVERVIEW -->
         <section class="section" id="sec-overview">
             <div class="section-heading"><h3>Overview</h3></div>
             <p style="color:#444;font-size:13px;margin-bottom:10px;">
-                The original <strong>riskstatus.php + entityAction.php</strong> pattern works by POSTing a department ID via jQuery AJAX, and entityAction.php returns a raw HTML blob which jQuery injects directly into the page. This creates tight coupling between PHP and HTML, makes columns names hard to verify, and hides SQL errors silently.
+                The first rebuild used a JSON API pattern — PHP returned structured JSON, JavaScript built every table with string builders. It worked but was complex: 5 builder functions, a <code>dtMap</code> tracker, <code>fetch()</code>, <code>ob_start()</code>, and 250+ lines of JS.
             </p>
             <p style="color:#444;font-size:13px;">
-                <strong>riskview.php + riskview_fetch.php</strong> rebuilds this using a JSON API pattern: the fetch endpoint returns structured data, and JavaScript renders every table client-side. This separates concerns, surfaces errors cleanly, and makes the queries independently testable.
+                This second version matches how the rest of the project works: the fetch file echoes raw HTML (dept info + Bootstrap tabs + 5 tables) exactly like <strong>entityAction.php</strong>, and the main page uses a single <strong>$.ajax</strong> POST to inject it — exactly like the global <code>display()</code> function in <strong>app.js</strong>.
             </p>
         </section>
 
         <!-- FILES -->
         <section class="section" id="sec-files">
-            <div class="section-heading"><h3>Files Created</h3><span class="sec-meta">Project/</span></div>
+            <div class="section-heading"><h3>Files Changed</h3></div>
             <ul class="file-list">
                 <li>
                     <span class="file-badge">Project/riskview.php</span>
-                    <span class="role-badge role-view">View</span>
-                    <span style="color:#555;font-size:12px;">Main page — department dropdown, info strip, Bootstrap-style tabs, JS table renderer</span>
+                    <span class="role-badge role-view">Rewritten</span>
+                    <span style="color:#555;font-size:12px;">250-line JS version replaced with simple PHP page + one $.ajax call</span>
                 </li>
                 <li>
                     <span class="file-badge">Project/riskview_fetch.php</span>
-                    <span class="role-badge role-api">JSON API</span>
-                    <span style="color:#555;font-size:12px;">POST endpoint — AuthGuard, 6 prepared statements, returns JSON with dept + 5 data arrays</span>
+                    <span class="role-badge role-api">Rewritten</span>
+                    <span style="color:#555;font-size:12px;">JSON API replaced with raw HTML output — 6 queries, 5 while() table loops</span>
+                </li>
+                <li>
+                    <span class="file-badge">layout/nav.php</span>
+                    <span class="role-badge role-nav">Updated</span>
+                    <span style="color:#555;font-size:12px;">Risk Tracker menu link changed from riskstatus.php → riskview.php</span>
                 </li>
             </ul>
         </section>
 
-        <!-- ARCHITECTURE -->
-        <section class="section" id="sec-architecture">
-            <div class="section-heading"><h3>Architecture</h3></div>
+        <!-- FLOW -->
+        <section class="section" id="sec-flow">
+            <div class="section-heading"><h3>How It Works</h3></div>
 
-            <div class="card blue">
-                <div class="card-head"><h3>Request Flow</h3><span class="tag tag-design">Design</span></div>
+            <div class="flow-box">
+                <div class="flow-step">User picks dept</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-step">onchange="loadDept(id)"</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-step">$.ajax POST riskview_fetch.php</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-step">PHP echoes HTML</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-step">$('#rv-display').html(response)</div>
+            </div>
+
+            <div class="card navy">
+                <div class="card-head"><h3>loadDept() — the entire JS (12 lines)</h3><span class="tag tag-new">JS</span></div>
                 <div class="card-body">
-<pre><span class="cmt">// 1. User selects department from dropdown in riskview.php</span>
-<span class="var">deptSelect</span>.<span class="fn">addEventListener</span>(<span class="str">'change'</span>, () =&gt; {
-    <span class="fn">fetch</span>(<span class="str">'riskview_fetch.php'</span>, { <span class="var">method</span>: <span class="str">'POST'</span>, <span class="var">body</span>: <span class="str">'deptid=5'</span> })
-    .<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>())
-    .<span class="fn">then</span>(data =&gt; {
-        <span class="fn">renderRisks</span>(data.risks);       <span class="cmt">// fills #tab-risks</span>
-        <span class="fn">renderKI</span>(data.ki);             <span class="cmt">// fills #tab-ki</span>
-        <span class="fn">renderControls</span>(data.controls); <span class="cmt">// fills #tab-controls</span>
-        <span class="fn">renderActions</span>(data.actions);   <span class="cmt">// fills #tab-actions</span>
-        <span class="fn">renderRecommendations</span>(data.recommendations);
+<pre><span class="kw">function</span> <span class="fn">loadDept</span>(id) {
+    <span class="kw">if</span> (!id) {                                          <span class="cmt">// blank option selected — reset</span>
+        $(<span class="str">'#rv-display'</span>).<span class="fn">html</span>(<span class="str">'...prompt...'</span>);
+        <span class="kw">return</span>;
+    }
+    $(<span class="str">'#rv-display'</span>).<span class="fn">html</span>(<span class="str">'Loading...'</span>);             <span class="cmt">// feedback while request is in flight</span>
+
+    $.<span class="fn">ajax</span>({ <span class="var">type</span>: <span class="str">'POST'</span>, <span class="var">url</span>: <span class="str">'riskview_fetch.php'</span>, <span class="var">data</span>: { deptid: id },
+        <span class="fn">success</span>: <span class="kw">function</span>(html) {
+            $(<span class="str">'#rv-display'</span>).<span class="fn">html</span>(html);              <span class="cmt">// inject the full HTML response</span>
+            [<span class="str">'rv-tab1'</span>,<span class="str">'rv-tab2'</span>,<span class="str">'rv-tab3'</span>,<span class="str">'rv-tab4'</span>,<span class="str">'rv-tab5'</span>].<span class="fn">forEach</span>(<span class="kw">function</span>(tid) {
+                <span class="kw">var</span> el = document.<span class="fn">getElementById</span>(tid);
+                <span class="kw">if</span> (el) <span class="kw">new</span> simpleDatatables.<span class="fn">DataTable</span>(el, { perPage: 10 }); <span class="cmt">// null-guard</span>
+            });
+        },
+        <span class="fn">error</span>: <span class="kw">function</span>() { $(<span class="str">'#rv-display'</span>).<span class="fn">html</span>(<span class="str">'Failed to load...'</span>); }
     });
-});</pre>
-                    <p style="margin:0;font-size:12px;color:#666;">Each render function builds a full <code>&lt;table&gt;</code> string from the JSON array and injects it into the matching tab pane. SimpleDatatables is initialized after injection.</p>
-                </div>
-            </div>
-
-            <div class="card green">
-                <div class="card-head"><h3>riskview_fetch.php Response Shape</h3><span class="tag tag-new">JSON</span></div>
-                <div class="card-body">
-<pre>{
-  <span class="str">"dept"</span>: { <span class="str">"dept_name"</span>: <span class="str">"Finance"</span>, <span class="str">"company_name"</span>: <span class="str">"ACME"</span>, <span class="str">"owner_name"</span>: <span class="str">"John Doe"</span>, <span class="str">"functions"</span>: <span class="str">"..."</span> },
-  <span class="str">"risks"</span>:           [ { <span class="str">"risk_id"</span>: 1, <span class="str">"risk_name"</span>: <span class="str">"..."</span>, <span class="str">"reviewer_name"</span>: <span class="str">"Jane"</span>, ... }, ... ],
-  <span class="str">"ki"</span>:              [ { <span class="str">"id"</span>: 1, <span class="str">"ki"</span>: <span class="str">"..."</span>, <span class="str">"owner_name"</span>: <span class="str">"Jane"</span>, ... }, ... ],
-  <span class="str">"controls"</span>:        [ { <span class="str">"control_id"</span>: 1, <span class="str">"controls"</span>: <span class="str">"..."</span>, <span class="str">"risk_name"</span>: <span class="str">"..."</span>, ... }, ... ],
-  <span class="str">"actions"</span>:         [ { <span class="str">"id"</span>: 1, <span class="str">"action"</span>: <span class="str">"..."</span>, <span class="str">"priority"</span>: <span class="str">"High"</span>, ... }, ... ],
-  <span class="str">"recommendations"</span>: [ { <span class="str">"id"</span>: 1, <span class="str">"mrc"</span>: <span class="str">"..."</span>, <span class="str">"action_name"</span>: <span class="str">"..."</span>, ... }, ... ]
 }</pre>
-                </div>
-            </div>
-        </section>
-
-        <!-- DB SCHEMA -->
-        <section class="section" id="sec-db">
-            <div class="section-heading"><h3>Database Schema — Verified via DESCRIBE</h3><span class="sec-meta">All columns confirmed against live DB</span></div>
-
-            <p style="font-size:12px;color:#666;margin-bottom:14px;">Every column name was verified by running <code>DESCRIBE tablename</code> against the live <code>grc</code> database. Highlighted rows had wrong assumptions in initial code.</p>
-
-            <table class="db-table">
-                <thead><tr><th>Table</th><th>Relevant Columns Used</th><th>Notes</th></tr></thead>
-                <tbody>
-                    <tr><td><code>risk</code></td><td class="col-key">risk_id, risk_name, cause, nominee, rdate, reviewer, rcat, dept</td><td>FK to dept is <code>dept</code> (not <code>dept_id</code>)</td></tr>
-                    <tr><td><code>riskcat</code></td><td class="col-key">riskcat_id, name</td><td>Category name column is <code>name</code></td></tr>
-                    <tr class="col-fix"><td><code>control</code></td><td class="col-key">control_id, dept_id, process_id, <strong>controls</strong>, cstrength, ctype, reviewer</td><td>⚠ Column is <code>controls</code> (plural) — not <code>control</code></td></tr>
-                    <tr class="col-fix"><td><code>risk_control</code></td><td class="col-key">control_id, risk_id, status</td><td>⚠ Junction table — <code>control</code> table has NO direct <code>risk</code> FK</td></tr>
-                    <tr><td><code>control_strength</code></td><td class="col-key">strength_id, cs_name</td><td></td></tr>
-                    <tr><td><code>control_type</code></td><td class="col-key">ctype_id, ct_name</td><td></td></tr>
-                    <tr><td><code>ki</code></td><td class="col-key">id, dept_id, risk_id, ki, owner</td><td></td></tr>
-                    <tr><td><code>action</code></td><td class="col-key">id, process_id, dept_id, risk_id, action, status, priority, timeline</td><td></td></tr>
-                    <tr><td><code>recommend</code></td><td class="col-key">id, dept_id, risk_id, mrc, armc, action, status, timeline</td><td><code>action</code> col is FK to <code>action.id</code></td></tr>
-                    <tr><td><code>process</code></td><td class="col-key">process_id, dept_id, process_name</td><td></td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <!-- BUGS -->
-        <section class="section" id="sec-bugs">
-            <div class="section-heading"><h3>Bugs Found &amp; Fixed During Build</h3><span class="sec-meta">4 schema issues discovered</span></div>
-
-            <div class="card red">
-                <div class="card-head"><h3>Bug 1 — Wrong column name: <code>control</code> vs <code>controls</code></h3><span class="tag tag-fix">Schema</span></div>
-                <div class="card-body">
-                    <p>The text description column in the <code>control</code> table is named <code>controls</code> (plural). All existing queries — including entityAction.php — were using <code>control.control</code> which doesn't exist. Controls tab was silently returning no rows.</p>
-                    <div class="diff-row"><span class="lbl">Wrong:</span><span class="old">SELECT control.control FROM control</span></div>
-                    <div class="diff-row"><span class="lbl">Fixed:</span><span class="new">SELECT `control`.controls FROM `control`</span></div>
-                </div>
-            </div>
-
-            <div class="card red">
-                <div class="card-head"><h3>Bug 2 — Non-existent column: <code>control.risk</code></h3><span class="tag tag-fix">Schema</span></div>
-                <div class="card-body">
-                    <p>The <code>control</code> table has <strong>no direct FK to the risk table</strong>. The link is through the <code>risk_control</code> junction table (<code>control_id → risk_id</code>). Any query doing <code>JOIN risk ON control.risk = risk.risk_id</code> returns no rows.</p>
-                    <div class="diff-row"><span class="lbl">Wrong:</span><span class="old">FROM control INNER JOIN risk ON control.risk = risk.risk_id</span></div>
-                    <div class="diff-row"><span class="lbl">Fixed:</span><span class="new">FROM `control` INNER JOIN risk_control rcl ON `control`.control_id = rcl.control_id INNER JOIN risk r ON rcl.risk_id = r.risk_id</span></div>
-                </div>
-            </div>
-
-            <div class="card orange">
-                <div class="card-head"><h3>Bug 3 — Ambiguous <code>dept_id</code> in controls &amp; actions WHERE clause</h3><span class="tag tag-fix">SQL</span></div>
-                <div class="card-body">
-                    <p>After adding <code>INNER JOIN process</code> to the controls and actions queries, MySQL could not resolve <code>WHERE dept_id = ?</code> because both <code>control</code> and <code>process</code> tables have a <code>dept_id</code> column.</p>
-                    <div class="diff-row"><span class="lbl">Wrong:</span><span class="old">WHERE dept_id = ?</span></div>
-                    <div class="diff-row"><span class="lbl">Fixed:</span><span class="new">WHERE `control`.dept_id = ? &nbsp;/&nbsp; WHERE action.dept_id = ?</span></div>
-                </div>
-            </div>
-
-            <div class="card orange">
-                <div class="card-head"><h3>Bug 4 — HTML response instead of JSON (stray output)</h3><span class="tag tag-fix">PHP</span></div>
-                <div class="card-body">
-                    <p>PHP warnings or notices output before <code>header('Content-Type: application/json')</code> caused the fetch() to receive HTML, making JSON.parse() throw <em>"Unexpected token '&lt;'"</em>. Fixed with <code>ob_start()</code> at the top of the fetch file and <code>mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT)</code> to surface real errors.</p>
-<pre><span class="add">ob_start();</span>                          <span class="cmt">// capture everything from includes</span>
-<span class="kw">require_once</span> <span class="str">'AuthGuard.php'</span>;
-<span class="kw">include_once</span> <span class="str">'connect.php'</span>;
-<span class="var">$stray</span> = <span class="fn">trim</span>(<span class="fn">ob_get_clean</span>());      <span class="cmt">// collect leaked output</span>
-<span class="kw">if</span> (<span class="var">$stray</span>) { <span class="fn">json_error</span>(<span class="var">$stray</span>); }  <span class="cmt">// return it as readable JSON</span></pre>
+                    <p style="margin:0;font-size:12px;color:#666;">Same pattern as the project's existing <code>display()</code> function in <strong>assets/js/app.js:1113</strong>.</p>
                 </div>
             </div>
         </section>
 
         <!-- FETCH FILE -->
         <section class="section" id="sec-fetch">
-            <div class="section-heading"><h3>riskview_fetch.php — All 6 Queries</h3><span class="sec-meta">Prepared statements, verified columns</span></div>
+            <div class="section-heading"><h3>riskview_fetch.php — Structure</h3><span class="sec-meta">Echoes HTML, no JSON</span></div>
 
-            <div class="card teal">
-                <div class="card-head"><h3>Controls Query — Most Complex</h3><span class="tag tag-db">6 JOINs</span></div>
+            <div class="card green">
+                <div class="card-head"><h3>File structure — same pattern as entityAction.php</h3><span class="tag tag-new">PHP</span></div>
                 <div class="card-body">
-                    <p>Requires the junction table <code>risk_control</code> to link controls back to risks. All 6 tables joined in one statement.</p>
-<pre><span class="kw">SELECT</span> `control`.control_id, `control`.controls,
-       r.risk_id, r.risk_name, p.process_name,
-       cs.cs_name, ct.ct_name,
-       <span class="fn">CONCAT</span>(u.fname,<span class="str">' '</span>,u.sname) <span class="kw">AS</span> reviewer_name
-<span class="kw">FROM</span> `control`
-<span class="kw">INNER JOIN</span> risk_control     rcl <span class="kw">ON</span> `control`.control_id = rcl.control_id
-<span class="kw">INNER JOIN</span> risk             r   <span class="kw">ON</span> rcl.risk_id         = r.risk_id
-<span class="kw">INNER JOIN</span> control_strength cs  <span class="kw">ON</span> `control`.cstrength = cs.strength_id
-<span class="kw">INNER JOIN</span> control_type     ct  <span class="kw">ON</span> `control`.ctype     = ct.ctype_id
-<span class="kw">INNER JOIN</span> process          p   <span class="kw">ON</span> `control`.process_id= p.process_id
-<span class="kw">INNER JOIN</span> users            u   <span class="kw">ON</span> `control`.reviewer  = u.id
-<span class="kw">WHERE</span> `control`.dept_id = ?
-<span class="kw">ORDER BY</span> r.risk_id <span class="kw">ASC</span></pre>
+<pre><span class="kw">require_once</span> <span class="str">'AuthGuard.php'</span>;      <span class="cmt">// session check</span>
+<span class="kw">include_once</span> <span class="str">'connect.php'</span>;          <span class="cmt">// $con</span>
+
+<span class="var">$deptid</span> = (int)(<span class="var">$_POST</span>[<span class="str">'deptid'</span>] ?? 0); <span class="cmt">// int cast, no injection risk</span>
+<span class="kw">if</span> (!<span class="var">$deptid</span>) <span class="kw">exit</span>;
+
+<span class="cmt">// 6 mysqli_query() calls with verified column names</span>
+<span class="var">$dept_q</span> = <span class="fn">mysqli_query</span>(<span class="var">$con</span>, <span class="str">"SELECT ... FROM department ..."</span>);
+<span class="var">$risk_q</span> = <span class="fn">mysqli_query</span>(<span class="var">$con</span>, <span class="str">"SELECT ... FROM risk ..."</span>);
+<span class="var">$ki_q</span>   = <span class="fn">mysqli_query</span>(<span class="var">$con</span>, <span class="str">"SELECT ... FROM ki ..."</span>);
+<span class="var">$ctrl_q</span> = <span class="fn">mysqli_query</span>(<span class="var">$con</span>, <span class="str">"SELECT ... FROM \`control\` ..."</span>);
+<span class="var">$act_q</span>  = <span class="fn">mysqli_query</span>(<span class="var">$con</span>, <span class="str">"SELECT ... FROM action ..."</span>);
+<span class="var">$rmd_q</span>  = <span class="fn">mysqli_query</span>(<span class="var">$con</span>, <span class="str">"SELECT ... FROM recommend ..."</span>);
+
+<span class="var">$dept</span> = <span class="fn">mysqli_fetch_assoc</span>(<span class="var">$dept_q</span>);
+<span class="kw">if</span> (!<span class="var">$dept</span>) <span class="kw">exit</span>;
+<span class="cmt">// then: echo HTML — dept fields, nav-tabs, 5 while() table loops</span>
+<span class="kw">while</span> (<span class="var">$r</span> = <span class="fn">mysqli_fetch_assoc</span>(<span class="var">$risk_q</span>)) { <span class="kw">echo</span> <span class="str">'&lt;tr&gt;...&lt;/tr&gt;'</span>; }</pre>
                 </div>
             </div>
 
-            <div class="card blue">
-                <div class="card-head"><h3>Risks Query</h3><span class="tag tag-db">2 JOINs</span></div>
-                <div class="card-body">
-<pre><span class="kw">SELECT</span> r.risk_id, r.risk_name, r.cause, r.nominee, r.rdate,
-       rc.name <span class="kw">AS</span> category, <span class="fn">CONCAT</span>(u.fname,<span class="str">' '</span>,u.sname) <span class="kw">AS</span> reviewer_name
-<span class="kw">FROM</span> risk r
-<span class="kw">INNER JOIN</span> riskcat rc <span class="kw">ON</span> r.rcat     = rc.riskcat_id
-<span class="kw">INNER JOIN</span> users   u  <span class="kw">ON</span> r.reviewer = u.id
-<span class="kw">WHERE</span> r.dept = ?   <span class="cmt">-- note: column is 'dept' not 'dept_id'</span></pre>
-                </div>
-            </div>
+            <ul class="checklist">
+                <li><span class="icon">&#10003;</span><div><code>mysqli_num_rows()</code> called before the <code>while()</code> loops to populate tab badge counts</div></li>
+                <li><span class="icon">&#10003;</span><div><code>htmlspecialchars()</code> on every output field — prevents XSS</div></li>
+                <li><span class="icon">&#10003;</span><div><code>substr()</code> for truncation — same style as entityAction.php</div></li>
+                <li><span class="icon">&#10003;</span><div><code>str_pad($id, 3, '0', STR_PAD_LEFT)</code> for RSK001 / KI003 style refs</div></li>
+                <li><span class="icon">&#10003;</span><div>Bootstrap <code>data-bs-toggle="tab"</code> on nav links — Bootstrap JS (already loaded) handles switching</div></li>
+            </ul>
         </section>
 
         <!-- VIEW FILE -->
         <section class="section" id="sec-view">
-            <div class="section-heading"><h3>riskview.php — Key Features</h3></div>
+            <div class="section-heading"><h3>riskview.php — Structure</h3><span class="sec-meta">Matches riskstatus.php layout</span></div>
 
-            <ul class="checklist">
-                <li class="done"><span class="icon">&#10003;</span><div><strong>Department info strip</strong> — company, entity name, owner, functions shown above tabs once a dept is selected</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>Live count badges</strong> — each tab shows the record count (e.g. "Risks 12") updated on every fetch</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>Loading spinner</strong> — shown in every tab pane while fetch is in progress</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>Empty state messages</strong> — "No risks recorded for this entity" instead of a blank table</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>Status &amp; priority pills</strong> — color-coded: ongoing=yellow, overdue=red, high=orange, etc.</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>SimpleDatatables</strong> — initialized after JS renders each table, destroyed and re-initialized on dept change</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>XSS protection</strong> — all data passed through <code>esc()</code> helper before DOM insertion</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>Unique tab IDs</strong> — <code>#tab-risks</code>, <code>#tab-ki</code>, etc. — no duplicate IDs unlike the original</div></li>
-                <li class="done"><span class="icon">&#10003;</span><div><strong>Error display</strong> — catch block returns JSON error message; JS shows it in the tab area instead of crashing</div></li>
-            </ul>
+            <div class="card blue">
+                <div class="card-head"><h3>Layout — col-sm-3 dropdown / col-sm-9 result</h3><span class="tag tag-new">PHP</span></div>
+                <div class="card-body">
+                    <p>Mirrors the riskstatus.php layout exactly: left column has the entity dropdown, right column has <code>#rv-display</code> where AJAX injects the HTML response.</p>
+<pre><span class="cmt">&lt;!-- left: dropdown --&gt;</span>
+&lt;div class=<span class="str">"col-sm-3"</span>&gt;
+    &lt;select onchange=<span class="str">"loadDept(this.value)"</span>&gt; ... &lt;/select&gt;
+&lt;/div&gt;
+
+<span class="cmt">&lt;!-- right: AJAX target --&gt;</span>
+&lt;div class=<span class="str">"col-sm-9"</span>&gt;
+    &lt;div id=<span class="str">"rv-display"</span>&gt;
+        &lt;div class=<span class="str">"rv-prompt"</span>&gt;Select an entity ...&lt;/div&gt;  <span class="cmt">&lt;!-- default state --&gt;</span>
+    &lt;/div&gt;
+&lt;/div&gt;</pre>
+                </div>
+            </div>
         </section>
 
-        <!-- VS ENTITYACTION -->
-        <section class="section" id="sec-vs">
-            <div class="section-heading"><h3>riskview vs entityAction — Comparison</h3></div>
+        <!-- NAV -->
+        <section class="section" id="sec-nav">
+            <div class="section-heading"><h3>Nav Link Change</h3><span class="sec-meta">layout/nav.php:249</span></div>
+
+            <div class="card orange">
+                <div class="card-head"><h3>Risk Tracker menu now points to riskview.php</h3><span class="tag tag-nav">Nav</span></div>
+                <div class="card-body">
+                    <div class="diff-row"><span class="lbl">Before:</span><span class="old">../Project/riskstatus.php</span></div>
+                    <div class="diff-row"><span class="lbl">After:</span><span class="new">../Project/riskview.php</span></div>
+                    <p style="margin-top:10px;font-size:12px;color:#666;">File: <code>layout/nav.php</code> line 249. The old riskstatus.php is unchanged and still accessible directly.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- DB NOTES -->
+        <section class="section" id="sec-db">
+            <div class="section-heading"><h3>Key DB Facts (Verified)</h3><span class="sec-meta">Same as first rebuild — still applies</span></div>
 
             <table class="db-table">
-                <thead><tr><th>Aspect</th><th>entityAction.php (old)</th><th>riskview_fetch.php (new)</th></tr></thead>
+                <thead><tr><th>Table</th><th>Key Columns</th><th>Notes</th></tr></thead>
                 <tbody>
-                    <tr><td>Response format</td><td>Raw HTML string</td><td>JSON</td></tr>
-                    <tr><td>Rendering</td><td>PHP echoes HTML</td><td>JavaScript builds tables</td></tr>
-                    <tr><td>SQL injection</td><td>String interpolation <code>'$deptid'</code></td><td>Prepared statements <code>?</code></td></tr>
-                    <tr><td>Queries per load</td><td>5 + N per row (up to 65+)</td><td>Always 6</td></tr>
-                    <tr class="col-fix"><td>control.risk column</td><td>Referenced — doesn't exist</td><td>Fixed via risk_control JOIN</td></tr>
-                    <tr class="col-fix"><td>Column name</td><td><code>control.control</code> — wrong</td><td><code>control.controls</code> — correct</td></tr>
-                    <tr><td>Error visibility</td><td>Silent empty table</td><td>Error message in UI</td></tr>
-                    <tr><td>Tab IDs</td><td>Duplicated (<code>id="home-tab"</code> × 3)</td><td>Unique per tab</td></tr>
-                    <tr><td>Empty state</td><td>Blank table</td><td>"No records" message</td></tr>
-                    <tr><td>Status/priority</td><td>Plain text</td><td>Color-coded pills</td></tr>
+                    <tr><td><code>risk</code></td><td>risk_id, dept</td><td>Dept FK is <code>dept</code> — not <code>dept_id</code></td></tr>
+                    <tr class="col-fix"><td><code>control</code></td><td>control_id, controls, dept_id</td><td>⚠ Text column is <code>controls</code> (plural); table name needs backticks</td></tr>
+                    <tr class="col-fix"><td><code>risk_control</code></td><td>control_id, risk_id</td><td>⚠ Junction table — control has NO direct FK to risk</td></tr>
+                    <tr><td><code>recommend</code></td><td>id, risk_id, mrc, armc, action, dept_id</td><td><code>action</code> col is INT FK → action.id</td></tr>
+                    <tr><td><code>department</code></td><td>dept_id, dept_name, company, owners</td><td>FKs are <code>company</code> and <code>owners</code> (not _id suffixed)</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- COMPARISON -->
+        <section class="section" id="sec-vs">
+            <div class="section-heading"><h3>Version Comparison</h3></div>
+
+            <table class="db-table">
+                <thead><tr><th>Aspect</th><th>v1 — JSON API</th><th>v2 — AJAX HTML (current)</th></tr></thead>
+                <tbody>
+                    <tr><td>Fetch response</td><td>JSON object</td><td>Raw HTML string</td></tr>
+                    <tr><td>Table rendering</td><td>5 JS builder functions (~100 lines)</td><td>PHP while() loops — same as entityAction</td></tr>
+                    <tr><td>AJAX method</td><td>fetch() API</td><td>$.ajax — matches rest of project</td></tr>
+                    <tr><td>Error handling</td><td>ob_start() + JSON error wrapper</td><td>error: callback in $.ajax</td></tr>
+                    <tr><td>PHP in fetch file</td><td>147 lines</td><td>~130 lines (mostly HTML)</td></tr>
+                    <tr><td>JS in main file</td><td>~220 lines</td><td>~15 lines</td></tr>
+                    <tr><td>Matches project style</td><td>No — unique pattern</td><td>Yes — same as entityAction/display()</td></tr>
+                    <tr><td>SQL queries</td><td>Same 6, prepared statements</td><td>Same 6, mysqli_query() like entityAction</td></tr>
                 </tbody>
             </table>
         </section>
