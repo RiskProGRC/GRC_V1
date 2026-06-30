@@ -22,8 +22,6 @@ $stats      = $usersclass->getStats();
 /* Build a dept name lookup from already-fetched $showdept — avoids N deptJoins() queries */
 $deptMap = array_column($showdept, 'dept_name', 'dept_id');
 
-/* Fetch all permission UIDs in one query — avoids N accessbutton() queries */
-$permSet = $usersclass->fetchPermissionUids();
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -146,10 +144,6 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']); // used once in a JS variable
                                                 $accessLabel = (int)$user['access'] === 1 ? 'Active' : 'Suspended'; // strict comparison
                                                 $accessClass = (int)$user['access'] === 1 ? 'btn-success' : 'btn-danger';
 
-                                                /* isset() on pre-fetched array — no DB call per row */
-                                                $permBtn = isset($permSet[$uid_row])
-                                                    ? '<a href="permissionedit.php?id=' . $uid_row . '" class="btn btn-sm btn-primary"><span class="bi bi-check-square-fill"></span>&nbsp;Permission</a>'
-                                                    : '';
                                             ?>
                                             <tr data-dept="<?= $deptid ?>"> <!-- int, no escaping needed -->
                                                 <td>UID00<?= $uid++ ?></td>
@@ -171,7 +165,6 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']); // used once in a JS variable
                                                         <input type="hidden" name="id" value="<?= $uid_row ?>">
                                                         <button type="submit" class="btn btn-sm btn-primary">&#128100; Profile</button>
                                                     </form>
-                                                    <?= $permBtn ?>
                                                     <button class="btn btn-sm btn-outline-danger delete-user"
                                                             data-uid="<?= $uid_row ?>">
                                                         Delete

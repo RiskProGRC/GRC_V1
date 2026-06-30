@@ -157,6 +157,8 @@
         .card-link.profile      .card-icon { background: #fdecea; }
         .card-link.risktracker  { border-left-color: #1565c0; }
         .card-link.risktracker  .card-icon { background: #e3f2fd; }
+        .card-link.roles        { border-left-color: #6a1b9a; }
+        .card-link.roles        .card-icon { background: #f3e8ff; }
 
         .card-icon {
             width: 42px; height: 42px;
@@ -217,7 +219,7 @@
 
 <div class="toolbar">
     <h1>GRC V1 &mdash; Changes &amp; Reports Index</h1>
-    <span class="toolbar-meta">11 sections &nbsp;&middot;&nbsp; 29 reports</span>
+    <span class="toolbar-meta">12 sections &nbsp;&middot;&nbsp; 30 reports</span>
 </div>
 
 <div class="layout">
@@ -264,6 +266,10 @@
         </a>
         <a class="menu-item" href="#sec-risktracker" onclick="setActive(this)">
             <span class="menu-icon">&#128202;</span> Risk Tracker
+            <span class="menu-count">1</span>
+        </a>
+        <a class="menu-item" href="#sec-roles" onclick="setActive(this)">
+            <span class="menu-icon">&#128101;</span> Roles Update
             <span class="menu-count">1</span>
         </a>
         <a class="menu-item" href="#sec-study" onclick="setActive(this)">
@@ -664,6 +670,25 @@
                 <div class="card-info">
                     <h3>risk_status_demo &mdash; riskview.php + riskview_fetch.php (Simplified AJAX)</h3>
                     <p>Simplified rebuild matching entityAction/display() AJAX pattern &mdash; PHP echoes raw HTML, single $.ajax call, 6 verified queries, nav link updated to riskview.php</p>
+                </div>
+                <span class="badge badge-done">&#10003; Complete</span>
+                <span class="arrow">&#8250;</span>
+            </a>
+        </section>
+
+        <!-- ── Roles Update ── -->
+        <section class="section" id="sec-roles">
+            <div class="section-heading">
+                <span class="sec-icon">&#128101;</span>
+                <h3>Roles Update</h3>
+                <span class="sec-count">1 report</span>
+            </div>
+
+            <a href="roles_update.html" class="card-link roles">
+                <div class="card-icon">&#128101;</div>
+                <div class="card-info">
+                    <h3>Role System Redesign &mdash; Implementation Plan</h3>
+                    <p>3 roles: Administrator, Manager (new), Champion (renamed). Nav guards moved from permission table to roles. 5 files: profile.php, userslist.php, header.php, nav.php, footer.php</p>
                 </div>
                 <span class="badge badge-done">&#10003; Complete</span>
                 <span class="arrow">&#8250;</span>

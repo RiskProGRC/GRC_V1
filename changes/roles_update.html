@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles Update — GRC V1 ✓ Applied</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+
+        .toolbar {
+            background: #1a1a2e; color: #fff; padding: 14px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .toolbar h1 { font-size: 15px; font-weight: 600; }
+        .toolbar-meta { font-size: 12px; color: #aab; }
+        .back-link { color: #7eb8ff; text-decoration: none; font-size: 12px; }
+        .back-link:hover { text-decoration: underline; }
+
+        .layout { display: flex; }
+
+        .sidebar {
+            width: 220px; flex-shrink: 0; background: #1a1a2e;
+            min-height: calc(100vh - 47px); position: sticky; top: 47px;
+            height: calc(100vh - 47px); overflow-y: auto;
+            display: flex; flex-direction: column; padding: 20px 0 40px;
+        }
+        .sidebar-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.2px; color: #556; padding: 18px 20px 6px;
+        }
+        .menu-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 20px; color: #9aa; text-decoration: none;
+            font-size: 13px; font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.06); color: #e0e6ff; }
+        .menu-item.active { background: rgba(79,142,247,0.15); color: #7eb8ff; border-left-color: #4f8ef7; }
+
+        .main { flex: 1; padding: 32px 36px 60px; }
+
+        .page-header { margin-bottom: 32px; }
+        .page-header h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+        .page-header p { color: #888; font-size: 13px; }
+
+        .section { margin-bottom: 44px; scroll-margin-top: 20px; }
+        .section-heading {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 14px; padding-bottom: 10px;
+            border-bottom: 2px solid #e8ecf1;
+        }
+        .section-heading .sec-icon { font-size: 20px; }
+        .section-heading h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1a1a2e; }
+
+        .card {
+            background: #fff; border-radius: 8px; padding: 20px 22px;
+            margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-left: 5px solid #ccc;
+        }
+        .card.profile  { border-left-color: #c0392b; }
+        .card.header   { border-left-color: #0d47a1; }
+        .card.nav      { border-left-color: #1b5e20; }
+        .card.matrix   { border-left-color: #6a1b9a; }
+        .card.note     { border-left-color: #e65100; background: #fff8f5; }
+
+        .card h4 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
+        .card p  { font-size: 13px; color: #555; margin-bottom: 8px; }
+        .card p:last-child { margin-bottom: 0; }
+
+        .file-tag {
+            display: inline-block; background: #eef2ff; color: #3451a8;
+            font-size: 11px; font-weight: 600; padding: 2px 8px;
+            border-radius: 4px; font-family: monospace; margin-bottom: 10px;
+        }
+
+        .diff-block {
+            background: #0d1117; border-radius: 6px; padding: 14px 16px;
+            margin-top: 10px; font-family: monospace; font-size: 12px;
+            line-height: 1.7; overflow-x: auto;
+        }
+        .diff-block .rem { color: #f85149; }
+        .diff-block .add { color: #3fb950; }
+        .diff-block .neu { color: #8b949e; }
+        .diff-block .ctx { color: #c9d1d9; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th { background: #1a1a2e; color: #fff; padding: 9px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: #f9fafb; }
+
+        .yes  { color: #1e8449; font-weight: 700; }
+        .no   { color: #c0392b; font-weight: 700; }
+        .dept { color: #0d47a1; font-weight: 600; font-size: 11px; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+        }
+        .badge-new     { background: #eafaf1; color: #1e8449; }
+        .badge-rename  { background: #fef9e7; color: #b7950b; }
+        .badge-changed { background: #eef2ff; color: #3451a8; }
+        .badge-remove  { background: #fde8e8; color: #c0392b; }
+
+        .step-list { padding-left: 0; list-style: none; margin-top: 8px; }
+        .step-list li {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+        }
+        .step-list li:last-child { border-bottom: none; }
+        .step-num {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #1a1a2e; color: #fff; font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            margin-top: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>&#128101; Roles Update &mdash; Implementation Plan</h1>
+    <div style="display:flex;align-items:center;gap:20px;">
+        <span class="toolbar-meta">5 files &nbsp;&middot;&nbsp; 5 change areas &nbsp;&middot;&nbsp; &#10003; Applied</span>
+        <a href="index.html" class="back-link">&#8592; Back to Index</a>
+    </div>
+</div>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="sidebar-label">Sections</div>
+        <a class="menu-item active" href="#sec-overview">
+            <span>&#128203;</span> Overview
+        </a>
+        <a class="menu-item" href="#sec-matrix">
+            <span>&#128101;</span> Role Matrix
+        </a>
+        <a class="menu-item" href="#sec-profile">
+            <span>&#128100;</span> profile.php
+        </a>
+        <a class="menu-item" href="#sec-header">
+            <span>&#9881;</span> header.php
+        </a>
+        <a class="menu-item" href="#sec-nav">
+            <span>&#128203;</span> nav.php
+        </a>
+        <a class="menu-item" href="#sec-summary">
+            <span>&#10003;</span> Summary
+        </a>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <div class="page-header">
+            <h2>Role System Redesign</h2>
+            <p>Replacing permission-table nav guards with role-based checks. 5 files changed, permission table kept in database but no longer drives the nav or any UI element.</p>
+        </div>
+
+        <!-- OVERVIEW -->
+        <section class="section" id="sec-overview">
+            <div class="section-heading">
+                <span class="sec-icon">&#128203;</span>
+                <h3>Overview</h3>
+            </div>
+
+            <div class="card note">
+                <h4>What is changing and why</h4>
+                <p>Currently the nav menu visibility is controlled by a separate <code>permission</code> table — each user gets a row with 19 boolean columns. This is being replaced with a simpler 3-role system where the role number on the user record determines what they can see.</p>
+                <p>The data scoping in <strong>header.php</strong> (dept-only vs all data) already works on roles and stays untouched in logic — only a 3rd branch for Manager is added.</p>
+            </div>
+
+            <div class="card">
+                <h4>New role definitions</h4>
+                <table>
+                    <tr><th>Value</th><th>Label</th><th>Status</th></tr>
+                    <tr><td><strong>1</strong></td><td>Administrator</td><td><span class="badge badge-changed">Unchanged</span></td></tr>
+                    <tr><td><strong>2</strong></td><td>Champion <em>(was: User)</em></td><td><span class="badge badge-rename">Renamed</span></td></tr>
+                    <tr><td><strong>3</strong></td><td>Manager</td><td><span class="badge badge-new">New</span></td></tr>
+                </table>
+                <p style="margin-top:10px;color:#888;font-size:12px;">No database migration needed — role values 1 and 2 are unchanged; 3 is a new integer stored in <code>users.roles</code>.</p>
+            </div>
+        </section>
+
+        <!-- ROLE MATRIX -->
+        <section class="section" id="sec-matrix">
+            <div class="section-heading">
+                <span class="sec-icon">&#128101;</span>
+                <h3>Role Matrix — Nav Visibility</h3>
+            </div>
+
+            <div class="card matrix">
+                <h4>What each role sees in the navigation</h4>
+                <table>
+                    <tr>
+                        <th>Menu Item</th>
+                        <th>Administrator (1)</th>
+                        <th>Manager (3)</th>
+                        <th>Champion (2)</th>
+                    </tr>
+                    <tr>
+                        <td>Dashboard</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Overview</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Inbox</td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                    </tr>
+                    <tr>
+                        <td>Risk Tracker</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;&#8627; Add Entity</td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                    </tr>
+                    <tr>
+                        <td>Risks</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Risk Treatment</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Controls Lib.</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Risk Monitor</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Recommendations</td>
+                        <td><span class="yes">&#10003; All depts</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                        <td><span class="yes">&#10003;</span> <span class="dept">Own dept only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Notifications</td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="yes">&#10003;</span></td>
+                    </tr>
+                    <tr>
+                        <td>Settings</td>
+                        <td><span class="yes">&#10003; Full</span></td>
+                        <td><span class="yes">&#10003; Partial</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;&#8627; User Management</td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;&#8627; Impact / Likelihood / Categories / Strength / Type</td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;&#8627; Activity Logs</td>
+                        <td><span class="yes">&#10003;</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                        <td><span class="no">&#10007; Hidden</span></td>
+                    </tr>
+                </table>
+                <p style="margin-top:10px;color:#888;font-size:12px;">
+                    <strong>Dept scoping</strong> (blue) is handled in <code>header.php</code> data fetching — not in nav visibility. The nav item is shown; the data behind it is already filtered.
+                </p>
+            </div>
+        </section>
+
+        <!-- PROFILE.PHP -->
+        <section class="section" id="sec-profile">
+            <div class="section-heading">
+                <span class="sec-icon">&#128100;</span>
+                <h3>Change 1 — profile.php</h3>
+            </div>
+
+            <div class="card profile">
+                <span class="file-tag">Project/profile.php &nbsp; line ~151</span>
+                <h4>Roles dropdown — rename + add option</h4>
+                <p>The "Choose User Roles" <code>&lt;select&gt;</code> currently has 2 options. Add a 3rd and rename option 2.</p>
+                <div class="diff-block">
+<span class="rem">- &lt;option value="1" ...&gt;Administrator&lt;/option&gt;</span>
+<span class="rem">- &lt;option value="2" ...&gt;User&lt;/option&gt;</span>
+<span class="add">+ &lt;option value="1" ...&gt;Administrator&lt;/option&gt;</span>
+<span class="add">+ &lt;option value="2" ...&gt;Champion&lt;/option&gt;</span>
+<span class="add">+ &lt;option value="3" ...&gt;Manager&lt;/option&gt;</span>
+                </div>
+                <p style="margin-top:10px;color:#888;font-size:12px;">The <code>selected</code> attribute check already uses <code>$roles === (int)</code> so it will work for value 3 automatically.</p>
+            </div>
+        </section>
+
+        <!-- HEADER.PHP -->
+        <section class="section" id="sec-header">
+            <div class="section-heading">
+                <span class="sec-icon">&#9881;</span>
+                <h3>Change 2 — header.php</h3>
+            </div>
+
+            <div class="card header">
+                <span class="file-tag">layout/header.php &nbsp; lines 74–175 (all data fetch blocks)</span>
+                <h4>Add role 3 (Manager) to every data-scoping block</h4>
+                <p>Currently each block has <code>if roles==1 … elseif roles==2</code>. Manager (3) gets the same dept-scoped fetch as Champion (2). The cleanest change is to collapse both into an <code>else</code>.</p>
+                <div class="diff-block">
+<span class="ctx">// Current pattern (repeated ~9 times):</span>
+<span class="rem">- if($sess_roles==1){</span>
+<span class="rem">-     $showrisk=$riskClass-&gt;showRisk();</span>
+<span class="rem">- }elseif($sess_roles==2){</span>
+<span class="rem">-     $showrisk=$riskClass-&gt;showRiskdept($sdid);</span>
+<span class="rem">- }</span>
+<span class="neu"></span>
+<span class="ctx">// New pattern:</span>
+<span class="add">+ if($sess_roles==1){</span>
+<span class="add">+     $showrisk=$riskClass-&gt;showRisk();</span>
+<span class="add">+ }else{</span>
+<span class="add">+     $showrisk=$riskClass-&gt;showRiskdept($sdid);</span>
+<span class="add">+ }</span>
+                </div>
+                <p style="margin-top:10px;color:#888;font-size:12px;">
+                    This covers roles 2 (Champion) and 3 (Manager) in a single <code>else</code>. Any future role added will default to dept-scoped, which is the safe/restrictive default.
+                    <br>Affected blocks: Department, Process, Risk, Risk Category, Control, Control Strength, KI, Action, Incident, Recommend, KRI — <strong>11 blocks total</strong>.
+                </p>
+            </div>
+        </section>
+
+        <!-- NAV.PHP -->
+        <section class="section" id="sec-nav">
+            <div class="section-heading">
+                <span class="sec-icon">&#128203;</span>
+                <h3>Change 3 — nav.php</h3>
+            </div>
+
+            <div class="card nav">
+                <span class="file-tag">layout/nav.php &nbsp; lines 1–3</span>
+                <h4>Remove permission fetch — no longer needed</h4>
+                <p>The top of nav.php fetches the permission row. Once nav is role-driven this query is dead code.</p>
+                <div class="diff-block">
+<span class="rem">- $uid = $suid;</span>
+<span class="rem">- $access = $userclass-&gt;fetchpermission($uid) ?? [];</span>
+                </div>
+            </div>
+
+            <div class="card nav">
+                <span class="file-tag">layout/nav.php &nbsp; Inbox block (~line 239)</span>
+                <h4>Inbox — Admin + Manager only</h4>
+                <div class="diff-block">
+<span class="rem">- &lt;?php if ($sess_roles == 1) { ?&gt;</span>
+<span class="add">+ &lt;?php if ($sess_roles == 1 || $sess_roles == 3) { ?&gt;</span>
+<span class="ctx">      &lt;li class="menu-item"&gt;...Inbox...&lt;/li&gt;</span>
+<span class="ctx">  &lt;?php } ?&gt;</span>
+                </div>
+            </div>
+
+            <div class="card nav">
+                <span class="file-tag">layout/nav.php &nbsp; Risks block (~line 277)</span>
+                <h4>Risks — visible to all roles (remove permission guard)</h4>
+                <div class="diff-block">
+<span class="rem">- &lt;?php if ($access["rlist"]==1 || $access["rassess"]==1 || $access["rregister"]==1 || $access["top"]==1) { ?&gt;</span>
+<span class="add">+ &lt;?php /* Risks — visible to all roles; data is already dept-scoped in header.php */ ?&gt;</span>
+<span class="ctx">      &lt;li class="menu-item has-sub"&gt;...Risks submenu...&lt;/li&gt;</span>
+<span class="rem">- &lt;?php } ?&gt;</span>
+                </div>
+                <p style="margin-top:8px;color:#888;font-size:12px;">
+                    Also remove the 4 individual <code>if($access["rlist"]==1)</code> guards inside the submenu items — all sub-items show to all roles.
+                </p>
+            </div>
+
+            <div class="card nav">
+                <span class="file-tag">layout/nav.php &nbsp; Risk Treatment, Controls Lib., Risk Monitor, Recommendations</span>
+                <h4>These 4 menu guards — all removed</h4>
+                <div class="diff-block">
+<span class="rem">- &lt;?php if ($access["process"]==1) { ?&gt;</span>
+<span class="add">+ &lt;?php /* Risk Treatment — visible to all roles */ ?&gt;</span>
+<span class="neu"></span>
+<span class="rem">- &lt;?php if ($access["control"]==1) { ?&gt;</span>
+<span class="add">+ &lt;?php /* Controls Lib. — visible to all roles */ ?&gt;</span>
+<span class="neu"></span>
+<span class="rem">- &lt;?php if ($access["kpi"]==1 || $access["kri"]==1 || $access["perform"]==1 || $access["incident"]==1 || $access["action"]==1 || $access["objective"]==1) { ?&gt;</span>
+<span class="add">+ &lt;?php /* Risk Monitor — visible to all roles */ ?&gt;</span>
+<span class="neu"></span>
+<span class="rem">- &lt;?php if ($access["recommend"]==1) { ?&gt;</span>
+<span class="add">+ &lt;?php /* Recommendations — visible to all roles */ ?&gt;</span>
+                </div>
+                <p style="margin-top:8px;color:#888;font-size:12px;">All closing <code>&lt;?php } ?&gt;</code> tags for these blocks are also removed.</p>
+            </div>
+
+            <div class="card nav">
+                <span class="file-tag">layout/nav.php &nbsp; Settings block (~line 399)</span>
+                <h4>Settings — Admin + Manager; User Management and Activity Logs admin-only within</h4>
+                <div class="diff-block">
+<span class="rem">- &lt;?php if ($sess_roles == 1) { ?&gt;</span>
+<span class="add">+ &lt;?php if ($sess_roles == 1 || $sess_roles == 3) { ?&gt;</span>
+<span class="ctx">      &lt;li class="menu-item has-sub"&gt;</span>
+<span class="ctx">          ...Settings...</span>
+<span class="ctx">          &lt;ul class="submenu-group"&gt;</span>
+<span class="add">+             &lt;?php if ($sess_roles == 1) { ?&gt;</span>
+<span class="ctx">                  &lt;li&gt;User Management&lt;/li&gt;</span>
+<span class="add">+             &lt;?php } ?&gt;</span>
+<span class="ctx">                  &lt;li&gt;Impact Levels&lt;/li&gt;</span>
+<span class="ctx">                  &lt;li&gt;Likelihood Level&lt;/li&gt;</span>
+<span class="ctx">                  &lt;li&gt;Risk Category&lt;/li&gt;</span>
+<span class="ctx">                  &lt;li&gt;Control Strength&lt;/li&gt;</span>
+<span class="ctx">                  &lt;li&gt;Control Type&lt;/li&gt;</span>
+<span class="add">+             &lt;?php if ($sess_roles == 1) { ?&gt;</span>
+<span class="ctx">                  &lt;li&gt;Activity Logs&lt;/li&gt;</span>
+<span class="add">+             &lt;?php } ?&gt;</span>
+<span class="ctx">          &lt;/ul&gt;</span>
+<span class="ctx">      &lt;/li&gt;</span>
+<span class="ctx">  &lt;?php } ?&gt;</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUMMARY -->
+        <section class="section" id="sec-summary">
+            <div class="section-heading">
+                <span class="sec-icon">&#10003;</span>
+                <h3>Implementation Summary</h3>
+            </div>
+
+            <div class="card">
+                <h4>Files to change</h4>
+                <ul class="step-list">
+                    <li>
+                        <span class="step-num">1</span>
+                        <div>
+                            <strong>Project/profile.php</strong> — roles dropdown: rename "User" → "Champion", add "Manager" option value 3.<br>
+                            <span style="color:#888;font-size:12px;">1 block, ~line 151. No logic change.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-num">2</span>
+                        <div>
+                            <strong>Project/userslist.php</strong> — removed <code>fetchPermissionUids()</code> call, <code>$permBtn</code> variable, and Permission button from the Actions column.<br>
+                            <span style="color:#888;font-size:12px;">3 lines removed from PHP + 1 line removed from table row.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-num">3</span>
+                        <div>
+                            <strong>layout/header.php</strong> — 11 data-fetch blocks: changed <code>elseif($sess_roles==2)</code> to <code>else</code>.<br>
+                            <span style="color:#888;font-size:12px;">One-word change per block. Manager (3) gets same dept-scoped data as Champion (2).</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-num">4</span>
+                        <div>
+                            <strong>layout/nav.php</strong> — removed permission fetch (2 lines), removed 5 <code>$access[]</code> menu guards, updated Inbox + Settings role checks, added inner guards for User Management and Activity Logs.<br>
+                            <span style="color:#888;font-size:12px;">~15 lines removed, ~6 lines changed/added.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-num">5</span>
+                        <div>
+                            <strong>layout/footer.php</strong> — removed the old <code>$sess_roles</code> block that was disabling <code>btn-userpermission-*</code> buttons via inline CSS and jQuery.<br>
+                            <span style="color:#888;font-size:12px;">28 lines removed entirely.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card note">
+                <h4>&#9888; Permission table — not deleted</h4>
+                <p>The <code>permission</code> table and all related methods in <code>usersClass.php</code> (<code>fetchpermission</code>, <code>permission</code>, <code>updatepermission</code>) are left in place. The modal in <code>profile.php</code> can also remain. Nothing breaks — the permission data just stops driving the nav.</p>
+                <p>If you want to fully clean up the modal and the permission endpoints later that is a separate step.</p>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    const sections  = document.querySelectorAll('.section');
+    const menuItems = document.querySelectorAll('.menu-item');
+    const observer  = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                const id = e.target.id;
+                menuItems.forEach(m => m.classList.toggle('active', m.getAttribute('href') === '#' + id));
+            }
+        });
+    }, { threshold: 0.25 });
+    sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

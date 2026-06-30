@@ -53,7 +53,7 @@ if (!isset($_SESSION['CREATED'])) {
     $_SESSION['CREATED'] = time(); // Update creation time
 }
 
-
+//check user section
 if(!isset($_SESSION["user"])){
     header("Location:../login.php");
  }elseif(!isset($_SESSION["uid"])){
@@ -62,7 +62,10 @@ if(!isset($_SESSION["user"])){
    $sess_uid= $_SESSION["uid"];
    $sess_username= $_SESSION["user"];
     $sess_dept_id=$_SESSION["dept_id"];
-    $sess_roles=$_SESSION["roles"];
+    $userclass=new usersClass();
+    $authrow = $userclass->profile((string)$sess_uid);
+    $sess_roles = $authrow ? (int)$authrow["roles"] : (int)$_SESSION["roles"];
+    $_SESSION["roles"] = $sess_roles;
  }
  $suid=$sess_uid;
  $sdid=$sess_dept_id;
@@ -73,7 +76,7 @@ if(!isset($_SESSION["user"])){
 $deptClass= new departmentClass();
 if($sess_roles==1){
     $showdept= $deptClass->showDept();
-}elseif($sess_roles==2){
+}else{
     $showdept= $deptClass->showDeptSess($sdid);
 }
 
@@ -81,7 +84,7 @@ if($sess_roles==1){
 $processClass=new processClass();
 if($sess_roles==1){
     $showprocess=$processClass->showProcess();
-}elseif($sess_roles==2){
+}else{
     $showprocess=$processClass->showProcessdept($sdid);
 }
 //risk
@@ -91,7 +94,7 @@ if($sess_roles==1){
     $showriskass= $riskClass->showRiskassess();
     $showriskasstop= $riskClass->showassessment();//top 10 risk
     $riskcategory=$riskClass->dashboardrcat();
-}elseif($sess_roles==2){
+}else{
     $showrisk=$riskClass->showRiskdept($sdid);
     $showriskass= $riskClass->showRiskassessdept($sdid);
     $showriskasstop= $riskClass->showassessmentdept($sdid);//top 10 risk
@@ -101,7 +104,7 @@ if($sess_roles==1){
 if($sess_roles==1){
     $riskcatClass= new riskCatClass();
     $showRiskCat= $riskcatClass->showRiskCat();
-}elseif($sess_roles==2){
+}else{
     $riskcatClass= new riskCatClass();
     $showRiskCat= $riskcatClass->showRiskCat();
 }
@@ -110,7 +113,7 @@ $controlclass=new controlClass();
 if($sess_roles==1){
     $showcontrol=$controlclass->showcontrol();
     $dashcstrength=$controlclass->dashboardcstrength();
-}elseif($sess_roles==2){
+}else{
     $showcontrol=$controlclass->showcontroldept($sdid);
     $dashcstrength=$controlclass->dashboardcstrengthdept($sdid);
 }
@@ -118,7 +121,7 @@ if($sess_roles==1){
 $cstrengthclass=new controlstrengthClass();
 if($sess_roles==1){
     $showcstrength= $cstrengthclass->showcontrolstrength();
-}elseif($sess_roles==2){
+}else{
     $showcstrength= $cstrengthclass->showcontrolstrength();
 }
 
@@ -126,7 +129,7 @@ if($sess_roles==1){
 $kiclass=new kiClass();
 if($sess_roles==1){
     $showki=$kiclass->showKi();
-}elseif($sess_roles==2){
+}else{
     $showki=$kiclass->showKidept($sdid);
     
 }
@@ -135,7 +138,7 @@ $actionclass=new actionClass();
 if($sess_roles==1){
     $showaction=$actionclass->showaction();
    
-}elseif($sess_roles==2){
+}else{
     $showaction=$actionclass->showactiondept($sdid);
 }
 
@@ -146,7 +149,7 @@ if($sess_roles==1){
 $incidentclass=new incidentclass();
 if($sess_roles==1){
     $showincident=$incidentclass->showincident();
-}elseif($sess_roles==2){
+}else{
     $showincident=$incidentclass->showincidentdept($sdid);
 }
 //recommend
@@ -154,12 +157,11 @@ $recommendClass=new recommendClass();
 
 if($sess_roles==1){
     $showrecommend=$recommendClass->showrecommend();
-}elseif($sess_roles==2){
+}else{
     $showrecommend=$recommendClass->showrecommenddept($sdid);
 }
 
 //users
-$userclass=new usersClass();
 $showusers=$userclass->fetchusers();
 
 //kri
@@ -169,7 +171,7 @@ if($sess_roles==1){
     $showb_obj= $kriClass->fetchkriobj();
     $showkriparameter=$kriClass->fetchkriparameter();
     
-}elseif($sess_roles==2){
+}else{
     $showkri= $kriClass->fetchkridept($sdid);
     $showkriparameter=$kriClass->fetchkriparameterdept($sdid);
 }

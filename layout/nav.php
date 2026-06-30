@@ -1,6 +1,4 @@
 <?php
-$uid = $suid;
-$access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — treat as all-denied */
 ?>
 
 <style>
@@ -235,8 +233,8 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
                     </a>
                 </li>
 
-                <!-- Inbox (admin only) -->
-                <?php if ($sess_roles == 1) { ?>
+                <!-- Inbox — Admin and Manager only -->
+                <?php if ($sess_roles == 1 || $sess_roles == 3) { ?>
                     <li class="menu-item">
                         <a href="../Project/inbox.php" class="menu-link">
                             <i class="bi bi-envelope"></i>
@@ -273,122 +271,97 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
                     </div>
                 </li>
 
-                <!-- Risks -->
-                <?php if ($access["rlist"]==1 || $access["rassess"]==1 || $access["rregister"]==1 || $access["top"]==1) { ?>
-                    <li class="menu-item has-sub">
-                        <a href="#" class="menu-link">
-                            <i class="bi bi-file-earmark-medical-fill"></i>
-                            <span>Risks</span>
-                        </a>
-                        <div class="submenu">
-                            <div class="submenu-group-wrapper">
-                                <ul class="submenu-group">
-                                    <?php if ($access["rlist"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="../Project/risklist.php" class="submenu-link">Risk Lists</a>
-                                        </li>
-                                    <?php } ?>
-                                    <?php if ($access["rassess"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="../Project/riskassess.php" class="submenu-link">Risk Assessment</a>
-                                        </li>
-                                    <?php } ?>
-                                    <?php if ($access["rregister"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="../Project/risk_register_report.php" class="submenu-link">Risk Register</a>
-                                        </li>
-                                    <?php } ?>
-                                    <?php if ($access["top"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="risktop.php" class="submenu-link">Top 10 Risks</a>
-                                        </li>
-                                        <li class="submenu-item">
-                                            <a href="riskmatrix.php" class="submenu-link">Risk Ranking</a>
-                                        </li>
-                                    <?php } ?>
-                                </ul>
-                            </div>
+                <!-- Risks — all roles -->
+                <li class="menu-item has-sub">
+                    <a href="#" class="menu-link">
+                        <i class="bi bi-file-earmark-medical-fill"></i>
+                        <span>Risks</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="submenu-group-wrapper">
+                            <ul class="submenu-group">
+                                <li class="submenu-item">
+                                    <a href="../Project/risklist.php" class="submenu-link">Risk Lists</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/riskassess.php" class="submenu-link">Risk Assessment</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/risk_register_report.php" class="submenu-link">Risk Register</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="risktop.php" class="submenu-link">Top 10 Risks</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="riskmatrix.php" class="submenu-link">Risk Ranking</a>
+                                </li>
+                            </ul>
                         </div>
-                    </li>
-                <?php } ?>
+                    </div>
+                </li>
 
-                <!-- Risk Treatment -->
-                <?php if ($access["process"]==1) { ?>
-                    <li class="menu-item has-sub">
-                        <a href="#" class="menu-link">
-                            <i class="bi bi-arrow-right-square-fill"></i>
-                            <span>Risk Treatment</span>
-                        </a>
-                        <div class="submenu">
-                            <div class="submenu-group-wrapper">
-                                <ul class="submenu-group">
-                                    <li class="submenu-item">
-                                        <a href="../Project/risktreatment.php" class="submenu-link">Risk Treatment</a>
-                                    </li>
-                                </ul>
-                            </div>
+                <!-- Risk Treatment — all roles -->
+                <li class="menu-item has-sub">
+                    <a href="#" class="menu-link">
+                        <i class="bi bi-arrow-right-square-fill"></i>
+                        <span>Risk Treatment</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="submenu-group-wrapper">
+                            <ul class="submenu-group">
+                                <li class="submenu-item">
+                                    <a href="../Project/risktreatment.php" class="submenu-link">Risk Treatment</a>
+                                </li>
+                            </ul>
                         </div>
-                    </li>
-                <?php } ?>
+                    </div>
+                </li>
 
-                <!-- Controls Library -->
-                <?php if ($access["control"]==1) { ?>
-                    <li class="menu-item">
-                        <a href="../Project/controls.php" class="menu-link">
-                            <i class="bi bi-stack"></i>
-                            <span>Controls Lib.</span>
-                        </a>
-                    </li>
-                <?php } ?>
+                <!-- Controls Library — all roles -->
+                <li class="menu-item">
+                    <a href="../Project/controls.php" class="menu-link">
+                        <i class="bi bi-stack"></i>
+                        <span>Controls Lib.</span>
+                    </a>
+                </li>
 
-                <!-- Risk Monitor -->
-                <?php if ($access["kpi"]==1 || $access["kri"]==1 || $access["perform"]==1 || $access["incident"]==1 || $access["action"]==1 || $access["objective"]==1) { ?>
-                    <li class="menu-item has-sub">
-                        <a href="#" class="menu-link">
-                            <i class="bi bi-table"></i>
-                            <span>Risk Monitor</span>
-                        </a>
-                        <div class="submenu">
-                            <div class="submenu-group-wrapper">
-                                <ul class="submenu-group">
-                                    <?php if ($access["kpi"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="../Project/kra_settings.php" class="submenu-link">KRI Measure</a>
-                                        </li>
-                                    <?php } ?>
-                                    <?php if ($access["perform"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="../Project/kri.php" class="submenu-link">KRI</a>
-                                        </li>
-                                    <?php } ?>
-                                    <?php if ($access["incident"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="../Project/incidents.php" class="submenu-link">Incidents</a>
-                                        </li>
-                                    <?php } ?>
-                                    <?php if ($access["action"]==1) { ?>
-                                        <li class="submenu-item">
-                                            <a href="../Project/actions.php" class="submenu-link">Actions</a>
-                                        </li>
-                                    <?php } ?>
-                                </ul>
-                            </div>
+                <!-- Risk Monitor — all roles -->
+                <li class="menu-item has-sub">
+                    <a href="#" class="menu-link">
+                        <i class="bi bi-table"></i>
+                        <span>Risk Monitor</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="submenu-group-wrapper">
+                            <ul class="submenu-group">
+                                <li class="submenu-item">
+                                    <a href="../Project/kra_settings.php" class="submenu-link">KRI Measure</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/kri.php" class="submenu-link">KRI</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/incidents.php" class="submenu-link">Incidents</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/actions.php" class="submenu-link">Actions</a>
+                                </li>
+                            </ul>
                         </div>
-                    </li>
-                <?php } ?>
+                    </div>
+                </li>
 
-                <!-- Recommendations -->
-                <?php if ($access["recommend"]==1) { ?>
-                    <li class="menu-item">
-                        <a href="../Project/recommendations.php" class="menu-link">
-                            <i class="bi bi-bookmark-check-fill"></i>
-                            <span>Recommendations</span>
-                        </a>
-                    </li>
-                <?php } ?>
+                <!-- Recommendations — all roles -->
+                <li class="menu-item">
+                    <a href="../Project/recommendations.php" class="menu-link">
+                        <i class="bi bi-bookmark-check-fill"></i>
+                        <span>Recommendations</span>
+                    </a>
+                </li>
 
-                <!-- Settings (admin only) -->
-                <?php if ($sess_roles == 1) { ?>
+
+                <!-- Settings — Admin and Manager only -->
+                <?php if ($sess_roles == 1 || $sess_roles == 3) { ?>
                     <li class="menu-item has-sub">
                         <a href="#" class="menu-link">
                             <i class="bi bi-gear-fill"></i>
@@ -397,9 +370,11 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
                         <div class="submenu">
                             <div class="submenu-group-wrapper">
                                 <ul class="submenu-group">
-                                    <li class="submenu-item">
-                                        <a href="../Project/userslist.php" class="submenu-link">User Management</a>
-                                    </li>
+                                    <?php if ($sess_roles == 1) { ?>
+                                        <li class="submenu-item">
+                                            <a href="../Project/userslist.php" class="submenu-link">User Management</a>
+                                        </li>
+                                    <?php }else{} ?>
                                     <li class="submenu-item">
                                         <a href="../Project/impact.php" class="submenu-link">Impact Levels</a>
                                     </li>
@@ -415,9 +390,11 @@ $access = $userclass->fetchpermission($uid) ?? []; /* no permission row yet — 
                                     <li class="submenu-item">
                                         <a href="../Project/controltype.php" class="submenu-link">Control Type</a>
                                     </li>
-                                    <li class="submenu-item">
-                                        <a href="../Project/activitylog.php" class="submenu-link">Activity Logs</a>
-                                    </li>
+                                    <?php if ($sess_roles == 1) { ?>
+                                        <li class="submenu-item">
+                                            <a href="../Project/activitylog.php" class="submenu-link">Activity Logs</a>
+                                        </li>
+                                    <?php } ?>
                                 </ul>
                             </div>
                         </div>
