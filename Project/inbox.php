@@ -13,52 +13,65 @@ include_once'./recommend/recommendClass.php';
 include_once'./action/actionClass.php';
 
 $actionClass=new actionClass();
-$showaction=$actionClass->showaction();
-
 $recommendClass=new recommendClass();
-$showrecommend=$recommendClass->showrecommend();
-
 $cstrengthClass=new controlstrengthClass();
 $showcstrength=$cstrengthClass->showcontrolstrength();
-
 $ctypeclass= new controltypeClass();
 $ctype=$ctypeclass->showcontroltype();
-
 $controlClass= new controlClass();
-$showcontrol=$controlClass->showcontrol();
-
 $kiclass=new kiClass();
-$showki=$kiclass->showKi();
-//users
 $users=new usersClass();
-//process
 $processClass=new processClass();
-//department
 $deptClass=new departmentClass();
-//risk
 $riskClass=new riskClass();
-$showRisk=$riskClass->showRisk();
-//riskcategory
 $riskCatClass=new riskCatClass();
 $showriskcat= $riskCatClass->showRiskCat();
 
-//risk counts
-$pending_risk=$riskClass->pendingrisks();
-$approved_risk=$riskClass->approvedrisks();
-$rejected_risk= $riskClass->rejectedrisks();
-//control count
-$pendingcontrl=$controlClass->pendingcontlr();
-$approvedcontrl=$controlClass->approvedcontlr();
-//ki count
-$pendingki=$kiclass->pendingki();
-$approvedki=$kiclass->approvedki();
-//recommend count
-$pendingrcmd=$recommendClass->pendingrecommend();
-$approvedrcmd=$recommendClass->approvedrecommend();
-//$rejected_risk= $riskClass->rejectedrisks();
-$pendingaction=$actionClass->pendingaction();
-$approvedaction=$actionClass->approvedaction();
-//$rejected_risk= $riskClass->rejectedrisks();
+// read session role and department — role 3 is a department-level user
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$sessionRole = $_SESSION['roles']   ?? 0;
+$sessionDept = $_SESSION['dept_id'] ?? '';
+
+if ($sessionRole == 3 && $sessionDept !== '') {
+    // fetch only records that belong to the logged-in user's department
+    $showRisk      = $riskClass->showRiskdept($sessionDept);
+    $showcontrol   = $controlClass->showcontroldept($sessionDept);
+    $showki        = $kiclass->showKidept($sessionDept);
+    $showrecommend = $recommendClass->showrecommenddept($sessionDept);
+    $showaction    = $actionClass->showactiondept($sessionDept);
+
+    // derive counts from the already-filtered arrays
+    $pending_risk   = count(array_filter($showRisk,      fn($r) => $r['approval'] == 1));
+    $approved_risk  = count(array_filter($showRisk,      fn($r) => $r['approval'] == 2));
+    $rejected_risk  = count(array_filter($showRisk,      fn($r) => $r['approval'] == 3));
+    $pendingcontrl  = count(array_filter($showcontrol,   fn($c) => $c['approval'] == 1));
+    $approvedcontrl = count(array_filter($showcontrol,   fn($c) => $c['approval'] == 2));
+    $pendingki      = count(array_filter($showki,        fn($k) => $k['approval'] == 1));
+    $approvedki     = count(array_filter($showki,        fn($k) => $k['approval'] == 2));
+    $pendingrcmd    = count(array_filter($showrecommend, fn($r) => $r['approval'] == 1));
+    $approvedrcmd   = count(array_filter($showrecommend, fn($r) => $r['approval'] == 2));
+    $pendingaction  = count(array_filter($showaction,    fn($a) => $a['approval'] == 1));
+    $approvedaction = count(array_filter($showaction,    fn($a) => $a['approval'] == 2));
+} else {
+    // admin / other roles — fetch everything
+    $showRisk      = $riskClass->showRisk();
+    $showcontrol   = $controlClass->showcontrol();
+    $showki        = $kiclass->showKi();
+    $showrecommend = $recommendClass->showrecommend();
+    $showaction    = $actionClass->showaction();
+
+    $pending_risk   = $riskClass->pendingrisks();
+    $approved_risk  = $riskClass->approvedrisks();
+    $rejected_risk  = $riskClass->rejectedrisks();
+    $pendingcontrl  = $controlClass->pendingcontlr();
+    $approvedcontrl = $controlClass->approvedcontlr();
+    $pendingki      = $kiclass->pendingki();
+    $approvedki     = $kiclass->approvedki();
+    $pendingrcmd    = $recommendClass->pendingrecommend();
+    $approvedrcmd   = $recommendClass->approvedrecommend();
+    $pendingaction  = $actionClass->pendingaction();
+    $approvedaction = $actionClass->approvedaction();
+}
 //
 
 $ctme=date('Y-m-d H:i:s');

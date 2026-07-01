@@ -1,5 +1,9 @@
 ﻿
 <?php
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$sessionRole = (int)($_SESSION['roles']   ?? 0);
+$sessionDept = $_SESSION['dept_id'] ?? '';
+
 include_once'./company/companyClass.php';
 include_once'./department/departmentClass.php';
 include_once'./users/usersClass.php';
@@ -9,7 +13,12 @@ include_once'./settings/controltypeClass.php';
 include_once'./process/processClass.php';
 
 $processclass= new processClass();
-$showprocess= $processclass->showProcess();
+// roles 2 and 3 see only processes belonging to their department
+if (in_array($sessionRole, [2, 3]) && $sessionDept !== '') {
+    $showprocess = $processclass->showProcessdept($sessionDept);
+} else {
+    $showprocess = $processclass->showProcess();
+}
 
 $cstypeclass=new  controltypeClass();
 $showctype= $cstypeclass->showcontroltype();
@@ -75,6 +84,14 @@ $tab= $_GET["tab"] ?? "group";
 }
 .table-buss tbody tr:hover td {
     background: #eef4ff;
+}
+/* disable action buttons for view-only roles */
+.role-readonly .btn-userpermission-edit,
+.role-readonly .btn-userpermission-delete,
+.role-readonly .btn-userpermission-add {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
 }
 .nav-col {
     padding: 6px 4px;
@@ -143,7 +160,7 @@ label {
     .nav-link i, .nav-link .fa { margin-bottom: 0; margin-right: 5px; font-size: 13px; }
 }
 </style>
-<body>
+<body class="<?php echo (isset($sess_roles) && in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?>"><?php // roles 1 and 3 are view-only on this page ?>
     <div id="app">
         <div id="main" class="layout-horizontal">
 

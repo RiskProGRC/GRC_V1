@@ -159,6 +159,8 @@
         .card-link.risktracker  .card-icon { background: #e3f2fd; }
         .card-link.roles        { border-left-color: #6a1b9a; }
         .card-link.roles        .card-icon { background: #f3e8ff; }
+        .card-link.permissions  { border-left-color: #c0392b; }
+        .card-link.permissions  .card-icon { background: #fde8e8; }
 
         .card-icon {
             width: 42px; height: 42px;
@@ -219,7 +221,7 @@
 
 <div class="toolbar">
     <h1>GRC V1 &mdash; Changes &amp; Reports Index</h1>
-    <span class="toolbar-meta">12 sections &nbsp;&middot;&nbsp; 30 reports</span>
+    <span class="toolbar-meta">13 sections &nbsp;&middot;&nbsp; 31 reports</span>
 </div>
 
 <div class="layout">
@@ -270,6 +272,10 @@
         </a>
         <a class="menu-item" href="#sec-roles" onclick="setActive(this)">
             <span class="menu-icon">&#128101;</span> Roles Update
+            <span class="menu-count">1</span>
+        </a>
+        <a class="menu-item" href="#sec-permissions" onclick="setActive(this)">
+            <span class="menu-icon">&#128274;</span> Permissions
             <span class="menu-count">1</span>
         </a>
         <a class="menu-item" href="#sec-study" onclick="setActive(this)">
@@ -689,6 +695,25 @@
                 <div class="card-info">
                     <h3>Role System Redesign &mdash; Implementation Plan</h3>
                     <p>3 roles: Administrator, Manager (new), Champion (renamed). Nav guards moved from permission table to roles. 5 files: profile.php, userslist.php, header.php, nav.php, footer.php</p>
+                </div>
+                <span class="badge badge-done">&#10003; Complete</span>
+                <span class="arrow">&#8250;</span>
+            </a>
+        </section>
+
+        <!-- ── Permissions ── -->
+        <section class="section" id="sec-permissions">
+            <div class="section-heading">
+                <span class="sec-icon">&#128274;</span>
+                <h3>Permissions</h3>
+                <span class="sec-count">1 report</span>
+            </div>
+
+            <a href="permissions.html" class="card-link permissions">
+                <div class="card-icon">&#128274;</div>
+                <div class="card-info">
+                    <h3>Role-Based Button Control &amp; Dept Filter &mdash; 13 Pages</h3>
+                    <p>Roles 1 &amp; 3: edit/delete/add/treatment/history buttons disabled on 10 pages. Role 3: inbox.php scoped to own dept across all 5 tabs. Roles 2 &amp; 3: riskview.php dropdown locked + auto-loads; kri.php fetches only dept KRI rows via JOIN on risk table.</p>
                 </div>
                 <span class="badge badge-done">&#10003; Complete</span>
                 <span class="arrow">&#8250;</span>

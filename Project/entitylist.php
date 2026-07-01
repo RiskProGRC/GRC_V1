@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 <?php
 include_once'./company/companyClass.php';
 include_once'./department/departmentClass.php';
@@ -38,7 +38,7 @@ $showcompany=$companyClass->showCompany();
                         <div class="card-header">
                             <!--<a href="../Project/add_entity" class="btn btn-primary" style="float:right;margin-right:30px;">-->
                             <button onclick="location.href='../Project/add_entity.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
-                            <span class="fa-fw select-all fas">ï•</span>Create Entity</a></button>
+                            <i class="fas fa-fw fa-plus"></i> Create Entity</button>
                             
                             
                         </div>
@@ -56,8 +56,8 @@ $showcompany=$companyClass->showCompany();
                                 <tbody>
                                 <?php 
                                 foreach($showdept as $dept){ 
-                                    $uid=$dept["owner"];
-                                    $username=$userclass->userjoin($uid);
+                                    $uid=$dept["owners"] ?? '';
+                                    $username=$uid ? $userclass->userjoin((string)$uid) : 'N/A';
 
                                     $cid=$dept["company"];
                                     $companyname=$companyClass->companyJoins($cid);
@@ -258,3 +258,4 @@ $showcompany=$companyClass->showCompany();
 </body>
 
 </html>
+

@@ -22,7 +22,16 @@ $deptClass= new departmentClass();
 <!-_________________Header location______________________->
 <?php include_once("../layout/header.php"); ?>
 
-<body>
+<body class="<?php echo (isset($sess_roles) && in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?>">
+<style>
+.role-readonly .btn-userpermission-edit,
+.role-readonly .btn-userpermission-delete,
+.role-readonly .btn-userpermission-add {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>
     <div id="app">
         <div id="main" class="layout-horizontal">
 
@@ -130,7 +139,7 @@ $deptClass= new departmentClass();
                                                 ?>
                                             </td>
                                             <td>
-                                                <button class="btn btn-sm btn-primary editcontrol-btn" id='<?=$control["control_id"]?>'><i class="fas fa-fw fa-pen"></i></a>                                        
+                                                <button class="btn btn-sm btn-primary editcontrol-btn btn-userpermission-edit" id='<?=$control["control_id"]?>'><i class="fas fa-fw fa-pen"></i></a>                                        
                                                 <button class="btn btn-sm btn-danger delete-btn btn-userpermission-delete" id='.$control["control_id"].'><i class="fas fa-fw fa-trash"></i></a>
                                             </td>
                                         </tr>

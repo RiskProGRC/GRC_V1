@@ -28,7 +28,16 @@ $showaction=$actionClass->showaction();
 <!-_________________Header location______________________->
 <?php include_once'../layout/header.php'; ?>
 
-<body>
+<body class="<?php echo (isset($sess_roles) && in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?>">
+<style>
+.role-readonly .btn-userpermission-edit,
+.role-readonly .btn-userpermission-delete,
+.role-readonly .btn-userpermission-add {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>
     <div id="app">
         <div id="main" class="layout-horizontal">
 
@@ -69,15 +78,10 @@ $showaction=$actionClass->showaction();
                 </style>
 
                 <section class="section">
-                    <form method="POST" id="convert_form" action="export.php">
                     <div class="card">
                         <div class="card-header">
-                            <input type="hidden" name="file_content" id="file_content">
                             <button onclick="location.href='../Project/addrecommend.php'" type="button" class="btn btn-primary btn-userpermission-add" style="float:right;margin-right:30px;">
                             <i class="fas fa-fw fa-plus"></i>Recommendation</button>
-                            <!--<a href="../Project/addrecommend" class="btn btn-primary" style="float:right;margin-right:30px;">
-                            <i class="fas fa-fw fa-plus"></i>Recommendation</a>-->
-                            <button type="button" name="convert" id="convert" class="btn btn-primary convert" style="float:right;margin-right:30px;">EXPORT</button>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -145,7 +149,6 @@ $showaction=$actionClass->showaction();
                             </div><!-- table-responsive -->
                         </div>
                     </div>
-                  </form>
                 </section>
 
 

@@ -1,4 +1,8 @@
 ﻿<?php
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$sessionRole = $_SESSION['roles']   ?? 0;
+$sessionDept = $_SESSION['dept_id'] ?? '';
+
 $i=1;
 include_once'./raf/kriClass.php';
 include_once'./risk/riskClass.php';
@@ -7,16 +11,30 @@ include_once'./process/processClass.php';
 $processClass= new processClass();
 $riskClass= new riskClass();
 $kriclass= new kriClass();
-$krishow=$kriclass->fetchkri();
 
-
+// roles 2 and 3 see only KRI rows linked to their department's risks
+if (in_array((int)$sessionRole, [2, 3]) && $sessionDept !== '') {
+    $krishow = $kriclass->fetchkrideptperf($sessionDept);
+} else {
+    $krishow = $kriclass->fetchkri();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <!-_________________Header location______________________->
 <?php include_once'../layout/header.php'; ?>
 
-<body>
+<body class="<?php echo (isset($sess_roles) && in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?>">
+<style>
+.role-readonly .btn-userpermission-edit,
+.role-readonly .btn-userpermission-delete,
+.role-readonly .btn-userpermission-add,
+.role-readonly .btn-userpermission-history {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>
     <div id="app">
         <div id="main" class="layout-horizontal">
 
@@ -184,8 +202,8 @@ $krishow=$kriclass->fetchkri();
                                                 }?>"> <?= $kri["risk_apetite"] ?></td>
                                             <td style="max-width:220px;white-space:normal;padding:4px 8px;font-size:11px;"><?=substr($kri["rapetite_desc"],0,60).'...'?></td>
                                             <td>
-                                                <button name="edit" class="btn btn-sm btn-primary histadd" id="<?=$kri["id"]?>" title="Update"><i class="fas fa-fw fa-pen"></i></button>
-                                                <button name="delete" class="btn btn-sm kribtn btn-danger" title="History"><a class="kri_btn" href="krihist.php?id=<?= $kri['id']?>"><i class="fas fa-fw fa-clock"></i></a></button>
+                                                <button name="edit" class="btn btn-sm btn-primary histadd btn-userpermission-edit" id="<?=$kri["id"]?>" title="Update"><i class="fas fa-fw fa-pen"></i></button>
+                                                <button name="delete" class="btn btn-sm kribtn btn-danger btn-userpermission-history" title="History"><a class="kri_btn" href="krihist.php?id=<?= $kri['id']?>"><i class="fas fa-fw fa-clock"></i></a></button>
                                                 <button name="delete" class="btn btn-sm kribtn btn-danger" title="Chart"><a class="kri_btn" href="krichart.php?id=<?= $kri['id']?>"><i class="fas fa-fw fa-chart-line"></i></a></button>
                                             </td>
                                     </tr>

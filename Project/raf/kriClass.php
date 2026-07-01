@@ -244,6 +244,18 @@ class kriClass extends BaseRepository {
         return $this->fetchAll('performance');
     }
 
+    // return performance rows whose linked risk belongs to a given department
+    public function fetchkrideptperf(string $sdid): array {
+        $stmt = $this->prepare(
+            "SELECT performance.* FROM performance
+             INNER JOIN risk ON performance.risk_id = risk.risk_id
+             WHERE risk.dept = ?"
+        );
+        $stmt->bind_param('s', $sdid);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC) ?? [];
+    }
+
     // return KRI rows that have a BSC objective linked
     public function fetchkriobj(): array {
         $stmt = $this->prepare("SELECT * FROM kri WHERE (b_objective) IS NOT NULL");

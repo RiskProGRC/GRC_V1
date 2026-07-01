@@ -24,7 +24,17 @@ $btntass="btn-light";
 <!-_________________Header location______________________->
 <?php include_once("../layout/header.php"); ?>
 
-<body>
+<body class="<?php echo (isset($sess_roles) && in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?>">
+<style>
+.role-readonly .btn-userpermission-edit,
+.role-readonly .btn-userpermission-delete,
+.role-readonly .btn-userpermission-add,
+.role-readonly .btn-userpermission-treatment {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>
     <div id="app">
         <div id="main" class="layout-horizontal">
 
@@ -179,7 +189,7 @@ $btntass="btn-light";
                                             
                                             <div class="btn-group me-1 mb-1">
                                                 <div class="dropdown">
-                                                    <button type="button" href="" class="btn btn-info btn-sm dropdown-toggle"
+                                                    <button type="button" href="" class="btn btn-info btn-sm dropdown-toggle btn-userpermission-treatment"
                                                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                         Treatment
                                                     </button>

@@ -15,7 +15,16 @@ $btntass="btn-light";
 <!-_________________Header location______________________->
 <?php include_once("../layout/header.php"); ?>
 
-<body>
+<body class="<?php echo (isset($sess_roles) && in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?>">
+<style>
+.role-readonly .btn-userpermission-edit,
+.role-readonly .btn-userpermission-delete,
+.role-readonly .btn-userpermission-add {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>
     <div id="app">
         <div id="main" class="layout-horizontal">
 
@@ -123,9 +132,9 @@ $btntass="btn-light";
                                         <td style="padding:0px;border-left:2px solid #000;"><input type="button" style="width:100%;padding:30px 15px;border-radius:0px;" value="'.$rrass.'" class="btn assess '.$btnrass.'"></td>
                                         <td style="padding:0px;border-left:2px solid #000;"><input type="button" style="width:100%;padding:30px 15px;border-radius:0px;" value="'.$trass.'" class="btn assess '.$btntass.'"></td>
                                         <td style="padding-left:20px">
-                                        <a href="../Project/riskassessedit.php?id='.$assess["id"].'" class="btn btn-sm btn-primary userpermission-edit"><i class="fas fa-fw fa-pen"></i></a>
-                                        <a href="#" class="btn btn-sm btn-danger "><i class="fas fa-fw fa-trash"></i></a>
-                                        <a href="../Project/update_rcontrol.php?id='.$assess["risk_id"].'" class="btn btn-sm btn-primary userpermission-control">Edit control</a>
+                                        <a href="../Project/riskassessedit.php?id='.$assess["id"].'" class="btn btn-sm btn-primary btn-userpermission-edit"><i class="fas fa-fw fa-pen"></i></a>
+                                        <a href="#" class="btn btn-sm btn-danger btn-userpermission-delete"><i class="fas fa-fw fa-trash"></i></a>
+                                        <a href="../Project/update_rcontrol.php?id='.$assess["risk_id"].'" class="btn btn-sm btn-primary btn-userpermission-edit">Edit control</a>
                                         </td>
                                     </tr>';
                                     }

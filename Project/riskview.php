@@ -1,6 +1,19 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$sessionRole = $_SESSION['roles']   ?? 0;
+$sessionDept = $_SESSION['dept_id'] ?? '';
+
 include_once './connection/connect.php'; // $con — needed before DOCTYPE for dept dropdown
-$depts = mysqli_query($con, "SELECT dept_id, dept_name FROM department ORDER BY dept_name ASC");
+
+// roles 2 and 3 only see their own department in the dropdown
+if (in_array((int)$sessionRole, [2, 3]) && $sessionDept !== '') {
+    $stmt = $con->prepare("SELECT dept_id, dept_name FROM department WHERE dept_id = ?");
+    $stmt->bind_param('s', $sessionDept);
+    $stmt->execute();
+    $depts = $stmt->get_result();
+} else {
+    $depts = mysqli_query($con, "SELECT dept_id, dept_name FROM department ORDER BY dept_name ASC");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,10 +104,17 @@ $depts = mysqli_query($con, "SELECT dept_id, dept_name FROM department ORDER BY 
                                     <div class="col-sm-3">
                                         <div class="form-group">
                                             <label>Choose Entity</label>
-                                            <select class="form-select" id="rv-dept" onchange="loadDept(this.value)">
+                                            <?php $restrictedRole = in_array((int)$sessionRole, [2, 3]) && $sessionDept !== ''; ?>
+                                            <select class="form-select" id="rv-dept" onchange="loadDept(this.value)"
+                                                <?= $restrictedRole ? 'disabled' : '' ?>>
+                                                <?php if (!$restrictedRole): ?>
                                                 <option value="">-- Select Entity --</option>
+                                                <?php endif; ?>
                                                 <?php while ($d = mysqli_fetch_assoc($depts)): ?>
-                                                <option value="<?= $d['dept_id'] ?>"><?= htmlspecialchars($d['dept_name']) ?></option>
+                                                <option value="<?= $d['dept_id'] ?>"
+                                                    <?= $restrictedRole ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($d['dept_name']) ?>
+                                                </option>
                                                 <?php endwhile; ?>
                                             </select>
                                         </div>
@@ -122,6 +142,11 @@ $depts = mysqli_query($con, "SELECT dept_id, dept_name FROM department ORDER BY 
 <script src="../assets/vendors/simple-datatables/simple-datatables.js"></script>
 <script src="../assets/js/bootstrap.bundle.min.js"></script>
 <script>
+<?php if ($restrictedRole): ?>
+// auto-load the user's department on page ready — no manual selection needed
+$(document).ready(function() { loadDept('<?= addslashes($sessionDept) ?>'); });
+<?php endif; ?>
+
 function loadDept(id) {
     if (!id) { // user picked the blank option — reset display
         $('#rv-display').html('<div class="rv-prompt">&#128202; Select an entity to load its risk register</div>');

@@ -33,7 +33,16 @@ $btntass="btn-light";
 
 ?>
 
-<body>
+<body class="<?php echo (isset($sess_roles) && in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?>">
+<style>
+.role-readonly .btn-userpermission-edit,
+.role-readonly .btn-userpermission-delete,
+.role-readonly .btn-userpermission-add {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>
     <div id="app">
         <div id="main" class="layout-horizontal">
 
@@ -144,7 +153,7 @@ $btntass="btn-light";
                                             <?php if($approval==2){ ?>
                                             <a href="#" class="btn btn-sm btn-primary "><i class="fas fa-fw fa-pen"></i></a>
                                             <?php }else{ ?>
-                                                <button class="btn btn-sm btn-primary edit-risk" id='<?=$values["risk_id"]?>'><i class="fas fa-fw fa-pen"></i></button> 
+                                                <button class="btn btn-sm btn-primary edit-risk btn-userpermission-edit" id='<?=$values["risk_id"]?>'><i class="fas fa-fw fa-pen"></i></button> 
                                             <?php }?>                                          
                                             <button class="btn btn-sm btn-danger delete-risk btn-userpermission-delete" id='.$values["risk_id"].'><i class="fas fa-fw fa-trash"></i></button>
                                             </td>

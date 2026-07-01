@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permissions — Role-Based Button Control</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+
+        .toolbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .toolbar h1 { font-size: 15px; font-weight: 600; }
+        .toolbar-meta { font-size: 12px; color: #aab; }
+        .back-link { color: #7eb8ff; text-decoration: none; font-size: 12px; }
+        .back-link:hover { text-decoration: underline; }
+
+        .container { max-width: 860px; margin: 0 auto; padding: 36px 24px 80px; }
+
+        .report-header { margin-bottom: 32px; }
+        .report-header h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+        .report-header p { color: #666; font-size: 13px; }
+        .meta-row { display: flex; gap: 20px; margin-top: 14px; flex-wrap: wrap; }
+        .meta-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fff; border: 1px solid #e0e4ea;
+            border-radius: 20px; padding: 4px 14px;
+            font-size: 11px; font-weight: 600; color: #555;
+        }
+
+        .section { margin-bottom: 36px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: #1a1a2e;
+            border-bottom: 2px solid #e8ecf1;
+            padding-bottom: 8px; margin-bottom: 16px;
+        }
+
+        /* Summary cards */
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+        .summary-card {
+            background: #fff; border-radius: 8px;
+            padding: 16px 18px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-top: 4px solid #ccc;
+        }
+        .summary-card.blue  { border-top-color: #2471a3; }
+        .summary-card.green { border-top-color: #1e8449; }
+        .summary-card.amber { border-top-color: #b7950b; }
+        .summary-card.purple{ border-top-color: #6a1b9a; }
+        .summary-card .num  { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+        .summary-card .lbl  { font-size: 11px; color: #888; margin-top: 2px; }
+
+        /* File table */
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); font-size: 12px; }
+        thead th { background: #1a1a2e; color: #fff; padding: 9px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        tbody td { padding: 9px 14px; border-bottom: 1px solid #f0f2f5; vertical-align: top; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #f8faff; }
+        .tag {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+        }
+        .tag-done   { background: #eafaf1; color: #1e8449; }
+        .tag-fix    { background: #fff3cd; color: #856404; }
+        .tag-new    { background: #e8f0ff; color: #1a3a8f; }
+        code { background: #f0f2f5; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-family: 'Consolas', monospace; }
+
+        /* Approach box */
+        .approach-box {
+            background: #fff; border-radius: 8px; padding: 20px 22px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            border-left: 5px solid #2471a3;
+            margin-bottom: 16px;
+        }
+        .approach-box h4 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
+        .approach-box p  { font-size: 12px; color: #555; margin-bottom: 8px; }
+        .approach-box p:last-child { margin-bottom: 0; }
+
+        /* Code block */
+        .code-block {
+            background: #1a1a2e; color: #c8d3f0; border-radius: 8px;
+            padding: 16px 20px; font-size: 12px; font-family: 'Consolas', monospace;
+            line-height: 1.7; overflow-x: auto; margin-bottom: 14px;
+        }
+        .code-block .cm  { color: #6a9955; }
+        .code-block .kw  { color: #569cd6; }
+        .code-block .st  { color: #ce9178; }
+        .code-block .fn  { color: #dcdcaa; }
+        .code-block .cs  { color: #4ec9b0; }
+
+        /* Role legend */
+        .role-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); font-size: 12px; margin-bottom: 16px; }
+        .role-table thead th { background: #2471a3; color: #fff; padding: 8px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .role-table tbody td { padding: 9px 14px; border-bottom: 1px solid #f0f2f5; }
+        .role-table tbody tr:last-child td { border-bottom: none; }
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+        .dot-red   { background: #e74c3c; }
+        .dot-green { background: #27ae60; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>Permissions &mdash; Role-Based Button Control</h1>
+    <div style="display:flex;align-items:center;gap:20px;">
+        <span class="toolbar-meta">2026-07-01</span>
+        <a href="index.html" class="back-link">&#8592; Back to Index</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="report-header">
+        <h2>Role-Based Button Disabling</h2>
+        <p>Disabled edit, delete, add, treatment and history action buttons on 10 pages for users with roles 1 and 3 (view-only access).</p>
+        <div class="meta-row">
+            <span class="meta-pill">&#128197; 2026-07-01</span>
+            <span class="meta-pill">&#128196; 10 files changed</span>
+            <span class="meta-pill">&#9989; Complete</span>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-grid">
+        <div class="summary-card blue">
+            <div class="num">13</div>
+            <div class="lbl">Pages updated</div>
+        </div>
+        <div class="summary-card green">
+            <div class="num">2</div>
+            <div class="lbl">Roles restricted (1 &amp; 3)</div>
+        </div>
+        <div class="summary-card amber">
+            <div class="num">5</div>
+            <div class="lbl">Button types controlled</div>
+        </div>
+        <div class="summary-card purple">
+            <div class="num">7</div>
+            <div class="lbl">Missing classes fixed</div>
+        </div>
+    </div>
+
+    <!-- Role legend -->
+    <div class="section">
+        <div class="section-title">Role Access Matrix</div>
+        <table class="role-table">
+            <thead>
+                <tr>
+                    <th>Role</th>
+                    <th>Name</th>
+                    <th>Add</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>1</code></td>
+                    <td>Risk Owner / Administrator</td>
+                    <td><span class="dot dot-red"></span>Disabled</td>
+                    <td><span class="dot dot-red"></span>Disabled</td>
+                    <td><span class="dot dot-red"></span>Disabled</td>
+                </tr>
+                <tr>
+                    <td><code>2</code></td>
+                    <td>Risk Champion</td>
+                    <td><span class="dot dot-green"></span>Enabled</td>
+                    <td><span class="dot dot-green"></span>Enabled</td>
+                    <td><span class="dot dot-green"></span>Enabled</td>
+                </tr>
+                <tr>
+                    <td><code>3</code></td>
+                    <td>View-Only</td>
+                    <td><span class="dot dot-red"></span>Disabled</td>
+                    <td><span class="dot dot-red"></span>Disabled</td>
+                    <td><span class="dot dot-red"></span>Disabled</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Approach -->
+    <div class="section">
+        <div class="section-title">Implementation Approach</div>
+
+        <div class="approach-box">
+            <h4>CSS body-class technique</h4>
+            <p>A <code>role-readonly</code> class is added to <code>&lt;body&gt;</code> when the logged-in user's role is 1 or 3.
+            A CSS rule then sets <code>opacity: 0.4</code>, <code>pointer-events: none</code>, and <code>cursor: not-allowed</code>
+            on every element carrying <code>btn-userpermission-edit</code>, <code>btn-userpermission-delete</code>,
+            or <code>btn-userpermission-add</code>.</p>
+            <p>This approach is <strong>DataTable-safe</strong> — because the rule lives on the body element, it
+            re-applies automatically after DataTables redraws rows during search or pagination without any
+            extra JavaScript.</p>
+        </div>
+
+        <div class="code-block">
+<span class="cm">&lt;!-- Body tag (PHP) --&gt;</span>
+&lt;<span class="kw">body</span> <span class="fn">class</span>=<span class="st">"&lt;?php echo (isset($sess_roles) &amp;&amp; in_array((int)$sess_roles, [1, 3])) ? 'role-readonly' : '' ?&gt;"</span>&gt;
+
+<span class="cm">/* CSS rule added to each page */</span>
+.<span class="cs">role-readonly</span> .<span class="cs">btn-userpermission-edit</span>,
+.<span class="cs">role-readonly</span> .<span class="cs">btn-userpermission-delete</span>,
+.<span class="cs">role-readonly</span> .<span class="cs">btn-userpermission-add</span> {
+    <span class="kw">opacity</span>: 0.4;
+    <span class="kw">pointer-events</span>: none;
+    <span class="kw">cursor</span>: not-allowed;
+}
+        </div>
+    </div>
+
+    <!-- Files changed -->
+    <div class="section">
+        <div class="section-title">Files Changed</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Change</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Project/bussinf.php</code></td>
+                    <td>Added <code>role-readonly</code> CSS to existing <code>&lt;style&gt;</code> block; body class PHP check</td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/risklist.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block; added missing <code>btn-userpermission-edit</code> to <code>.edit-risk</code> button</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-fix">Fix</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/riskassess.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block; fixed 3 wrong/missing button classes — <code>userpermission-edit</code> → <code>btn-userpermission-edit</code>, added <code>btn-userpermission-delete</code> to delete button, <code>btn-userpermission-edit</code> to Edit control button</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-fix">Fix</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/kra_settings.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block</td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/incidents.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block</td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/actions.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block; added missing <code>btn-userpermission-edit</code> to <code>.editactionbtn</code> button</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-fix">Fix</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/recommendations.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block; removed Export button and wrapping <code>&lt;form&gt;</code></td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/risktreatment.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block; added <code>btn-userpermission-treatment</code> to Treatment dropdown button — prevents dropdown from opening for roles 1 &amp; 3</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-new">New</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/kri.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block; added <code>btn-userpermission-edit</code> to Update button, <code>btn-userpermission-history</code> to History button</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-new">New</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/controls.php</code></td>
+                    <td>Body class + inline <code>&lt;style&gt;</code> block; added missing <code>btn-userpermission-edit</code> to <code>.editcontrol-btn</code> button (add &amp; delete already had classes)</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-fix">Fix</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Button class convention -->
+    <div class="section">
+        <div class="section-title">Button Class Convention</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Controls</th>
+                    <th>Used on</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>btn-userpermission-add</code></td>
+                    <td>Add / New record buttons</td>
+                    <td>All 10 pages</td>
+                </tr>
+                <tr>
+                    <td><code>btn-userpermission-edit</code></td>
+                    <td>Edit / Pencil buttons and Update buttons per row</td>
+                    <td>All 10 pages (5 fixed)</td>
+                </tr>
+                <tr>
+                    <td><code>btn-userpermission-delete</code></td>
+                    <td>Delete / Trash buttons per row</td>
+                    <td>All 10 pages (1 fixed)</td>
+                </tr>
+                <tr>
+                    <td><code>btn-userpermission-treatment</code></td>
+                    <td>Treatment strategy dropdown toggle</td>
+                    <td>risktreatment.php</td>
+                </tr>
+                <tr>
+                    <td><code>btn-userpermission-history</code></td>
+                    <td>History view button per row</td>
+                    <td>kri.php</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="font-size:11px;color:#888;margin-top:10px;">Any future button that should respect role permissions must include the relevant <code>btn-userpermission-*</code> class — the body CSS will handle the rest automatically.</p>
+    </div>
+
+    <!-- Inbox dept filter -->
+    <div class="section">
+        <div class="section-title">Inbox — Department Filter for Role 3 &nbsp;<span style="font-size:10px;font-weight:400;color:#888;">(2026-07-01)</span></div>
+
+        <div class="approach-box">
+            <h4>What changed</h4>
+            <p>
+                When the logged-in user has <code>roles = 3</code>, <code>Project/inbox.php</code> now fetches only
+                records that belong to their department (<code>$_SESSION['dept_id']</code>).
+                All five tabs are scoped: Risks, Controls, KPIs, Recommendations, and Actions.
+                The tab badge counts (pending / approved / rejected) are also recalculated from the filtered
+                dataset so the numbers match what is displayed in the table.
+            </p>
+            <p>
+                For all other roles (admin, manager, champion) the existing global fetch methods run unchanged,
+                so behaviour is identical to before for non-role-3 users.
+            </p>
+        </div>
+
+        <div class="code-block">
+<span class="cm">// read session role and department — role 3 is a department-level user</span>
+<span class="kw">if</span> (session_status() === PHP_SESSION_NONE) { session_start(); }
+$sessionRole = $_SESSION[<span class="st">'roles'</span>]   ?? 0;
+$sessionDept = $_SESSION[<span class="st">'dept_id'</span>] ?? <span class="st">''</span>;
+
+<span class="kw">if</span> ($sessionRole == 3 &amp;&amp; $sessionDept !== <span class="st">''</span>) {
+    <span class="cm">// dept-filtered data</span>
+    $showRisk      = $riskClass-&gt;<span class="fn">showRiskdept</span>($sessionDept);
+    $showcontrol   = $controlClass-&gt;<span class="fn">showcontroldept</span>($sessionDept);
+    $showki        = $kiclass-&gt;<span class="fn">showKidept</span>($sessionDept);
+    $showrecommend = $recommendClass-&gt;<span class="fn">showrecommenddept</span>($sessionDept);
+    $showaction    = $actionClass-&gt;<span class="fn">showactiondept</span>($sessionDept);
+
+    <span class="cm">// counts derived from filtered arrays — no extra DB calls</span>
+    $pending_risk  = count(array_filter($showRisk, fn($r) =&gt; $r[<span class="st">'approval'</span>] == 1));
+    <span class="cm">// ... same pattern for all other counts</span>
+} <span class="kw">else</span> {
+    <span class="cm">// admin / other roles — fetch everything</span>
+    $showRisk      = $riskClass-&gt;<span class="fn">showRisk</span>();
+    $pending_risk  = $riskClass-&gt;<span class="fn">pendingrisks</span>();
+    <span class="cm">// ...</span>
+}
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Change</th>
+                    <th>Method used (role 3)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Project/inbox.php</code></td>
+                    <td>Risks tab</td>
+                    <td><code>showRiskdept($dept)</code></td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/inbox.php</code></td>
+                    <td>Controls tab</td>
+                    <td><code>showcontroldept($dept)</code></td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/inbox.php</code></td>
+                    <td>KPIs tab</td>
+                    <td><code>showKidept($dept)</code></td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/inbox.php</code></td>
+                    <td>Recommendations tab</td>
+                    <td><code>showrecommenddept($dept)</code></td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/inbox.php</code></td>
+                    <td>Actions tab</td>
+                    <td><code>showactiondept($dept)</code></td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="font-size:11px;color:#888;margin-top:10px;">
+            The dept-filtered methods (<code>showRiskdept</code>, <code>showcontroldept</code>, etc.) already existed in
+            each class — no new DB methods were needed. Tab badge counts are computed with <code>array_filter()</code>
+            on the already-fetched arrays to avoid extra queries.
+        </p>
+    </div>
+
+    <!-- Riskview dept dropdown filter -->
+    <div class="section">
+        <div class="section-title">Risk Tracker (riskview.php) — Dept Dropdown Scoped for Roles 2 &amp; 3 &nbsp;<span style="font-size:10px;font-weight:400;color:#888;">(2026-07-01)</span></div>
+
+        <div class="approach-box">
+            <h4>What changed</h4>
+            <p>
+                The <strong>Choose Entity</strong> dropdown in <code>Project/riskview.php</code> previously listed every
+                department regardless of who was logged in. For roles 2 and 3, the dropdown now shows
+                only the department the user belongs to (<code>$_SESSION['dept_id']</code>).
+                The select is also <code>disabled</code> so they cannot switch to another department.
+            </p>
+            <p>
+                Additionally, for roles 2 and 3 the risk register <strong>loads automatically</strong> on page open
+                via a <code>$(document).ready</code> call to <code>loadDept()</code> — no manual selection is required.
+            </p>
+            <p>
+                Role 1 (Administrator) is unaffected — they still see the full department list and choose freely.
+            </p>
+        </div>
+
+        <div class="code-block">
+<span class="cm">// PHP — top of riskview.php, before DOCTYPE</span>
+<span class="kw">if</span> (session_status() === PHP_SESSION_NONE) { session_start(); }
+$sessionRole = $_SESSION[<span class="st">'roles'</span>]   ?? 0;
+$sessionDept = $_SESSION[<span class="st">'dept_id'</span>] ?? <span class="st">''</span>;
+
+<span class="kw">if</span> (in_array((int)$sessionRole, [2, 3]) &amp;&amp; $sessionDept !== <span class="st">''</span>) {
+    $stmt = $con-&gt;<span class="fn">prepare</span>(<span class="st">"SELECT dept_id, dept_name FROM department WHERE dept_id = ?"</span>);
+    $stmt-&gt;<span class="fn">bind_param</span>(<span class="st">'s'</span>, $sessionDept);
+    $stmt-&gt;<span class="fn">execute</span>();
+    $depts = $stmt-&gt;<span class="fn">get_result</span>();
+} <span class="kw">else</span> {
+    $depts = <span class="fn">mysqli_query</span>($con, <span class="st">"SELECT dept_id, dept_name FROM department ORDER BY dept_name ASC"</span>);
+}
+
+<span class="cm">// HTML — dropdown: disabled + pre-selected for roles 2 &amp; 3</span>
+&lt;<span class="kw">select</span> id=<span class="st">"rv-dept"</span> onchange=<span class="st">"loadDept(this.value)"</span>
+    <span class="cs">&lt;?= $restrictedRole ? 'disabled' : '' ?&gt;</span>&gt;
+
+<span class="cm">// JS — auto-load on page ready for roles 2 &amp; 3</span>
+$(<span class="fn">document</span>).<span class="fn">ready</span>(<span class="kw">function</span>() { <span class="fn">loadDept</span>(<span class="st">'&lt;?= addslashes($sessionDept) ?&gt;'</span>); });
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Change</th>
+                    <th>Roles affected</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Project/riskview.php</code></td>
+                    <td>Dept dropdown SQL filtered to user's department only</td>
+                    <td>2, 3</td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/riskview.php</code></td>
+                    <td>Dropdown <code>disabled</code>, dept pre-selected, blank option removed</td>
+                    <td>2, 3</td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/riskview.php</code></td>
+                    <td>Auto-load risk register on page open via <code>$(document).ready</code></td>
+                    <td>2, 3</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-new">New</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/riskview.php</code></td>
+                    <td>Full dept list unchanged — manual selection still works</td>
+                    <td>1 (Admin)</td>
+                    <td><span class="tag tag-done">&#10003; Unchanged</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="font-size:11px;color:#888;margin-top:10px;">
+            The <code>riskview_fetch.php</code> backend is unchanged — it already accepts any <code>dept_id</code>
+            via <code>$_POST['deptid']</code> and the scoping is enforced purely in the view layer.
+        </p>
+    </div>
+
+    <!-- KRI dept filter -->
+    <div class="section">
+        <div class="section-title">KRI (kri.php) — Fetch Only Department Records for Roles 2 &amp; 3 &nbsp;<span style="font-size:10px;font-weight:400;color:#888;">(2026-07-01)</span></div>
+
+        <div class="approach-box">
+            <h4>What changed</h4>
+            <p>
+                <code>Project/kri.php</code> previously fetched all rows from the <code>performance</code> table
+                via <code>fetchkri()</code>. For roles 2 and 3, it now calls the new
+                <code>fetchkrideptperf($dept)</code> method which JOINs <code>performance</code> with
+                <code>risk</code> and filters by <code>risk.dept = $sessionDept</code>.
+            </p>
+            <p>
+                A JOIN is required because the <code>performance</code> table has no <code>dept_id</code>
+                column — it links to a department only through its <code>risk_id</code> foreign key.
+                Role 1 (Administrator) is unaffected and still sees all rows.
+            </p>
+        </div>
+
+        <div class="code-block">
+<span class="cm">// New method added to kriClass.php</span>
+<span class="kw">public function</span> <span class="fn">fetchkrideptperf</span>(<span class="cs">string</span> $sdid): <span class="cs">array</span> {
+    $stmt = $this-&gt;<span class="fn">prepare</span>(
+        <span class="st">"SELECT performance.* FROM performance
+         INNER JOIN risk ON performance.risk_id = risk.risk_id
+         WHERE risk.dept = ?"</span>
+    );
+    $stmt-&gt;<span class="fn">bind_param</span>(<span class="st">'s'</span>, $sdid);
+    $stmt-&gt;<span class="fn">execute</span>();
+    <span class="kw">return</span> $stmt-&gt;<span class="fn">get_result</span>()-&gt;<span class="fn">fetch_all</span>(MYSQLI_ASSOC) ?? [];
+}
+
+<span class="cm">// kri.php — conditional fetch at top of file</span>
+<span class="kw">if</span> (in_array((int)$sessionRole, [2, 3]) &amp;&amp; $sessionDept !== <span class="st">''</span>) {
+    $krishow = $kriclass-&gt;<span class="fn">fetchkrideptperf</span>($sessionDept);
+} <span class="kw">else</span> {
+    $krishow = $kriclass-&gt;<span class="fn">fetchkri</span>();
+}
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Change</th>
+                    <th>Roles affected</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Project/raf/kriClass.php</code></td>
+                    <td>New <code>fetchkrideptperf(string $sdid)</code> method — JOINs <code>performance</code> with <code>risk</code>, filters by <code>risk.dept</code></td>
+                    <td>2, 3</td>
+                    <td><span class="tag tag-done">&#10003; Done</span> <span class="tag tag-new">New</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/kri.php</code></td>
+                    <td>Session role/dept read; conditional call to <code>fetchkrideptperf()</code> instead of <code>fetchkri()</code></td>
+                    <td>2, 3</td>
+                    <td><span class="tag tag-done">&#10003; Done</span></td>
+                </tr>
+                <tr>
+                    <td><code>Project/kri.php</code></td>
+                    <td>Global fetch unchanged — all rows still returned</td>
+                    <td>1 (Admin)</td>
+                    <td><span class="tag tag-done">&#10003; Unchanged</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="font-size:11px;color:#888;margin-top:10px;">
+            A JOIN was necessary because <code>performance</code> has no <code>dept_id</code> column —
+            the department is inferred through <code>performance.risk_id → risk.risk_id → risk.dept</code>.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>
