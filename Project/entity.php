@@ -134,7 +134,7 @@ text-align: center;
                                 <div class="row">
                                     <div style="border:3px solid #181d30;background:#bdd1ef;margin-top:3px;padding-top:7px;padding-bottom:4px;" class="col-12 d-flex justify-content-end">
                                     <?php if($sess_roles==1){ ?>
-                                        <div class="col-sm-2"><a href="adddepartment.php" class="btn btn-sm btn-primary">Add Entity</a></div>
+                                        <div class="col-sm-2"><a href="#" data-bs-toggle="modal" data-bs-target="#adddept-modal" class="btn btn-sm btn-primary">Add Entity</a></div>
                                     <?php }else{ ?>   
                                         <div class="col-sm-2"></div> 
                                        <?php } ?>

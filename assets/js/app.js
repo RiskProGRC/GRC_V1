@@ -117,7 +117,7 @@ $(document).on('click', '.edit-button', function (e) {
     e.preventDefault();
     var companyid = $(this).attr('id');
     $.ajax({
-        url: 'editcompanylist',
+        url: 'editcompany.php',
         method: 'POST',
         data: { companyid: companyid },
         dataType: 'json',
@@ -151,7 +151,7 @@ $(document).on('click', '.delete-button', function (e) {
     e.preventDefault();
     var companyid = $(this).attr('id');
     $.ajax({
-        url: 'editcompanylist',
+        url: 'editcompany.php',
         method: 'POST',
         data: { companyid: companyid },
         dataType: 'json',
