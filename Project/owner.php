@@ -73,8 +73,8 @@ $showOwner=$ownerClass->showOwner();
                                             <td>'.$divname.'</td>
                                             <td>'.$owner["sup"].'</td>
                                             <td>
-                                            <a href="" class="btn btn-sm btn-primary "><span class="fa-fw select-all fas">ïŒƒ</span></a>
-                                            <a href="#" class="btn btn-sm btn-danger "><span class="fa-fw select-all fas">ï‹­</span></a>
+                                            <a href="#" class="btn btn-sm btn-primary stg-edit" data-form="#ownereditform" data-modal="#owneredit-modal" data-id="'.$owner["id"].'" data-fname="'.htmlspecialchars($owner["fname"],ENT_QUOTES).'" data-sname="'.htmlspecialchars($owner["sname"],ENT_QUOTES).'" data-email="'.htmlspecialchars($owner["email"],ENT_QUOTES).'" data-sup="'.htmlspecialchars($owner["sup"],ENT_QUOTES).'" data-dept="'.htmlspecialchars($owner["dept"],ENT_QUOTES).'" data-division="'.htmlspecialchars($owner["division"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ïŒƒ</span></a>
+                                            <a href="#" class="btn btn-sm btn-danger stg-del" data-url="ownercrud.php" data-id="'.$owner["id"].'" data-name="'.htmlspecialchars($owner["fname"].' '.$owner["sname"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ï‹­</span></a>
                                             </td>
                                         </tr>';
                                    }
@@ -100,6 +100,28 @@ $showOwner=$ownerClass->showOwner();
 
 
  <!-_________________Footer location______________________->
+
+  <!-- Edit Owner modal -->
+  <div class="modal fade text-left" id="owneredit-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h4 class="modal-title">Edit Owner</h4><button type="button" class="btn btn-danger close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <form id="ownereditform" class="stg-form" data-url="ownercrud.php" data-redirect="owner.php"><div class="modal-body">
+      <input type="hidden" name="id">
+      <div class="form-group"><label>First Name</label><input class="form-control" name="fname"></div>
+      <div class="form-group"><label>Surname</label><input class="form-control" name="sname"></div>
+      <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email"></div>
+      <div class="form-group"><label>Supervisor</label><select class="form-control" name="sup"><option value="Admin">Admin</option></select></div>
+      <div class="form-group"><label>Department</label><select class="form-control" name="dept"><option value="0">----Choose Department----</option>
+        <?php foreach ($showDept as $d) echo '<option value="' . (int)$d['dept_id'] . '">' . htmlspecialchars($d['dept_name'], ENT_QUOTES) . '</option>'; ?></select></div>
+      <div class="form-group"><label>Division</label><select class="form-control" name="division"><option value="0">----Choose Division----</option>
+        <?php foreach ($showDiv as $dv) echo '<option value="' . (int)$dv['id'] . '">' . htmlspecialchars($dv['name'], ENT_QUOTES) . '</option>'; ?></select></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Update Owner</button></div></form>
+  </div></div></div>
+  <!-- Shared settings delete modal -->
+  <div class="modal fade text-left" id="stgdel-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-danger"><h5 class="modal-title white">Delete</h5><button type="button" class="close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <div class="modal-body"><input type="hidden" id="stgdel_url"><input type="hidden" id="stgdel_id"><h5>Delete this record?</h5><div style="font-weight:600;text-align:center;margin-top:8px;" id="stgdel_name"></div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-danger stgdel-confirm">Delete</button></div>
+  </div></div></div>
 
         <?php include_once'../layout/footer.php'; ?>
         

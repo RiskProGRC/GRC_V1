@@ -2303,3 +2303,17 @@ $(document).on('click', '.stgdel-confirm', function (e) {
         error: function () { Swal.fire({ icon: 'error', title: 'Request failed. Please try again.' }); }
     });
 });
+
+// Project edit — checkbox-group rehydrate (entity[]/risk[] from stored comma lists)
+$(document).on('click', '.proj-edit', function (e) {
+    e.preventDefault();
+    var b = this, f = document.getElementById('projecteditform');
+    if (!f) return;
+    f.reset();
+    f.querySelector('[name="id"]').value = b.dataset.id || '';
+    f.querySelector('[name="name"]').value = b.dataset.name || '';
+    var ents = (b.dataset.entity || '').split(','), rks = (b.dataset.risk || '').split(',');
+    Array.prototype.forEach.call(f.querySelectorAll('input[name="entity[]"]'), function (cb) { cb.checked = ents.indexOf(cb.value) > -1; });
+    Array.prototype.forEach.call(f.querySelectorAll('input[name="risk[]"]'), function (cb) { cb.checked = rks.indexOf(cb.value) > -1; });
+    $('#projectedit-modal').modal('show');
+});
