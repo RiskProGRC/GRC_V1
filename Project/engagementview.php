@@ -42,6 +42,7 @@ if ($eng) {
     <div class="page-content">
       <input type="hidden" id="engId" value="<?= (int)$eng['id'] ?>">
       <a href="engagements.php" class="btn btn-light-secondary btn-sm mb-2"><i class="fas fa-arrow-left"></i> Engagements</a>
+      <a href="engagementfieldwork.php?id=<?= (int)$eng['id'] ?>" class="btn btn-success btn-sm mb-2"><i class="fas fa-clipboard-data"></i> Fieldwork &amp; Findings &rarr;</a>
       <div class="card"><div class="card-body">
         <ul class="nav nav-tabs ia-tab" role="tablist">
           <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#t-plan">Engagement Plan</a></li>

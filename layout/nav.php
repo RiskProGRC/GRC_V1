@@ -380,6 +380,9 @@
                                 <li class="submenu-item">
                                     <a href="../Project/engagements.php" class="submenu-link">Engagements</a>
                                 </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/findingsdatabase.php" class="submenu-link">Findings Database</a>
+                                </li>
                             </ul>
                         </div>
                     </div>

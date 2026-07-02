@@ -165,7 +165,12 @@
         ['addreliance', 'editreliance', 'relianceform', 'reliance-modal'],
         ['addchecklist', 'editchecklist', 'checklistform', 'checklist-modal'],
         ['addprocess', 'editprocess', 'processform', 'process-modal'],
-        ['addprogram', 'editprogram', 'programform', 'program-modal']
+        ['addprogram', 'editprogram', 'programform', 'program-modal'],
+        ['addmeeting', 'editmeeting', 'meetingform', 'meeting-modal'],
+        ['addworkpaper', 'editworkpaper', 'workpaperform', 'workpaper-modal'],
+        ['addfinding', 'editfinding', 'findingform', 'finding-modal'],
+        ['addwpcheck', 'editwpcheck', 'wpcheckform', 'wpcheck-modal'],
+        ['addreview', 'editreview', 'reviewform', 'review-modal']
     ];
     IA_FORMS.forEach(function (cfg) {
         var addCls = cfg[0], editCls = cfg[1], formId = cfg[2], modalId = cfg[3];
@@ -189,7 +194,11 @@
             success: function (r) { if (modal) $('#' + modal).modal('hide'); grcSwalReload(r, 1300); }, error: iaFail });
     });
 
-    /* Phase 3 — shared delete for engagement sub-artefacts */
+    /* Phase 4 — engagement document upload (multipart) */
+    $(document).on('click', '.adddoc', function (e) { e.preventDefault(); var f = document.getElementById('docform'); if (f) f.reset(); $('#doc-modal').modal('show'); });
+    $(document).on('submit', '#docform', function (e) { e.preventDefault(); submitMultipart('#docform', 'engdocaction.php'); });
+
+    /* Phase 3/4 — shared delete for engagement sub-artefacts */
     $(document).on('click', '.ia-del', function (e) {
         e.preventDefault();
         $('#iadel_id').val($(this).attr('data-id')); $('#iadel_url').val($(this).attr('data-url')); $('#iadel_label').text($(this).attr('data-label'));
