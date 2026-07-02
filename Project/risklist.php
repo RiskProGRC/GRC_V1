@@ -155,7 +155,7 @@ $btntass="btn-light";
                                             <?php }else{ ?>
                                                 <button class="btn btn-sm btn-primary edit-risk btn-userpermission-edit" id='<?=$values["risk_id"]?>'><i class="fas fa-fw fa-pen"></i></button> 
                                             <?php }?>                                          
-                                            <button class="btn btn-sm btn-danger delete-risk btn-userpermission-delete" id='.$values["risk_id"].'><i class="fas fa-fw fa-trash"></i></button>
+                                            <button class="btn btn-sm btn-danger delete-risk btn-userpermission-delete" id='<?=$values["risk_id"]?>'><i class="fas fa-fw fa-trash"></i></button>
                                             </td>
                                         </tr>
                                         <?php

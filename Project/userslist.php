@@ -165,8 +165,9 @@ $csrf = htmlspecialchars($_SESSION['csrf_token']); // used once in a JS variable
                                                         <input type="hidden" name="id" value="<?= $uid_row ?>">
                                                         <button type="submit" class="btn btn-sm btn-primary">&#128100; Profile</button>
                                                     </form>
-                                                    <button class="btn btn-sm btn-outline-danger delete-user"
-                                                            data-uid="<?= $uid_row ?>">
+                                                    <button class="btn btn-sm btn-outline-danger user-delete"
+                                                            data-uid="<?= $uid_row ?>"
+                                                            data-name="<?= htmlspecialchars($user['fname'] . ' ' . $user['sname'], ENT_QUOTES, 'UTF-8') ?>">
                                                         Delete
                                                     </button>
                                                 </td>
