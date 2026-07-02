@@ -1,17 +1,17 @@
-document.getElementById('basic').addEventListener('click', () => {
+document.getElementById('basic')?.addEventListener('click', () => {
     Toastify({
         text: "This is a toast",
         duration: 3000
     }).showToast();
 })
-document.getElementById('background').addEventListener('click', () => {
+document.getElementById('background')?.addEventListener('click', () => {
     Toastify({
         text: "This is a toast",
         duration: 3000,
         backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
     }).showToast();
 })
-document.getElementById('close').addEventListener('click', () => {
+document.getElementById('close')?.addEventListener('click', () => {
     Toastify({
         text: "Click close button",
         duration: 3000,
@@ -19,7 +19,7 @@ document.getElementById('close').addEventListener('click', () => {
         backgroundColor: "#4fbe87",
     }).showToast();
 })
-document.getElementById('top-left').addEventListener('click', () => {
+document.getElementById('top-left')?.addEventListener('click', () => {
     Toastify({
         text: "This is toast in top left",
         duration: 3000,
@@ -29,7 +29,7 @@ document.getElementById('top-left').addEventListener('click', () => {
         backgroundColor: "#4fbe87",
     }).showToast();
 })
-document.getElementById('top-center').addEventListener('click', () => {
+document.getElementById('top-center')?.addEventListener('click', () => {
     Toastify({
         text: "This is toast in top center",
         duration: 3000,
@@ -39,7 +39,7 @@ document.getElementById('top-center').addEventListener('click', () => {
         backgroundColor: "#4fbe87",
     }).showToast();
 })
-document.getElementById('top-right').addEventListener('click', () => {
+document.getElementById('top-right')?.addEventListener('click', () => {
     Toastify({
         text: "This is toast in top right",
         duration: 3000,
@@ -49,7 +49,7 @@ document.getElementById('top-right').addEventListener('click', () => {
         backgroundColor: "#4fbe87",
     }).showToast();
 })
-document.getElementById('bottom-right').addEventListener('click', () => {
+document.getElementById('bottom-right')?.addEventListener('click', () => {
     Toastify({
         text: "This is toast in bottom right",
         duration: 3000,
@@ -59,7 +59,7 @@ document.getElementById('bottom-right').addEventListener('click', () => {
         backgroundColor: "#4fbe87",
     }).showToast();
 })
-document.getElementById('bottom-center').addEventListener('click', () => {
+document.getElementById('bottom-center')?.addEventListener('click', () => {
     Toastify({
         text: "This is toast in bottom center",
         duration: 3000,
@@ -69,7 +69,7 @@ document.getElementById('bottom-center').addEventListener('click', () => {
         backgroundColor: "#4fbe87",
     }).showToast();
 })
-document.getElementById('bottom-left').addEventListener('click', () => {
+document.getElementById('bottom-left')?.addEventListener('click', () => {
     Toastify({
         text: "This is toast in bottom left",
         duration: 3000,

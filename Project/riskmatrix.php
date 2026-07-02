@@ -110,6 +110,8 @@ $showriskass=$riskClass->showassessment();
         <section class="row">
             <div class="col-12 col-lg-12">
     <!-_________________Content location BEGINING______________________->
+  <!-- Google BubbleChart container (was missing, causing "Container is not defined") -->
+  <div id="series_chart_div" style="width:100%;height:480px;margin-bottom:24px;"></div>
   <!-- // Basic multiple Column Form section start -->
     <section id="multiple-column-form">
         <div class="row match-height">
