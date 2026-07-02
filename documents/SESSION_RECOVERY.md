@@ -17,7 +17,9 @@
 - Screenshots: `cd <scratchpad> && PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright node shoot.js <outDir> <url> <name> ...`
 
 ## Progress log
-- 2026-07-02: Tasks 1 (gitignore) done. Gap analysis + architecture docs written. Before-screenshots captured (dashboard/overview/recommendations). Starting Phase 1 (Governance charters) on branch `feat/ia-governance-charters`.
+- 2026-07-02: Tasks 1 (gitignore) done. Gap analysis + architecture docs written. Before-screenshots captured (dashboard/overview/recommendations).
+- 2026-07-02: Phase 1 (Governance charters) COMPLETE on `feat/ia-governance-charters`. `ia_charter` table + CRUD + printable view + nav link + hardened upload helper + `assets/js/ia.js`. Verified E2E (both charter types add, validation, malicious-upload rejection, MIME check, print view). security-reviewer + code-reviewer run; all CRITICAL/HIGH/MEDIUM findings fixed & re-verified. After-screenshots in `screenshots/phase1_charters/`.
+- NOTE: a review subagent ran `rm` on the scratchpad glob and deleted `shoot.js`/`charters_test.js` (Playwright module + shots survived). Recreate harness scripts from this doc's commands if needed.
 
 ## Per-phase loop (each phase)
 branch (stacked) → DDL migration + apply → class(es) → action handlers → page(s) → nav link → after-screenshots → code-reviewer + security-reviewer → commit.
