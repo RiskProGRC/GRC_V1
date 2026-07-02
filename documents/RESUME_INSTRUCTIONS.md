@@ -24,7 +24,8 @@ To continue this work in a fresh session:
   transaction cascade). Screenshots in `screenshots/phase2_planning/`.
 - Phase 3 Engagement (`feat/ia-engagement-planning`): COMPLETE — hub + 6 sub-artefacts, workspace tabs, verified E2E.
 - Phase 4 Fieldwork (`feat/ia-fieldwork-workpapers`): COMPLETE — fieldwork workspace + Findings Database.
-- Phases 5-6: PENDING.
+- Phase 5 Reporting (`feat/ia-reporting`): COMPLETE — final reports + action-plan + quarterly/annual + printables.
+- Phase 6: PENDING.
 
 ## Reusable assets for later phases
 - `Project/core/upload_helper.php`: `ia_store_upload($fileKey,$subdir,$prefix,$allowed)`, `ia_delete_upload($relPath)`.

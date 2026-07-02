@@ -170,7 +170,10 @@
         ['addworkpaper', 'editworkpaper', 'workpaperform', 'workpaper-modal'],
         ['addfinding', 'editfinding', 'findingform', 'finding-modal'],
         ['addwpcheck', 'editwpcheck', 'wpcheckform', 'wpcheck-modal'],
-        ['addreview', 'editreview', 'reviewform', 'review-modal']
+        ['addreview', 'editreview', 'reviewform', 'review-modal'],
+        ['addfinalreport', 'editfinalreport', 'finalreportform', 'finalreport-modal'],
+        ['addactionsummary', 'editactionsummary', 'actionsummaryform', 'actionsummary-modal'],
+        ['addreportsummary', 'editreportsummary', 'reportsummaryform', 'reportsummary-modal']
     ];
     IA_FORMS.forEach(function (cfg) {
         var addCls = cfg[0], editCls = cfg[1], formId = cfg[2], modalId = cfg[3];
@@ -190,7 +193,8 @@
     });
     $(document).on('submit', '.ia-entity-form', function (e) {
         e.preventDefault(); var url = $(this).data('url'), modal = $(this).data('modal');
-        $.ajax({ url: url, method: 'POST', data: $(this).serialize(), dataType: 'json',
+        // FormData carries text fields AND any optional file inputs uniformly
+        $.ajax({ url: url, method: 'POST', data: new FormData(this), processData: false, contentType: false, dataType: 'json',
             success: function (r) { if (modal) $('#' + modal).modal('hide'); grcSwalReload(r, 1300); }, error: iaFail });
     });
 

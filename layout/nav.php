@@ -383,6 +383,9 @@
                                 <li class="submenu-item">
                                     <a href="../Project/findingsdatabase.php" class="submenu-link">Findings Database</a>
                                 </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/iareports.php" class="submenu-link">Reports</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
