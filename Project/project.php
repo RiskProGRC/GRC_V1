@@ -1,14 +1,14 @@
 ﻿<?php
-include_once './entity/entityClass.php';
 include_once './risk/riskClass.php';
 include_once './settings/riskcategoryClass.php';
 include_once './settings/ownerClass.php';
-include_once './settings/departmentClass.php';
+include_once './department/departmentClass.php';
 include_once './settings/divisionClass.php';
 include_once './settings/projectClass.php';
 
-$entityClass= new entityClass();
-$showEntity=$entityClass->showEntity();
+// "Entities" in this application are departments (see entitylist.php) — the original
+// code referenced a non-existent entityClass, which fataled the whole page.
+$showEntity = (new departmentClass())->showDept();
 
 $riskClass= new riskClass();
 $showRisk= $riskClass->showRisk();
@@ -121,7 +121,7 @@ $showproject=$projectClass->showProject();
       <div class="form-group"><label>Project Name</label><input class="form-control" name="name"></div>
       <label class="mt-2"><b>Entities</b></label>
       <div class="Scroll form-group" style="max-height:180px;overflow:auto;"><table class="table table-bordered table-sm"><tr><th>#</th><th>Entity</th></tr>
-        <?php foreach ($showEntity as $entity) echo '<tr><td><input class="form-check-input" type="checkbox" name="entity[]" value="' . (int)$entity['id'] . '"></td><td>' . htmlspecialchars($entity['description'], ENT_QUOTES) . '</td></tr>'; ?>
+        <?php foreach ($showEntity as $entity) echo '<tr><td><input class="form-check-input" type="checkbox" name="entity[]" value="' . (int)$entity['dept_id'] . '"></td><td>' . htmlspecialchars($entity['dept_name'], ENT_QUOTES) . '</td></tr>'; ?>
       </table></div>
       <label class="mt-2"><b>Risks</b></label>
       <div class="Scroll form-group" style="max-height:180px;overflow:auto;"><table class="table table-bordered table-sm"><tr><th>#</th><th>Risk</th></tr>
@@ -172,32 +172,16 @@ $showproject=$projectClass->showProject();
                             <div class=" Scroll col-md-10 form-group ">
                                <table class="table table-bordered">
                                    <th>#</th>
-                                   <th>Description</th>
-                                   <th>Owner</th>
-                                   <th>Department</th>
-                                   <th>division</th>
+                                   <th>Entity (Department)</th>
                                <?php 
                                foreach($showEntity as $entity){
-                                   $oid=$entity["owner"];
-                                   $ownerName=$ownerClass->ownerJoins($oid);
-
-                                   $deptid=$entity["dept"];
-                                   $deptname=$deptClass->deptJoins($deptid);
-
-                                   $divid=$entity["division"];
-                                   $divname=$divisionClass->divJoins($divid);
-
-
                                echo'
                                 <tr>
-                                        <td><input class="form-check-input" name="entity[]" type="checkbox" value='.$entity["id"].' id="flexCheckDefault"></td>
-                                        <td>'.$entity["description"].'</td>
-                                        <td>'.$ownerName.'</td>
-                                        <td>'.$deptname.'</td>
-                                        <td>'.$divname.'</td>
+                                        <td><input class="form-check-input" name="entity[]" type="checkbox" value='.(int)$entity["dept_id"].' id="flexCheckDefault"></td>
+                                        <td>'.htmlspecialchars($entity["dept_name"],ENT_QUOTES).'</td>
                                     </tr>';
                                }
-                                ?>  
+                                ?>
                                </table>
                             </div><hr><br>                                   
                             <div class="col-md-2">
