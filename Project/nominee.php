@@ -55,8 +55,8 @@ $showNominee=$nomineeClass->shownominee();
                                             <td>'.$nominee["fname"].'&nbsp;'.$nominee["sname"].'</td>
                                             <td>'.$nominee["email"].'</td>
                                             <td>
-                                            <a href="" class="btn btn-sm btn-primary "><span class="fa-fw select-all fas">ïŒƒ</span></a>
-                                            <a href="#" class="btn btn-sm btn-danger "><span class="fa-fw select-all fas">ï‹­</span></a>
+                                            <a href="#" class="btn btn-sm btn-primary stg-edit btn-userpermission-edit" data-form="#nomineeeditform" data-modal="#nomineeedit-modal" data-id="'.$nominee["id"].'" data-fname="'.htmlspecialchars($nominee["fname"],ENT_QUOTES).'" data-sname="'.htmlspecialchars($nominee["sname"],ENT_QUOTES).'" data-email="'.htmlspecialchars($nominee["email"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ïŒƒ</span></a>
+                                            <a href="#" class="btn btn-sm btn-danger stg-del btn-userpermission-delete" data-url="nomineecrud.php" data-id="'.$nominee["id"].'" data-name="'.htmlspecialchars($nominee["fname"].' '.$nominee["sname"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ï‹­</span></a>
                                             </td>
                                         </tr>';
                                    }
@@ -82,6 +82,23 @@ $showNominee=$nomineeClass->shownominee();
 
 
  <!-_________________Footer location______________________->
+
+  <!-- Edit Nominee modal -->
+  <div class="modal fade text-left" id="nomineeedit-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h4 class="modal-title">Edit Nominee</h4><button type="button" class="btn btn-danger close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <form id="nomineeeditform" class="stg-form" data-url="nomineecrud.php" data-redirect="nominee.php"><div class="modal-body">
+      <input type="hidden" name="id">
+      <div class="form-group"><label>First Name</label><input class="form-control" name="fname"></div>
+      <div class="form-group"><label>Surname</label><input class="form-control" name="sname"></div>
+      <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email"></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Update Nominee</button></div></form>
+  </div></div></div>
+  <!-- Shared settings delete modal -->
+  <div class="modal fade text-left" id="stgdel-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-danger"><h5 class="modal-title white">Delete</h5><button type="button" class="close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <div class="modal-body"><input type="hidden" id="stgdel_url"><input type="hidden" id="stgdel_id"><h5>Delete this record?</h5><div style="font-weight:600;text-align:center;margin-top:8px;" id="stgdel_name"></div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-danger stgdel-confirm">Delete</button></div>
+  </div></div></div>
 
         <?php include_once'../layout/footer.php'; ?>
         

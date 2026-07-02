@@ -2254,3 +2254,52 @@ $(document).on('submit', '.ia-simple-add', function (e) {
         error: function () { Swal.fire({ icon: 'error', title: 'Request failed. Please try again.' }); }
     });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section 22 — Generic settings-entity edit/delete (QA fix: reviewer/nominee/owner)
+// Edit button populates a modal form from its data-* attributes; update posts the
+// form; delete uses a shared confirm modal. Handles single- and multi-selects.
+// ─────────────────────────────────────────────────────────────────────────────
+$(document).on('click', '.stg-edit', function (e) {
+    e.preventDefault();
+    var b = this, f = document.querySelector($(this).data('form'));
+    if (!f) return;
+    if (f.reset) f.reset();
+    Object.keys(b.dataset).forEach(function (k) {
+        if (k === 'form' || k === 'modal') return;
+        var el = f.querySelector('[name="' + k + '"]') || f.querySelector('[name="' + k + '[]"]');
+        if (!el) return;
+        if (el.multiple) {
+            var vals = (b.dataset[k] || '').split(',');
+            Array.prototype.forEach.call(el.options, function (o) { o.selected = vals.indexOf(o.value) > -1; });
+        } else {
+            el.value = b.dataset[k];
+        }
+    });
+    $($(this).data('modal')).modal('show');
+});
+$(document).on('submit', '.stg-form', function (e) {
+    e.preventDefault();
+    var $f = $(this);
+    $.ajax({
+        url: $f.data('url'), method: 'POST', data: $f.serialize(), dataType: 'json',
+        success: function (r) { if (r && r.status === 'ok') { grcSwal(r, 1400, $f.data('redirect')); } else { Swal.fire({ icon: 'error', title: (r && r.message) || 'Could not save.' }); } },
+        error: function () { Swal.fire({ icon: 'error', title: 'Request failed. Please try again.' }); }
+    });
+});
+$(document).on('click', '.stg-del', function (e) {
+    e.preventDefault();
+    $('#stgdel_url').val($(this).data('url'));
+    $('#stgdel_id').val($(this).data('id'));
+    $('#stgdel_name').text($(this).data('name') || '');
+    $('#stgdel-modal').modal('show');
+});
+$(document).on('click', '.stgdel-confirm', function (e) {
+    e.preventDefault();
+    $('#stgdel-modal').modal('hide');
+    $.ajax({
+        url: $('#stgdel_url').val(), method: 'POST', data: { mode: 'delete', id: $('#stgdel_id').val() }, dataType: 'json',
+        success: function (r) { grcSwalReload(r, 1200); },
+        error: function () { Swal.fire({ icon: 'error', title: 'Request failed. Please try again.' }); }
+    });
+});
