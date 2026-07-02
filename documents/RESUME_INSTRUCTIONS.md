@@ -22,7 +22,8 @@ To continue this work in a fresh session:
   joined to real department/process/risk) + print. Verified E2E (validation, joins, cascade delete leaves
   0 orphans, zero console errors). code-reviewer run; hardening applied (date-format + year/day bounds +
   transaction cascade). Screenshots in `screenshots/phase2_planning/`.
-- Phases 3-6: PENDING (see tasks / architecture doc for table + file lists).
+- Phase 3 Engagement (`feat/ia-engagement-planning`): COMPLETE — hub + 6 sub-artefacts, workspace tabs, verified E2E.
+- Phases 4-6: PENDING.
 
 ## Reusable assets for later phases
 - `Project/core/upload_helper.php`: `ia_store_upload($fileKey,$subdir,$prefix,$allowed)`, `ia_delete_upload($relPath)`.

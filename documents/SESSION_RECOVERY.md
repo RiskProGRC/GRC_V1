@@ -24,3 +24,4 @@
 
 ## Per-phase loop (each phase)
 branch (stacked) → DDL migration + apply → class(es) → action handlers → page(s) → nav link → after-screenshots → code-reviewer + security-reviewer → commit.
+- 2026-07-02: Phase 3 (Engagement Planning, templates 5-13) COMPLETE on `feat/ia-engagement-planning`. 7 tables (audit_engagement hub + ethics/reliance/engagement-plan/checklist/process-analysis/audit-program). engagements list + workspace (6 tabs). Mode-based action handlers + generic ia.js entity forms + shared delete. Verified E2E: create engagement, save plan, add all 6 sub-artefacts, update/delete paths, transactional engagement cascade delete, zero console errors. Screenshots in screenshots/phase3_engagement/.

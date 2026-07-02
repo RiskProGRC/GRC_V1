@@ -137,4 +137,66 @@
     $(document).on('submit', '#edititemform', function (e) { e.preventDefault(); submitSerialized('#edititemform', 'iaannualplanitemupdate.php'); });
     $(document).on('click', '.deleteitem', function (e) { e.preventDefault(); $('#dit_id').val($(this).attr('data-id')); $('#dit_title').text($(this).attr('data-title')); $('#deleteitem-modal').modal('show'); });
     $(document).on('click', '.confirmdeleteitem-btn', function (e) { e.preventDefault(); $('#deleteitem-modal').modal('hide'); delPost('iaannualplanitemdelete.php', $('#dit_id').val()); });
+
+    /* =========================================================
+       Phase 3 — Engagement hub
+       ========================================================= */
+    $(document).on('click', '.addeng', function (e) { e.preventDefault(); var f = document.getElementById('addengform'); if (f) f.reset(); $('#addeng-modal').modal('show'); });
+    $(document).on('submit', '#addengform', function (e) { e.preventDefault(); submitMultipart('#addengform', 'engagementaction.php'); });
+    $(document).on('click', '.editeng', function (e) {
+        e.preventDefault(); var b = $(this);
+        $('#eeng_id').val(b.attr('data-id')); $('#eeng_title').val(b.attr('data-title')); $('#eeng_dept').val(b.attr('data-dept')); $('#eeng_type').val(b.attr('data-type'));
+        $('#eeng_risk').val(pick(b, 'risk')); $('#eeng_scope').val(b.attr('data-scope')); $('#eeng_owner').val(b.attr('data-owner')); $('#eeng_lead').val(pick(b, 'lead'));
+        $('#eeng_start').val(b.attr('data-start')); $('#eeng_end').val(b.attr('data-end')); $('#eeng_status').val(b.attr('data-status'));
+        $('#editeng-modal').modal('show');
+    });
+    $(document).on('submit', '#editengform', function (e) { e.preventDefault(); submitMultipart('#editengform', 'engagementaction.php'); });
+    $(document).on('click', '.deleteeng', function (e) { e.preventDefault(); $('#deng_id').val($(this).attr('data-id')); $('#deng_title').text($(this).attr('data-title')); $('#deleteeng-modal').modal('show'); });
+    $(document).on('click', '.confirmdeleteeng-btn', function (e) { e.preventDefault(); $('#deleteeng-modal').modal('hide');
+        $.ajax({ url: 'engagementaction.php', method: 'POST', data: { mode: 'delete', id: $('#deng_id').val() }, dataType: 'json', success: function (r) { grcSwalReload(r, 1200); }, error: iaFail }); });
+
+    /* Phase 3 — Engagement Plan (single record per engagement) */
+    $(document).on('submit', '#planform', function (e) { e.preventDefault();
+        $.ajax({ url: 'engplanaction.php', method: 'POST', data: $(this).serialize(), dataType: 'json', success: function (r) { grcSwalReload(r, 1300); }, error: iaFail }); });
+
+    /* Phase 3 — generic engagement sub-artefacts (ethics/reliance/checklist/process/program) */
+    var IA_FORMS = [
+        ['addethics', 'editethics', 'ethicsform', 'ethics-modal'],
+        ['addreliance', 'editreliance', 'relianceform', 'reliance-modal'],
+        ['addchecklist', 'editchecklist', 'checklistform', 'checklist-modal'],
+        ['addprocess', 'editprocess', 'processform', 'process-modal'],
+        ['addprogram', 'editprogram', 'programform', 'program-modal']
+    ];
+    IA_FORMS.forEach(function (cfg) {
+        var addCls = cfg[0], editCls = cfg[1], formId = cfg[2], modalId = cfg[3];
+        $(document).on('click', '.' + addCls, function (e) {
+            e.preventDefault(); var f = document.getElementById(formId); if (!f) return;
+            f.reset();
+            var mEl = f.querySelector('[name="mode"]'); if (mEl) mEl.value = 'add';
+            var iEl = f.querySelector('[name="id"]'); if (iEl) iEl.value = '';
+            $('#' + modalId).modal('show');
+        });
+        $(document).on('click', '.' + editCls, function (e) {
+            e.preventDefault(); var b = this, f = document.getElementById(formId); if (!f) return;
+            f.reset(); f.querySelector('[name="mode"]').value = 'update';
+            Object.keys(b.dataset).forEach(function (k) { var el = f.querySelector('[name="' + k + '"]'); if (el) el.value = b.dataset[k]; });
+            $('#' + modalId).modal('show');
+        });
+    });
+    $(document).on('submit', '.ia-entity-form', function (e) {
+        e.preventDefault(); var url = $(this).data('url'), modal = $(this).data('modal');
+        $.ajax({ url: url, method: 'POST', data: $(this).serialize(), dataType: 'json',
+            success: function (r) { if (modal) $('#' + modal).modal('hide'); grcSwalReload(r, 1300); }, error: iaFail });
+    });
+
+    /* Phase 3 — shared delete for engagement sub-artefacts */
+    $(document).on('click', '.ia-del', function (e) {
+        e.preventDefault();
+        $('#iadel_id').val($(this).attr('data-id')); $('#iadel_url').val($(this).attr('data-url')); $('#iadel_label').text($(this).attr('data-label'));
+        $('#iadel-modal').modal('show');
+    });
+    $(document).on('click', '.iadel-confirm', function (e) {
+        e.preventDefault(); $('#iadel-modal').modal('hide');
+        $.ajax({ url: $('#iadel_url').val(), method: 'POST', data: { mode: 'delete', id: $('#iadel_id').val() }, dataType: 'json', success: function (r) { grcSwalReload(r, 1100); }, error: iaFail });
+    });
 })();
