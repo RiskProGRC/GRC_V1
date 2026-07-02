@@ -17,7 +17,12 @@ To continue this work in a fresh session:
   (add both charter types, validation, malicious-upload rejected, MIME check, printable view). Reviewed by
   security-reviewer + code-reviewer; all CRITICAL/HIGH/MEDIUM findings fixed (upload RCE, MIME, file cleanup,
   status whitelist). Screenshots in `screenshots/phase1_charters/`.
-- Phases 2-6: PENDING (see tasks / architecture doc for table + file lists).
+- Phase 2 Planning (`feat/ia-strategic-annual-planning`): COMPLETE — `ia_strategic_plan`, `ia_annual_plan`,
+  `ia_annual_plan_item`. Strategic Plan CRUD + print; Annual Plan CRUD + risk-based schedule (line items
+  joined to real department/process/risk) + print. Verified E2E (validation, joins, cascade delete leaves
+  0 orphans, zero console errors). code-reviewer run; hardening applied (date-format + year/day bounds +
+  transaction cascade). Screenshots in `screenshots/phase2_planning/`.
+- Phases 3-6: PENDING (see tasks / architecture doc for table + file lists).
 
 ## Reusable assets for later phases
 - `Project/core/upload_helper.php`: `ia_store_upload($fileKey,$subdir,$prefix,$allowed)`, `ia_delete_upload($relPath)`.

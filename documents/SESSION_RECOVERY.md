@@ -20,6 +20,7 @@
 - 2026-07-02: Tasks 1 (gitignore) done. Gap analysis + architecture docs written. Before-screenshots captured (dashboard/overview/recommendations).
 - 2026-07-02: Phase 1 (Governance charters) COMPLETE on `feat/ia-governance-charters`. `ia_charter` table + CRUD + printable view + nav link + hardened upload helper + `assets/js/ia.js`. Verified E2E (both charter types add, validation, malicious-upload rejection, MIME check, print view). security-reviewer + code-reviewer run; all CRITICAL/HIGH/MEDIUM findings fixed & re-verified. After-screenshots in `screenshots/phase1_charters/`.
 - NOTE: a review subagent ran `rm` on the scratchpad glob and deleted `shoot.js`/`charters_test.js` (Playwright module + shots survived). Recreate harness scripts from this doc's commands if needed.
+- 2026-07-02: Phase 2 (Strategic + Annual Planning) COMPLETE on `feat/ia-strategic-annual-planning`. 3 tables, Strategic Plan CRUD+print, Annual Plan CRUD + risk-based schedule (items joined to real dept/process/risk) + print. Verified E2E incl. cascade delete (0 orphans). code-reviewer run; hardening applied (date/year/day validation, transactional cascade). Screenshots in `screenshots/phase2_planning/`.
 
 ## Per-phase loop (each phase)
 branch (stacked) → DDL migration + apply → class(es) → action handlers → page(s) → nav link → after-screenshots → code-reviewer + security-reviewer → commit.

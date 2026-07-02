@@ -371,6 +371,12 @@
                                 <li class="submenu-item">
                                     <a href="../Project/iacharter.php" class="submenu-link">Charters</a>
                                 </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/iastrategicplan.php" class="submenu-link">Strategic Plan</a>
+                                </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/iaannualplan.php" class="submenu-link">Annual Plan</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
