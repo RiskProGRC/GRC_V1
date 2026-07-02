@@ -26,4 +26,22 @@ class projectClass extends BaseRepository {
         }
         return null;
     }
+
+    // return full project row for edit populate
+    public function editDetails(string $id): ?array {
+        return $this->fetchOne('project', 'id', $id);
+    }
+
+    // update an existing project row (entity/risk are comma-joined id lists)
+    public function update(string $id, string $name, string $entity, string $risk): string {
+        $stmt = $this->prepare("UPDATE project SET name=?,entityid=?,riskid=? WHERE id=?");
+        $stmt->bind_param('ssss', $name, $entity, $risk, $id);
+        $stmt->execute();
+        return "Project updated successfully";
+    }
+
+    // delete a project row
+    public function delete(string $id): string {
+        return $this->deleteById('project', 'id', $id) ? "Project deleted successfully" : "DELETE FAILED";
+    }
 }

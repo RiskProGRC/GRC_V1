@@ -1,14 +1,14 @@
 ﻿<?php
-include_once './entity/entityClass.php';
 include_once './risk/riskClass.php';
 include_once './settings/riskcategoryClass.php';
 include_once './settings/ownerClass.php';
-include_once './settings/departmentClass.php';
+include_once './department/departmentClass.php';
 include_once './settings/divisionClass.php';
 include_once './settings/projectClass.php';
 
-$entityClass= new entityClass();
-$showEntity=$entityClass->showEntity();
+// "Entities" in this application are departments (see entitylist.php) — the original
+// code referenced a non-existent entityClass, which fataled the whole page.
+$showEntity = (new departmentClass())->showDept();
 
 $riskClass= new riskClass();
 $showRisk= $riskClass->showRisk();
@@ -84,8 +84,8 @@ $showproject=$projectClass->showProject();
                                             <td>'.$project["entityid"].'</td>
                                             <td>RSK00'.$project["riskid"].'</td>
                                             <td>
-                                            <a href="" class="btn btn-sm btn-primary "><span class="fa-fw select-all fas">ïŒƒ</span></a>
-                                            <a href="#" class="btn btn-sm btn-danger "><span class="fa-fw select-all fas">ï‹­</span></a>
+                                            <a href="#" class="btn btn-sm btn-primary proj-edit" data-id="'.$project["id"].'" data-name="'.htmlspecialchars($project["name"],ENT_QUOTES).'" data-entity="'.htmlspecialchars($project["entityid"],ENT_QUOTES).'" data-risk="'.htmlspecialchars($project["riskid"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ïŒƒ</span></a>
+                                            <a href="#" class="btn btn-sm btn-danger stg-del" data-url="projectcrud.php" data-id="'.$project["id"].'" data-name="'.htmlspecialchars($project["name"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ï‹­</span></a>
                                             </td>
                                         </tr>';
                                         }
@@ -112,6 +112,29 @@ $showproject=$projectClass->showProject();
 
 
  <!-_________________Footer location______________________->
+
+  <!-- Edit Project modal -->
+  <div class="modal fade text-left" id="projectedit-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h4 class="modal-title">Edit Project</h4><button type="button" class="btn btn-danger close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <form id="projecteditform" class="stg-form" data-url="projectcrud.php" data-redirect="project.php"><div class="modal-body">
+      <input type="hidden" name="id">
+      <div class="form-group"><label>Project Name</label><input class="form-control" name="name"></div>
+      <label class="mt-2"><b>Entities</b></label>
+      <div class="Scroll form-group" style="max-height:180px;overflow:auto;"><table class="table table-bordered table-sm"><tr><th>#</th><th>Entity</th></tr>
+        <?php foreach ($showEntity as $entity) echo '<tr><td><input class="form-check-input" type="checkbox" name="entity[]" value="' . (int)$entity['dept_id'] . '"></td><td>' . htmlspecialchars($entity['dept_name'], ENT_QUOTES) . '</td></tr>'; ?>
+      </table></div>
+      <label class="mt-2"><b>Risks</b></label>
+      <div class="Scroll form-group" style="max-height:180px;overflow:auto;"><table class="table table-bordered table-sm"><tr><th>#</th><th>Risk</th></tr>
+        <?php foreach ($showRisk as $risk) echo '<tr><td><input class="form-check-input" type="checkbox" name="risk[]" value="' . (int)$risk['id'] . '"></td><td>' . htmlspecialchars($risk['name'], ENT_QUOTES) . '</td></tr>'; ?>
+      </table></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Update Project</button></div></form>
+  </div></div></div>
+  <!-- Shared settings delete modal -->
+  <div class="modal fade text-left" id="stgdel-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-danger"><h5 class="modal-title white">Delete</h5><button type="button" class="close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <div class="modal-body"><input type="hidden" id="stgdel_url"><input type="hidden" id="stgdel_id"><h5>Delete this record?</h5><div style="font-weight:600;text-align:center;margin-top:8px;" id="stgdel_name"></div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-danger stgdel-confirm">Delete</button></div>
+  </div></div></div>
 
         <?php include_once'../layout/footer.php'; ?>
         
@@ -149,32 +172,16 @@ $showproject=$projectClass->showProject();
                             <div class=" Scroll col-md-10 form-group ">
                                <table class="table table-bordered">
                                    <th>#</th>
-                                   <th>Description</th>
-                                   <th>Owner</th>
-                                   <th>Department</th>
-                                   <th>division</th>
+                                   <th>Entity (Department)</th>
                                <?php 
                                foreach($showEntity as $entity){
-                                   $oid=$entity["owner"];
-                                   $ownerName=$ownerClass->ownerJoins($oid);
-
-                                   $deptid=$entity["dept"];
-                                   $deptname=$deptClass->deptJoins($deptid);
-
-                                   $divid=$entity["division"];
-                                   $divname=$divisionClass->divJoins($divid);
-
-
                                echo'
                                 <tr>
-                                        <td><input class="form-check-input" name="entity[]" type="checkbox" value='.$entity["id"].' id="flexCheckDefault"></td>
-                                        <td>'.$entity["description"].'</td>
-                                        <td>'.$ownerName.'</td>
-                                        <td>'.$deptname.'</td>
-                                        <td>'.$divname.'</td>
+                                        <td><input class="form-check-input" name="entity[]" type="checkbox" value='.(int)$entity["dept_id"].' id="flexCheckDefault"></td>
+                                        <td>'.htmlspecialchars($entity["dept_name"],ENT_QUOTES).'</td>
                                     </tr>';
                                }
-                                ?>  
+                                ?>
                                </table>
                             </div><hr><br>                                   
                             <div class="col-md-2">

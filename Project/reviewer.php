@@ -66,8 +66,8 @@ $showreviewer=$reviewerclass->showreviewer();
                                         <td>'.$reviewer["email"].'</td>
                                         <td>'.$reviewer["phone"].'</td>
                                         <td>
-                                        <a href="riskEdit.php" class="btn btn-sm btn-primary "><span class="fa-fw select-all fas">ïŒƒ</span></a>
-                                        <a href="#" class="btn btn-sm btn-danger "><span class="fa-fw select-all fas">ï‹­</span></a>
+                                        <a href="#" class="btn btn-sm btn-primary stg-edit" data-form="#reviewereditform" data-modal="#reviewial-edit-modal" data-id="'.$reviewer["id"].'" data-fname="'.htmlspecialchars($reviewer["fname"],ENT_QUOTES).'" data-sname="'.htmlspecialchars($reviewer["sname"],ENT_QUOTES).'" data-email="'.htmlspecialchars($reviewer["email"],ENT_QUOTES).'" data-phone="'.htmlspecialchars($reviewer["phone"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ïŒƒ</span></a>
+                                        <a href="#" class="btn btn-sm btn-danger stg-del" data-url="reviewercrud.php" data-id="'.$reviewer["id"].'" data-name="'.htmlspecialchars($reviewer["fname"].' '.$reviewer["sname"],ENT_QUOTES).'"><span class="fa-fw select-all fas">ï‹­</span></a>
                                         </td>
                                     </tr>';
                                       }
@@ -94,6 +94,24 @@ $showreviewer=$reviewerclass->showreviewer();
 
 
  <!-_________________Footer location______________________->
+
+  <!-- Edit Reviewer modal -->
+  <div class="modal fade text-left" id="reviewial-edit-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h4 class="modal-title">Edit Reviewer</h4><button type="button" class="btn btn-danger close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <form id="reviewereditform" class="stg-form" data-url="reviewercrud.php" data-redirect="reviewer.php"><div class="modal-body">
+      <input type="hidden" name="id">
+      <div class="form-group"><label>First Name</label><input class="form-control" name="fname"></div>
+      <div class="form-group"><label>Surname</label><input class="form-control" name="sname"></div>
+      <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email"></div>
+      <div class="form-group"><label>Phone</label><input class="form-control" name="phone"></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Update Reviewer</button></div></form>
+  </div></div></div>
+  <!-- Shared settings delete modal -->
+  <div class="modal fade text-left" id="stgdel-modal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-danger"><h5 class="modal-title white">Delete</h5><button type="button" class="close" data-bs-dismiss="modal"><i data-feather="x"></i></button></div>
+    <div class="modal-body"><input type="hidden" id="stgdel_url"><input type="hidden" id="stgdel_id"><h5>Delete this record?</h5><div style="font-weight:600;text-align:center;margin-top:8px;" id="stgdel_name"></div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-danger stgdel-confirm">Delete</button></div>
+  </div></div></div>
 
         <?php include_once("../layout/footer.php"); ?>
 

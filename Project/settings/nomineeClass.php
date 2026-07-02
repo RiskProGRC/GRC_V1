@@ -24,4 +24,19 @@ class nomineeClass extends BaseRepository {
         $row = $this->fetchOne('nominee', 'id', $nid);
         return $row ? $row['fname'] : 'NO VALUES FOUND';
     }
+
+    public function editDetails(string $id): ?array { return $this->fetchOne('nominee', 'id', $id); }
+
+    // update an existing nominee row
+    public function update(string $id, string $fname, string $sname, string $email): string {
+        $stmt = $this->prepare("UPDATE nominee SET fname=?,sname=?,email=? WHERE id=?");
+        $stmt->bind_param('ssss', $fname, $sname, $email, $id);
+        $stmt->execute();
+        return "Nominee updated successfully";
+    }
+
+    // delete a nominee row
+    public function delete(string $id): string {
+        return $this->deleteById('nominee', 'id', $id) ? "Nominee deleted successfully" : "DELETE FAILED";
+    }
 }

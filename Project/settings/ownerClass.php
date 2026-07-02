@@ -27,4 +27,17 @@ class ownerClass extends BaseRepository {
         if (!$row) return 'NO VALUES FOUND';
         return $row['fname'] . '&nbsp;' . $row['sname'];
     }
+
+    // update an existing owner row
+    public function update(string $id, string $fname, string $sname, string $email, string $sup, string $dept, string $division): string {
+        $stmt = $this->prepare("UPDATE owner SET fname=?,sname=?,email=?,sup=?,dept=?,division=? WHERE id=?");
+        $stmt->bind_param('sssssss', $fname, $sname, $email, $sup, $dept, $division, $id);
+        $stmt->execute();
+        return "Owner updated successfully";
+    }
+
+    // delete an owner row
+    public function delete(string $id): string {
+        return $this->deleteById('owner', 'id', $id) ? "Owner deleted successfully" : "DELETE FAILED";
+    }
 }
