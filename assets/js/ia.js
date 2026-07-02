@@ -73,4 +73,68 @@
             success: function (r) { grcSwalReload(r, 1200); }, error: iaFail
         });
     });
+
+    /* generic helpers */
+    function submitMultipart(formSel, url) {
+        $.ajax({ url: url, method: 'POST', data: new FormData(document.querySelector(formSel)),
+            processData: false, contentType: false, dataType: 'json',
+            success: function (r) { grcSwalReload(r, 1500); }, error: iaFail });
+    }
+    function submitSerialized(formSel, url) {
+        $.ajax({ url: url, method: 'POST', data: $(formSel).serialize(), dataType: 'json',
+            success: function (r) { grcSwalReload(r, 1400); }, error: iaFail });
+    }
+    function delPost(url, id, delay) {
+        $.ajax({ url: url, method: 'POST', data: { id: id }, dataType: 'json',
+            success: function (r) { grcSwalReload(r, delay || 1200); }, error: iaFail });
+    }
+    var pick = function (b, name) { var v = b.attr('data-' + name); return (v && v !== '0') ? v : ''; };
+
+    /* =========================================================
+       Phase 2 — Strategic Plan
+       ========================================================= */
+    $(document).on('click', '.addsp', function (e) { e.preventDefault(); var f = document.getElementById('addspform'); if (f) f.reset(); $('#addsp-modal').modal('show'); });
+    $(document).on('submit', '#addspform', function (e) { e.preventDefault(); submitMultipart('#addspform', 'iastrategicplanaction.php'); });
+    $(document).on('click', '.editsp', function (e) {
+        e.preventDefault(); var b = $(this);
+        $('#esp_id').val(b.attr('data-id')); $('#esp_title').val(b.attr('data-title'));
+        $('#esp_start').val(b.attr('data-start')); $('#esp_end').val(b.attr('data-end'));
+        $('#esp_objectives').val(b.attr('data-objectives')); $('#esp_resource').val(b.attr('data-resource'));
+        $('#esp_status').val(b.attr('data-status')); $('#editsp-modal').modal('show');
+    });
+    $(document).on('submit', '#editspform', function (e) { e.preventDefault(); submitMultipart('#editspform', 'iastrategicplanupdate.php'); });
+    $(document).on('click', '.deletesp', function (e) { e.preventDefault(); $('#dsp_id').val($(this).attr('data-id')); $('#dsp_title').text($(this).attr('data-title')); $('#deletesp-modal').modal('show'); });
+    $(document).on('click', '.confirmdeletesp-btn', function (e) { e.preventDefault(); $('#deletesp-modal').modal('hide'); delPost('iastrategicplandelete.php', $('#dsp_id').val()); });
+
+    /* =========================================================
+       Phase 2 — Annual Plan (header)
+       ========================================================= */
+    $(document).on('click', '.addap', function (e) { e.preventDefault(); var f = document.getElementById('addapform'); if (f) f.reset(); $('#addap-modal').modal('show'); });
+    $(document).on('submit', '#addapform', function (e) { e.preventDefault(); submitMultipart('#addapform', 'iaannualplanaction.php'); });
+    $(document).on('click', '.editap', function (e) {
+        e.preventDefault(); var b = $(this);
+        $('#eap_id').val(b.attr('data-id')); $('#eap_year').val(b.attr('data-year')); $('#eap_title').val(b.attr('data-title'));
+        $('#eap_approved_by').val(b.attr('data-approved_by')); $('#eap_approved_date').val(b.attr('data-approved_date'));
+        $('#eap_status').val(b.attr('data-status')); $('#editap-modal').modal('show');
+    });
+    $(document).on('submit', '#editapform', function (e) { e.preventDefault(); submitMultipart('#editapform', 'iaannualplanupdate.php'); });
+    $(document).on('click', '.deleteap', function (e) { e.preventDefault(); $('#dap_id').val($(this).attr('data-id')); $('#dap_title').text($(this).attr('data-title')); $('#deleteap-modal').modal('show'); });
+    $(document).on('click', '.confirmdeleteap-btn', function (e) { e.preventDefault(); $('#deleteap-modal').modal('hide'); delPost('iaannualplandelete.php', $('#dap_id').val()); });
+
+    /* =========================================================
+       Phase 2 — Annual Plan line items (schedule)
+       ========================================================= */
+    $(document).on('click', '.additem', function (e) { e.preventDefault(); var f = document.getElementById('additemform'); if (f) f.reset(); $('#additem-modal').modal('show'); });
+    $(document).on('submit', '#additemform', function (e) { e.preventDefault(); submitSerialized('#additemform', 'iaannualplanitemaction.php'); });
+    $(document).on('click', '.edititem', function (e) {
+        e.preventDefault(); var b = $(this);
+        $('#eit_id').val(b.attr('data-id')); $('#eit_title').val(b.attr('data-title'));
+        $('#eit_dept').val(pick(b, 'dept')); $('#eit_process').val(pick(b, 'process')); $('#eit_risk').val(pick(b, 'risk'));
+        $('#eit_rating').val(b.attr('data-rating') || ''); $('#eit_quarter').val(pick(b, 'quarter'));
+        $('#eit_days').val(b.attr('data-days')); $('#eit_status').val(b.attr('data-status'));
+        $('#edititem-modal').modal('show');
+    });
+    $(document).on('submit', '#edititemform', function (e) { e.preventDefault(); submitSerialized('#edititemform', 'iaannualplanitemupdate.php'); });
+    $(document).on('click', '.deleteitem', function (e) { e.preventDefault(); $('#dit_id').val($(this).attr('data-id')); $('#dit_title').text($(this).attr('data-title')); $('#deleteitem-modal').modal('show'); });
+    $(document).on('click', '.confirmdeleteitem-btn', function (e) { e.preventDefault(); $('#deleteitem-modal').modal('hide'); delPost('iaannualplanitemdelete.php', $('#dit_id').val()); });
 })();
