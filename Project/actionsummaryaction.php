@@ -19,9 +19,9 @@ if ($mode === 'delete') {
 $dept    = $_POST['dept_id'] ?? '';
 $year    = $_POST['year'] ?? '';
 $title   = $_POST['title'] ?? '';
-$closed  = $_POST['closed'] !== '' && isset($_POST['closed']) ? $_POST['closed'] : '0';
-$ongoing = $_POST['ongoing'] !== '' && isset($_POST['ongoing']) ? $_POST['ongoing'] : '0';
-$pending = $_POST['pending'] !== '' && isset($_POST['pending']) ? $_POST['pending'] : '0';
+$closed  = isset($_POST['closed'])  && $_POST['closed']  !== '' ? $_POST['closed']  : '0';
+$ongoing = isset($_POST['ongoing']) && $_POST['ongoing'] !== '' ? $_POST['ongoing'] : '0';
+$pending = isset($_POST['pending']) && $_POST['pending'] !== '' ? $_POST['pending'] : '0';
 if (!ctype_digit((string)$year) || (int)$year < 1900 || (int)$year > 2200) respond_error('Enter a valid year.');
 if ($dept !== '' && !ctype_digit((string)$dept)) respond_error('Invalid department.');
 foreach (['closed' => $closed, 'ongoing' => $ongoing, 'pending' => $pending] as $k => $v) if (!ctype_digit((string)$v)) respond_error(ucfirst($k) . ' count must be a number.');
