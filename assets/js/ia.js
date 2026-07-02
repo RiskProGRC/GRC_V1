@@ -173,7 +173,10 @@
         ['addreview', 'editreview', 'reviewform', 'review-modal'],
         ['addfinalreport', 'editfinalreport', 'finalreportform', 'finalreport-modal'],
         ['addactionsummary', 'editactionsummary', 'actionsummaryform', 'actionsummary-modal'],
-        ['addreportsummary', 'editreportsummary', 'reportsummaryform', 'reportsummary-modal']
+        ['addreportsummary', 'editreportsummary', 'reportsummaryform', 'reportsummary-modal'],
+        ['addsurvey', 'editsurvey', 'surveyform', 'survey-modal'],
+        ['addperformance', 'editperformance', 'performanceform', 'performance-modal'],
+        ['addqadoc', 'editqadoc', 'qadocform', 'qadoc-modal']
     ];
     IA_FORMS.forEach(function (cfg) {
         var addCls = cfg[0], editCls = cfg[1], formId = cfg[2], modalId = cfg[3];

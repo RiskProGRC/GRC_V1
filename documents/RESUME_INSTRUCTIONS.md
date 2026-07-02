@@ -25,7 +25,7 @@ To continue this work in a fresh session:
 - Phase 3 Engagement (`feat/ia-engagement-planning`): COMPLETE — hub + 6 sub-artefacts, workspace tabs, verified E2E.
 - Phase 4 Fieldwork (`feat/ia-fieldwork-workpapers`): COMPLETE — fieldwork workspace + Findings Database.
 - Phase 5 Reporting (`feat/ia-reporting`): COMPLETE — final reports + action-plan + quarterly/annual + printables.
-- Phase 6: PENDING.
+- Phase 6 QA (`feat/ia-quality-assurance`): COMPLETE — surveys + performance matrix + QA docs. ALL 32 templates done.
 
 ## Reusable assets for later phases
 - `Project/core/upload_helper.php`: `ia_store_upload($fileKey,$subdir,$prefix,$allowed)`, `ia_delete_upload($relPath)`.
