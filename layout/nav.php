@@ -386,6 +386,9 @@
                                 <li class="submenu-item">
                                     <a href="../Project/iareports.php" class="submenu-link">Reports</a>
                                 </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/iaqa.php" class="submenu-link">Performance &amp; QA</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
