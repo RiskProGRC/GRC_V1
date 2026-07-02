@@ -41,6 +41,62 @@ $incidentnumb  = $incidentclass->dashboard();
 <?php include_once'../layout/header.php';
 $riskNumb    = $riskClass->dashboard();
 $showriskcat = $riskClass->showriskcat();
+
+/* ============================================================
+   REAL dashboard data — replaces the previous hardcoded facade
+   values. All figures are computed live from the database.
+   ============================================================ */
+// residual-score band -> [label, heatmap css class, watch badge class, hex]
+function dash_band(int $s): array {
+    if ($s >= 17) return ['Extreme', 'hm-c6', 'badge-high', '#7b0000'];
+    if ($s >= 10) return ['High',    'hm-c4', 'badge-high', '#f57c00'];
+    if ($s >= 5)  return ['Medium',  'hm-c3', 'badge-med',  '#fbc02d'];
+    if ($s >= 1)  return ['Low',     'hm-c1', 'badge-low',  '#388e3c'];
+    return ['—', 'hm-c1', 'badge-low', '#e9ecef'];
+}
+function dash_h($v): string { return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8'); }
+
+// 1) Heatmap counts: $heat[rimp][rlikely]
+$heat = [];
+$rs = mysqli_query($con, "SELECT rimp, rlikely, COUNT(*) c FROM assessment WHERE rimp BETWEEN 1 AND 5 AND rlikely BETWEEN 1 AND 5 GROUP BY rimp, rlikely");
+if ($rs) while ($r = mysqli_fetch_assoc($rs)) { $heat[(int)$r['rimp']][(int)$r['rlikely']] = (int)$r['c']; }
+
+// 2) Ownership by department (top 6) + real percentages
+$ownRows = []; $ownTotal = 0;
+$rs = mysqli_query($con, "SELECT dept, COUNT(*) c FROM risk WHERE dept IS NOT NULL AND dept <> '' GROUP BY dept ORDER BY c DESC LIMIT 6");
+if ($rs) while ($r = mysqli_fetch_assoc($rs)) { $ownRows[] = $r; }
+$rowTot = mysqli_fetch_row(mysqli_query($con, "SELECT COUNT(*) FROM risk"));
+$riskTotalAll = max(1, (int)($rowTot[0] ?? 1));
+$ownColors = ['#1565c0', '#2e7d32', '#0097a7', '#f57c00', '#7b1fa2', '#546e7a'];
+
+// 3) Top priority risks (highest residual score)
+$topRisks = [];
+$rs = mysqli_query($con, "SELECT a.risk_id, r.risk_name, r.dept, (a.rimp*a.rlikely) score FROM assessment a JOIN risk r ON r.risk_id=a.risk_id ORDER BY score DESC, a.risk_id DESC LIMIT 6");
+if ($rs) while ($r = mysqli_fetch_assoc($rs)) { $topRisks[] = $r; }
+
+// 4) Watchlist: untreated risks with the highest residual score
+$watchRisks = [];
+$rs = mysqli_query($con, "SELECT r.risk_name, r.dept, (a.rimp*a.rlikely) score FROM assessment a JOIN risk r ON r.risk_id=a.risk_id WHERE a.treatment IS NULL ORDER BY score DESC, a.risk_id DESC LIMIT 5");
+if ($rs) while ($r = mysqli_fetch_assoc($rs)) { $watchRisks[] = $r; }
+
+// 5) Category gauges: top 5 categories by risk count, avg residual as % of max (25)
+$catGauges = [];
+$gaugeColors = ['#1565c0', '#2e7d32', '#f57c00', '#7b1fa2', '#c62828'];
+$rs = mysqli_query($con, "SELECT rc.name, COUNT(r.risk_id) cnt, AVG(a.rimp*a.rlikely) avgscore FROM riskcat rc JOIN risk r ON r.rcat=rc.riskcat_id LEFT JOIN assessment a ON a.risk_id=r.risk_id GROUP BY rc.riskcat_id, rc.name HAVING cnt > 0 ORDER BY cnt DESC LIMIT 5");
+if ($rs) while ($r = mysqli_fetch_assoc($rs)) { $catGauges[] = ['name' => $r['name'], 'pct' => (int)round(((float)($r['avgscore'] ?? 0)) / 25 * 100)]; }
+
+// 6) Aggregate exposure scores (inherent / residual / target) — real risk scores, not $
+$exRow = mysqli_fetch_assoc(mysqli_query($con, "SELECT COALESCE(SUM(iimp*ilikely),0) inh, COALESCE(SUM(rimp*rlikely),0) res, COALESCE(SUM(timp*tlikely),0) tgt FROM assessment")) ?: ['inh' => 0, 'res' => 0, 'tgt' => 0];
+
+// 7) Treatment distribution (Accept/Avoid/Transfer/Mitigate/Untreated)
+$treatMap = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 0 => 0];
+$rs = mysqli_query($con, "SELECT COALESCE(treatment,0) t, COUNT(*) c FROM assessment GROUP BY COALESCE(treatment,0)");
+if ($rs) while ($r = mysqli_fetch_assoc($rs)) { $treatMap[(int)$r['t']] = (int)$r['c']; }
+
+// 8) Pipeline proportional bar widths
+$pipeMax = max(1, (int)$riskNumb, (int)$controlNumb, (int)$actionNumb, (int)$kiNumb, (int)$incidentnumb, (int)$recommendNumb);
+$pipeW = fn($n) => max(4, (int)round((int)$n / $pipeMax * 100));
+$kriHasData = is_array($showkri) && count($showkri) > 0;
 ?>
 
 <!-- Chart.js & FontAwesome -->
@@ -251,40 +307,17 @@ $showriskcat = $riskClass->showriskcat();
                                 <div class="hm-axis-x">Likely</div>
                                 <div class="hm-axis-x">Almost<br>Certain</div>
 
-                                <div class="hm-axis-y">Very High</div>
-                                <div class="hm-cell hm-c3"></div>
-                                <div class="hm-cell hm-c4"></div>
-                                <div class="hm-cell hm-c5">6</div>
-                                <div class="hm-cell hm-c6">8</div>
-                                <div class="hm-cell hm-c6">1</div>
-
-                                <div class="hm-axis-y">High</div>
-                                <div class="hm-cell hm-c2"></div>
-                                <div class="hm-cell hm-c3">1</div>
-                                <div class="hm-cell hm-c4">4</div>
-                                <div class="hm-cell hm-c5">2</div>
-                                <div class="hm-cell hm-c5"></div>
-
-                                <div class="hm-axis-y">Medium</div>
-                                <div class="hm-cell hm-c1"></div>
-                                <div class="hm-cell hm-c2"></div>
-                                <div class="hm-cell hm-c3">3</div>
-                                <div class="hm-cell hm-c4"></div>
-                                <div class="hm-cell hm-c4"></div>
-
-                                <div class="hm-axis-y">Low</div>
-                                <div class="hm-cell hm-c1"></div>
-                                <div class="hm-cell hm-c1"></div>
-                                <div class="hm-cell hm-c2"></div>
-                                <div class="hm-cell hm-c3"></div>
-                                <div class="hm-cell hm-c3"></div>
-
-                                <div class="hm-axis-y">Very Low</div>
-                                <div class="hm-cell hm-c1"></div>
-                                <div class="hm-cell hm-c1"></div>
-                                <div class="hm-cell hm-c1"></div>
-                                <div class="hm-cell hm-c2"></div>
-                                <div class="hm-cell hm-c2"></div>
+                                <?php
+                                $impLabels = [5 => 'Very High', 4 => 'High', 3 => 'Medium', 2 => 'Low', 1 => 'Very Low'];
+                                foreach ($impLabels as $imp => $lbl) {
+                                    echo '<div class="hm-axis-y">' . $lbl . '</div>';
+                                    for ($lik = 1; $lik <= 5; $lik++) {
+                                        $cnt  = $heat[$imp][$lik] ?? 0;
+                                        $band = dash_band($imp * $lik);
+                                        echo '<div class="hm-cell ' . $band[1] . '">' . ($cnt > 0 ? $cnt : '') . '</div>';
+                                    }
+                                }
+                                ?>
 
                                 <div></div>
                                 <div style="grid-column:2/-1;text-align:center;font-size:9px;color:#999;padding-top:3px;">← Likelihood →</div>
@@ -301,28 +334,18 @@ $showriskcat = $riskClass->showriskcat();
                     <!-- 2. Risk Appetite Gauges -->
                     <div class="col-12 col-lg-4">
                         <div class="dash-card">
-                            <div class="dash-card-title">2. Risk Appetite Overview</div>
+                            <div class="dash-card-title">2. Residual Risk by Category (% of max)</div>
                             <div class="gauge-grid">
-                                <div class="gauge-item">
-                                    <svg id="g1" viewBox="0 0 200 110" style="width:100%;max-width:120px;"></svg>
-                                    <div class="gauge-lbl">Strategic</div>
-                                </div>
-                                <div class="gauge-item">
-                                    <svg id="g2" viewBox="0 0 200 110" style="width:100%;max-width:120px;"></svg>
-                                    <div class="gauge-lbl">Operational</div>
-                                </div>
-                                <div class="gauge-item">
-                                    <svg id="g3" viewBox="0 0 200 110" style="width:100%;max-width:120px;"></svg>
-                                    <div class="gauge-lbl">Financial</div>
-                                </div>
-                                <div class="gauge-item">
-                                    <svg id="g4" viewBox="0 0 200 110" style="width:100%;max-width:120px;"></svg>
-                                    <div class="gauge-lbl">Cyber</div>
-                                </div>
-                                <div class="gauge-item gauge-5th">
-                                    <svg id="g5" viewBox="0 0 200 110" style="width:100%;max-width:120px;"></svg>
-                                    <div class="gauge-lbl">Third-Party</div>
-                                </div>
+                                <?php foreach ($catGauges as $i => $g):
+                                    $isLastOdd = (count($catGauges) % 2 !== 0 && $i === count($catGauges) - 1); ?>
+                                    <div class="gauge-item<?= $isLastOdd ? ' gauge-5th' : '' ?>">
+                                        <svg id="gcat<?= $i ?>" viewBox="0 0 200 110" style="width:100%;max-width:120px;"></svg>
+                                        <div class="gauge-lbl"><?= dash_h($g['name']) ?></div>
+                                    </div>
+                                <?php endforeach; ?>
+                                <?php if (!$catGauges): ?>
+                                    <div style="grid-column:1/-1;font-size:12px;color:#888;padding:24px 0;text-align:center;">No categorised risk assessments yet.</div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -330,7 +353,7 @@ $showriskcat = $riskClass->showriskcat();
                     <!-- 3. Residual Risk Exposure -->
                     <div class="col-12 col-lg-4">
                         <div class="dash-card">
-                            <div class="dash-card-title">3. Residual Risk Exposure (USD)</div>
+                            <div class="dash-card-title">3. Aggregate Risk Exposure (Inherent → Residual → Target)</div>
                             <canvas id="barChart" style="max-height:220px;"></canvas>
                         </div>
                     </div>
@@ -346,32 +369,32 @@ $showriskcat = $riskClass->showriskcat();
                             <div class="mt-1">
                                 <div class="pipe-row">
                                     <span class="pipe-label">Identified</span>
-                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:100%;background:#1565c0;"><?= $riskNumb ?></div></div>
+                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:<?= $pipeW($riskNumb) ?>%;background:#1565c0;"><?= $riskNumb ?></div></div>
                                     <span class="pipe-num"><?= $riskNumb ?></span>
                                 </div>
                                 <div class="pipe-row">
                                     <span class="pipe-label">Controls</span>
-                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:80%;background:#1976d2;"><?= $controlNumb ?></div></div>
+                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:<?= $pipeW($controlNumb) ?>%;background:#1976d2;"><?= $controlNumb ?></div></div>
                                     <span class="pipe-num"><?= $controlNumb ?></span>
                                 </div>
                                 <div class="pipe-row">
                                     <span class="pipe-label">Actions</span>
-                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:70%;background:#f57c00;"><?= $actionNumb ?></div></div>
+                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:<?= $pipeW($actionNumb) ?>%;background:#f57c00;"><?= $actionNumb ?></div></div>
                                     <span class="pipe-num"><?= $actionNumb ?></span>
                                 </div>
                                 <div class="pipe-row">
                                     <span class="pipe-label">Key Indicators</span>
-                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:60%;background:#7b1fa2;"><?= $kiNumb ?></div></div>
+                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:<?= $pipeW($kiNumb) ?>%;background:#7b1fa2;"><?= $kiNumb ?></div></div>
                                     <span class="pipe-num"><?= $kiNumb ?></span>
                                 </div>
                                 <div class="pipe-row">
                                     <span class="pipe-label">Incidents</span>
-                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:50%;background:#c62828;"><?= $incidentnumb ?></div></div>
+                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:<?= $pipeW($incidentnumb) ?>%;background:#c62828;"><?= $incidentnumb ?></div></div>
                                     <span class="pipe-num"><?= $incidentnumb ?></span>
                                 </div>
                                 <div class="pipe-row">
                                     <span class="pipe-label">Recommend.</span>
-                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:65%;background:#2e7d32;"><?= $recommendNumb ?></div></div>
+                                    <div class="pipe-bar-wrap"><div class="pipe-bar" style="width:<?= $pipeW($recommendNumb) ?>%;background:#2e7d32;"><?= $recommendNumb ?></div></div>
                                     <span class="pipe-num"><?= $recommendNumb ?></span>
                                 </div>
                             </div>
@@ -382,7 +405,14 @@ $showriskcat = $riskClass->showriskcat();
                     <div class="col-12 col-lg-4">
                         <div class="dash-card">
                             <div class="dash-card-title">5. KRI Breach Radar (Early Warning)</div>
-                            <canvas id="radarChart" style="max-height:220px;"></canvas>
+                            <?php if ($kriHasData): ?>
+                                <canvas id="radarChart" style="max-height:220px;"></canvas>
+                            <?php else: ?>
+                                <div style="height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#999;text-align:center;font-size:12px;">
+                                    <i class="fas fa-gauge-high" style="font-size:28px;margin-bottom:8px;"></i>
+                                    No Key Risk Indicators captured yet.<br>Add KRIs under <b>Risk Monitor → KRI</b> to populate this chart.
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -391,30 +421,16 @@ $showriskcat = $riskClass->showriskcat();
                         <div class="dash-card">
                             <div class="dash-card-title">6. Risk Ownership Map</div>
                             <div class="own-grid mt-2">
-                                <div class="own-tile" style="background:#1565c0;">
-                                    <div class="dept">Finance</div>
-                                    <div class="pct">22%</div>
-                                </div>
-                                <div class="own-tile" style="background:#2e7d32;">
-                                    <div class="dept">Operations</div>
-                                    <div class="pct">25%</div>
-                                </div>
-                                <div class="own-tile" style="background:#0097a7;">
-                                    <div class="dept">IT</div>
-                                    <div class="pct">18%</div>
-                                </div>
-                                <div class="own-tile" style="background:#f57c00;">
-                                    <div class="dept">Procurement</div>
-                                    <div class="pct">15%</div>
-                                </div>
-                                <div class="own-tile" style="background:#7b1fa2;">
-                                    <div class="dept">HR</div>
-                                    <div class="pct">10%</div>
-                                </div>
-                                <div class="own-tile" style="background:#546e7a;">
-                                    <div class="dept">Legal</div>
-                                    <div class="pct">10%</div>
-                                </div>
+                                <?php foreach ($ownRows as $i => $o):
+                                    $pct = (int)round((int)$o['c'] * 100 / $riskTotalAll); ?>
+                                    <div class="own-tile" style="background:<?= $ownColors[$i % count($ownColors)] ?>;">
+                                        <div class="dept"><?= dash_h($deptClass->deptJoins((string)$o['dept'])) ?></div>
+                                        <div class="pct"><?= $pct ?>%</div>
+                                    </div>
+                                <?php endforeach; ?>
+                                <?php if (!$ownRows): ?>
+                                    <div style="grid-column:1/-1;font-size:12px;color:#888;padding:24px 0;text-align:center;">No risks assigned to departments yet.</div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -426,55 +442,29 @@ $showriskcat = $riskClass->showriskcat();
                     <!-- 7. Scenario Loss Curve -->
                     <div class="col-12 col-lg-4">
                         <div class="dash-card">
-                            <div class="dash-card-title">7. Scenario Loss Curve (Cumulative Exposure)</div>
-                            <canvas id="lineChart" style="max-height:220px;"></canvas>
+                            <div class="dash-card-title">7. Risk Treatment Distribution</div>
+                            <canvas id="treatChart" style="max-height:220px;"></canvas>
                         </div>
                     </div>
 
                     <!-- 8. Emerging Risk Watchlist -->
                     <div class="col-12 col-lg-4">
                         <div class="dash-card">
-                            <div class="dash-card-title">8. Emerging Risk Watchlist</div>
-                            <div class="watch-item">
-                                <div class="watch-icon" style="background:#fde8e8;">🤖</div>
-                                <div>
-                                    <div class="watch-name">Finance Bill 2026</div>
-                                    <div class="watch-sub">Legislative &amp; compliance exposure</div>
+                            <div class="dash-card-title">8. Watchlist — Untreated High-Residual Risks</div>
+                            <?php if (!$watchRisks): ?>
+                                <div style="font-size:12px;color:#888;padding:24px 0;text-align:center;">No untreated risks — all assessed risks have a treatment.</div>
+                            <?php else: foreach ($watchRisks as $w):
+                                $band = dash_band((int)$w['score']);
+                                $iconBg = ['badge-high' => '#fde8e8', 'badge-med' => '#fff3e0', 'badge-low' => '#eafaf1'][$band[2]] ?? '#eef2f7'; ?>
+                                <div class="watch-item">
+                                    <div class="watch-icon" style="background:<?= $iconBg ?>;"><i class="fas fa-triangle-exclamation" style="color:<?= $band[3] ?>;"></i></div>
+                                    <div>
+                                        <div class="watch-name"><?= dash_h($w['risk_name']) ?></div>
+                                        <div class="watch-sub"><?= dash_h($deptClass->deptJoins((string)$w['dept'])) ?> · residual score <?= (int)$w['score'] ?></div>
+                                    </div>
+                                    <span class="risk-badge <?= $band[2] ?>"><?= $band[0] ?></span>
                                 </div>
-                                <span class="risk-badge badge-high">High</span>
-                            </div>
-                            <div class="watch-item">
-                                <div class="watch-icon" style="background:#fff3e0;">⛽</div>
-                                <div>
-                                    <div class="watch-name">EPRA Fuel Price Increase</div>
-                                    <div class="watch-sub">Operational cost pressure</div>
-                                </div>
-                                <span class="risk-badge badge-high">High</span>
-                            </div>
-                            <div class="watch-item">
-                                <div class="watch-icon" style="background:#eafaf1;">🌍</div>
-                                <div>
-                                    <div class="watch-name">Global Conflict</div>
-                                    <div class="watch-sub">Supply chain &amp; trade disruption</div>
-                                </div>
-                                <span class="risk-badge badge-med">Medium</span>
-                            </div>
-                            <div class="watch-item">
-                                <div class="watch-icon" style="background:#e3f2fd;">🧠</div>
-                                <div>
-                                    <div class="watch-name">Mental Health Risk</div>
-                                    <div class="watch-sub">Workforce resilience gaps</div>
-                                </div>
-                                <span class="risk-badge badge-low">Low</span>
-                            </div>
-                            <div class="watch-item">
-                                <div class="watch-icon" style="background:#f5eeff;">⚡</div>
-                                <div>
-                                    <div class="watch-name">Business Continuity</div>
-                                    <div class="watch-sub">Resilience gaps identified</div>
-                                </div>
-                                <span class="risk-badge badge-high">High</span>
-                            </div>
+                            <?php endforeach; endif; ?>
                         </div>
                     </div>
 
@@ -488,40 +478,23 @@ $showriskcat = $riskClass->showriskcat();
                                         <th>Risk ID</th>
                                         <th>Risk Event</th>
                                         <th>Owner</th>
-                                        <th>Status</th>
+                                        <th>Severity</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td style="font-weight:700;color:#1565c0;">RM-001</td>
-                                        <td>Critical vendor dependency</td>
-                                        <td>Procurement</td>
-                                        <td><span class="status-pill s-overdue">Overdue</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="font-weight:700;color:#1565c0;">RM-002</td>
-                                        <td>System outage exposure</td>
-                                        <td>IT</td>
-                                        <td><span class="status-pill s-progress">In Progress</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="font-weight:700;color:#1565c0;">RM-003</td>
-                                        <td>Demand volatility impact</td>
-                                        <td>Operations</td>
-                                        <td><span class="status-pill s-approved">Approved</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="font-weight:700;color:#1565c0;">RM-004</td>
-                                        <td>Currency fluctuation risk</td>
-                                        <td>Finance</td>
-                                        <td><span class="status-pill s-overdue">Overdue</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="font-weight:700;color:#1565c0;">RM-005</td>
-                                        <td>Business continuity gap</td>
-                                        <td>Risk Mgmt</td>
-                                        <td><span class="status-pill s-identified">Identified</span></td>
-                                    </tr>
+                                    <?php if (!$topRisks): ?>
+                                        <tr><td colspan="4" style="text-align:center;color:#888;">No assessed risks yet.</td></tr>
+                                    <?php else:
+                                        $sevPill = ['Extreme' => 's-overdue', 'High' => 's-progress', 'Medium' => 's-identified', 'Low' => 's-approved'];
+                                        foreach ($topRisks as $t):
+                                            $band = dash_band((int)$t['score']); ?>
+                                        <tr>
+                                            <td style="font-weight:700;color:#1565c0;">RSK<?= str_pad((string)$t['risk_id'], 3, '0', STR_PAD_LEFT) ?></td>
+                                            <td><?= dash_h($t['risk_name']) ?></td>
+                                            <td><?= dash_h($deptClass->deptJoins((string)$t['dept'])) ?></td>
+                                            <td><span class="status-pill <?= $sevPill[$band[0]] ?? 's-identified' ?>"><?= $band[0] ?> (<?= (int)$t['score'] ?>)</span></td>
+                                        </tr>
+                                    <?php endforeach; endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -557,103 +530,58 @@ function drawGauge(svgId, value, color) {
               font-size="26" font-weight="800" fill="#1a1a2e"
               font-family="Segoe UI,Arial,sans-serif">${value}%</text>`;
 }
-drawGauge('g1', 70, '#1565c0');
-drawGauge('g2', 65, '#2e7d32');
-drawGauge('g3', 60, '#f57c00');
-drawGauge('g4', 75, '#7b1fa2');
-drawGauge('g5', 55, '#c62828');
+// ── Category residual gauges (real data) ───────────────────────────────────────
+<?php foreach ($catGauges as $i => $g): ?>
+drawGauge('gcat<?= $i ?>', <?= (int)$g['pct'] ?>, '<?= $gaugeColors[$i % count($gaugeColors)] ?>');
+<?php endforeach; ?>
 
-// ── Bar Chart ─────────────────────────────────────────────────────────────────
+// ── Aggregate Risk Exposure bar (real scores: inherent → residual → target) ─────
 new Chart(document.getElementById('barChart'), {
     type: 'bar',
     data: {
-        labels: ['Inherent\nExposure', 'Existing\nControls', 'Treatment\nActions', 'Residual\nExposure'],
+        labels: ['Inherent', 'Residual', 'Target'],
         datasets: [{
-            data: [5.8, -1.9, -1.3, 2.6],
-            backgroundColor: ['#1565c0', '#c62828', '#c62828', '#2e7d32'],
+            data: [<?= (int)$exRow['inh'] ?>, <?= (int)$exRow['res'] ?>, <?= (int)$exRow['tgt'] ?>],
+            backgroundColor: ['#1565c0', '#f57c00', '#2e7d32'],
             borderRadius: 4
         }]
     },
     options: {
         plugins: { legend: { display: false } },
         scales: {
-            y: { ticks: { callback: v => '$' + v + 'M', font: { size: 10 } }, grid: { color: '#f0f2f7' } },
-            x: { ticks: { font: { size: 9 } }, grid: { display: false } }
+            y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#f0f2f7' }, title: { display: true, text: 'Aggregate risk score', font: { size: 9 } } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
         }
     }
 });
 
-// ── Radar Chart ───────────────────────────────────────────────────────────────
+// ── KRI Breach Radar — only when real KRI data exists (empty-state otherwise) ────
+<?php if ($kriHasData): ?>
 new Chart(document.getElementById('radarChart'), {
     type: 'radar',
     data: {
-        labels: ['Regulatory\nChange', 'Supplier\nDependency', 'Downtime', 'Data\nQuality', 'Safety', 'Liquidity'],
+        labels: <?= json_encode(array_map(fn($k) => $k['b_objective'] ?? ($k['kri'] ?? 'KRI'), array_slice($showkri, 0, 6))) ?>,
         datasets: [{
-            label: 'Breach Score',
-            data: [82, 68, 55, 74, 45, 60],
-            backgroundColor: 'rgba(21,101,192,0.15)',
-            borderColor: '#1565c0',
-            pointBackgroundColor: '#1565c0',
-            pointRadius: 4,
-            borderWidth: 2
-        }, {
-            label: 'Appetite Limit',
-            data: [70, 70, 70, 70, 70, 70],
-            backgroundColor: 'rgba(198,40,40,0.05)',
-            borderColor: '#c62828',
-            borderDash: [4, 4],
-            pointRadius: 0,
-            borderWidth: 1.5
+            label: 'KRIs',
+            data: <?= json_encode(array_map(fn($k) => (int)($k['perform'] ?? 0), array_slice($showkri, 0, 6))) ?>,
+            backgroundColor: 'rgba(21,101,192,0.15)', borderColor: '#1565c0', pointBackgroundColor: '#1565c0', pointRadius: 4, borderWidth: 2
         }]
     },
-    options: {
-        plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } } },
-        scales: {
-            r: {
-                min: 0, max: 100,
-                ticks: { stepSize: 25, font: { size: 9 }, display: false },
-                pointLabels: { font: { size: 9 } },
-                grid: { color: '#e9ecef' }
-            }
-        }
-    }
+    options: { plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } } }, scales: { r: { pointLabels: { font: { size: 9 } }, grid: { color: '#e9ecef' } } } }
 });
+<?php endif; ?>
 
-// ── Line Chart ────────────────────────────────────────────────────────────────
-new Chart(document.getElementById('lineChart'), {
-    type: 'line',
+// ── Risk Treatment Distribution doughnut (real assessment.treatment counts) ──────
+new Chart(document.getElementById('treatChart'), {
+    type: 'doughnut',
     data: {
-        labels: ['0%', '20%', '40%', '60%', '80%', '100%'],
+        labels: ['Accept', 'Avoid', 'Transfer', 'Mitigate', 'Untreated'],
         datasets: [{
-            label: 'Base Case',
-            data: [0, 0.6, 1.4, 2.5, 3.8, 4.6],
-            borderColor: '#1565c0',
-            backgroundColor: 'rgba(21,101,192,0.08)',
-            borderWidth: 2, fill: true, tension: 0.4, pointRadius: 2
-        }, {
-            label: 'Severe Case',
-            data: [0, 0.9, 2.1, 3.6, 5.2, 6.8],
-            borderColor: '#f57c00',
-            backgroundColor: 'rgba(245,124,0,0.06)',
-            borderWidth: 2, fill: true, tension: 0.4, pointRadius: 2
-        }, {
-            label: 'Stress Case',
-            data: [0, 1.3, 3.0, 5.2, 7.5, 9.8],
-            borderColor: '#c62828',
-            backgroundColor: 'rgba(198,40,40,0.05)',
-            borderWidth: 2, fill: true, tension: 0.4, pointRadius: 2
+            data: [<?= (int)$treatMap[1] ?>, <?= (int)$treatMap[2] ?>, <?= (int)$treatMap[3] ?>, <?= (int)$treatMap[4] ?>, <?= (int)$treatMap[0] ?>],
+            backgroundColor: ['#2e7d32', '#0097a7', '#7b1fa2', '#1565c0', '#c62828']
         }]
     },
-    options: {
-        plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } } },
-        scales: {
-            y: { ticks: { callback: v => '$' + v + 'M', font: { size: 10 } }, grid: { color: '#f0f2f7' } },
-            x: {
-                title: { display: true, text: 'Probability', font: { size: 10 } },
-                ticks: { font: { size: 9 } }, grid: { display: false }
-            }
-        }
-    }
+    options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12, padding: 6 } } } }
 });
 </script>
 
