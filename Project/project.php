@@ -239,7 +239,7 @@ $showproject=$projectClass->showProject();
     <script>
         // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!------------- Include Choices select JavaScript ------------------------------------------------>
 <script src="../assets/vendors/choices.js/choices.min.js"></script>

@@ -2,7 +2,7 @@
 
 	"use strict";
 
-	$('[data-toggle="tooltip"]').tooltip()
+	if ($.fn.tooltip) { $('[data-toggle="tooltip"]').tooltip(); } // guard: Bootstrap 5 drops the jQuery tooltip plugin
 
 	// $('#exampleModalCenter').modal('show')
 
