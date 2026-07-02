@@ -137,7 +137,7 @@ $showaction=$actionClass->showaction();
                                         <td>
                                         <button class="btn btn-sm btn-primary editrecommend" id='<?=$recommend["id"]?>'><i class="fas fa-fw fa-pen"></i></button>
                                        
-                                        <button class="btn btn-sm btn-danger recommenddelete btn-userpermission-delete" id='.$recommend["id"].'><i class="fas fa-fw fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-danger recommenddelete btn-userpermission-delete" id='<?=$recommend["id"]?>'><i class="fas fa-fw fa-trash"></i></button>
                                          </td>
                                     </tr>
                                     <?php

@@ -160,7 +160,7 @@ $showrisk= $riskclass->showRisk();
                                         </td>
                                         <td>
                                         <button name="delete" value="Delete" class="btn btn-sm btn-primary editactionbtn btn-userpermission-edit" id="<?=$action['id']?>"> <i class="fas fa-fw fa-pen"></i></button>
-                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger actiondeletebtn btn-userpermission-delete" id=""><i class="fas fa-fw fa-trash"></i></button>
+                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger actiondeletebtn btn-userpermission-delete" id="<?=$action['id']?>"><i class="fas fa-fw fa-trash"></i></button>
                                          </td>
                                     </tr>
                                 <?php }

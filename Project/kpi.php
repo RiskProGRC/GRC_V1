@@ -110,7 +110,7 @@ $showprocess=$processClass->showProcess();
                                         </td>
                                         <td>
                                         <button class="btn btn-primary btn-userpermission-edit kiedit-btn" id='<?=$ki["id"]?>'><span class="fa-fw select-all fas">ïŒƒ</span></button>
-                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger kidelete btn-userpermission-delete" id='.$ki["id"].'><span class="fa-fw select-all fas">ï‹­</span></button>
+                                        <button name="delete" value="Delete" class="btn btn-sm btn-danger kidelete btn-userpermission-delete" id='<?=$ki["id"]?>'><span class="fa-fw select-all fas">ï‹­</span></button>
                                          </td>
                                     </tr>
                                     <?php } ?>
