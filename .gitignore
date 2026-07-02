@@ -1,6 +1,7 @@
 # IDE and Editor Files
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 *~
@@ -12,6 +13,7 @@
 *.sublime-workspace
 .netbeans/
 nbproject/
+screenshots/
 
 # IntelliJ/PhpStorm Files
 *.iml
