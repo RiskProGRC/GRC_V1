@@ -2226,3 +2226,31 @@ $(document).on('click', '.permission-button', function (e) {
 // bulk_risk_upload.php keeps its own self-contained inline script
 // (drag-drop UI, progress bar, file list, displayResults) — not moved here.
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section 21 — Generic AJAX submit for simple native "add" forms (QA fix)
+// Converts native form POSTs (which previously rendered a raw-JSON page) into
+// AJAX submits with proper success/fail feedback. Opt-in via class "ia-simple-add"
+// and data-redirect="<page>". The submit button's name is re-added so the
+// server-side isset($_POST['addX']) guard still passes.
+// ─────────────────────────────────────────────────────────────────────────────
+$(document).on('submit', '.ia-simple-add', function (e) {
+    e.preventDefault();
+    var $f = $(this);
+    var url = $f.attr('action');
+    var redirect = $f.data('redirect') || window.location.pathname.split('/').pop();
+    var data = $f.serialize();
+    var addName = $f.find('button[type="submit"]').attr('name');
+    if (addName) { data += '&' + encodeURIComponent(addName) + '=1'; }
+    $.ajax({
+        url: url, method: 'POST', data: data, dataType: 'json',
+        success: function (r) {
+            if (r && r.status === 'ok') {
+                grcSwal(r, 1500, redirect);
+            } else {
+                Swal.fire({ icon: 'error', title: (r && r.message) || 'Could not save. Please try again.' });
+            }
+        },
+        error: function () { Swal.fire({ icon: 'error', title: 'Request failed. Please try again.' }); }
+    });
+});
