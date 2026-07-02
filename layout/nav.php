@@ -377,6 +377,9 @@
                                 <li class="submenu-item">
                                     <a href="../Project/iaannualplan.php" class="submenu-link">Annual Plan</a>
                                 </li>
+                                <li class="submenu-item">
+                                    <a href="../Project/engagements.php" class="submenu-link">Engagements</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
