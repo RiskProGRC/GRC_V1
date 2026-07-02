@@ -359,6 +359,22 @@
                     </a>
                 </li>
 
+                <!-- Internal Audit — all roles (links added progressively per implementation phase) -->
+                <li class="menu-item has-sub">
+                    <a href="#" class="menu-link">
+                        <i class="bi bi-clipboard2-check-fill"></i>
+                        <span>Internal Audit</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="submenu-group-wrapper">
+                            <ul class="submenu-group">
+                                <li class="submenu-item">
+                                    <a href="../Project/iacharter.php" class="submenu-link">Charters</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
 
                 <!-- Settings — Admin and Manager only -->
                 <?php if ($sess_roles == 1 || $sess_roles == 3) { ?>
