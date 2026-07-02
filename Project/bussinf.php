@@ -738,6 +738,8 @@ MODAL FOR WHOLE INFRUSTRUCTURE
 				</div>
 				<div class="modal-body">
 				<form class="form" method="POST" action="group.php" enctype="multipart/form-data">
+					<input type="hidden" name="uid" value="<?= htmlspecialchars($_SESSION['uid'] ?? '', ENT_QUOTES) ?>">
+					<input type="hidden" name="ip" value="<?= htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? '', ENT_QUOTES) ?>">
 					<div class="row">
 						<div class="col-md-6">
 							<div class="col-12">

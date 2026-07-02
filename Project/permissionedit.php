@@ -3,7 +3,11 @@ include_once'./users/usersClass.php';
 
 $usersclass= new usersClass();
 
-$uid=$_GET["id"];
+$uid = $_GET["id"] ?? '';
+if ($uid === '' || !ctype_digit((string)$uid)) { // guard: page requires a target user id (avoids a TypeError/500 on direct access)
+    header('Location: userslist.php');
+    exit;
+}
 $profile=$usersclass->profile($uid);
 $permission=$usersclass->fetchpermission($uid);
 $puid=$uid;
@@ -85,7 +89,7 @@ $puid=$uid;
         <section  class="row">
             <div class="col-lg-12">
             <div class="container rounded bg-white mt-5 mb-5">
-    <form action="permissionaction.php" method="post">
+    <form action="permissionaction.php" method="post" class="ia-simple-add" data-redirect="userslist.php">
         <div class="row">
             <div class="col-md-3 border-right">
                 <div class="d-flex flex-column align-items-center text-center p-3 py-5"><img class="rounded-circle mt-5" width="150px" src="../assets/images/faces//silhouette-glasses-profile.jpg">
@@ -584,7 +588,7 @@ $puid=$uid;
     <script>
         // Simple Datatable
         let table1 = document.querySelector('#table1');
-        let dataTable = new simpleDatatables.DataTable(table1);
+        if (table1) new simpleDatatables.DataTable(table1);
     </script>
 <!----------------------Datatable Simple end------------------------------------------------>
 
