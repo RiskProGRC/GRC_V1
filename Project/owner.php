@@ -120,7 +120,7 @@ $showOwner=$ownerClass->showOwner();
                     <i data-feather="x"></i>
                 </button>
             </div>        
-            <form class="form form-horizontal" action="ownerAction.php" method="POST">
+            <form class="form form-horizontal ia-simple-add" action="ownerAction.php" method="POST" data-redirect="owner.php">
             <div class="modal-body">
                     <div class="row">
                         

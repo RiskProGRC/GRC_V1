@@ -102,7 +102,7 @@ $showNominee=$nomineeClass->shownominee();
                     <i data-feather="x"></i>
                 </button>
             </div>        
-            <form class="form form-horizontal" action="nomineeAction.php" method="POST">
+            <form class="form form-horizontal ia-simple-add" action="nomineeAction.php" method="POST" data-redirect="nominee.php">
             <div class="modal-body">
                     <div class="row">
                         

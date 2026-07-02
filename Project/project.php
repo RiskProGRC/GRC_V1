@@ -132,7 +132,7 @@ $showproject=$projectClass->showProject();
                     <i data-feather="x"></i>
                 </button>
             </div>        
-            <form class="form form-horizontal" action="projectAction.php" method="POST">
+            <form class="form form-horizontal ia-simple-add" action="projectAction.php" method="POST" data-redirect="project.php">
             <div class="modal-body">
                     <div class="row">
                         
