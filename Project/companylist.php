@@ -114,7 +114,7 @@ $showcompany=$companyClass->showCompany();
                                 <label>Company name:</label>
                             </div>
                             <div class="col-md-8 form-group">
-                            <input type="hidden" class="form-control" name="cid" id="cid"
+                            <input type="hidden" class="form-control" name="companyid" id="cid"
                                     placeholder="First name">
                                 <input type="text" class="form-control" name="cname" id="cname"
                                     placeholder="First name">
